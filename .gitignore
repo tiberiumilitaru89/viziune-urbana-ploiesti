@@ -16,6 +16,7 @@ node_modules
 .vercel
 **/.vercel/
 *.log
+archive/
 
 # IDEs and editors
 /.idea

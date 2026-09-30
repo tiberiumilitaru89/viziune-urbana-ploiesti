@@ -10,7 +10,7 @@ dependencies: []
 
 Acest document reprezintă Sursa Unică de Adevăr (SSOT) pentru ambele variante de implementare (`A` și `B`):
 
-| Criteriu | Varianta A (`Viziune Urbana Noua Ploiesti/A`) | Varianta B (`Viziune Urbana Noua Ploiesti/B`) |
+| Criteriu | Varianta A (`A/`) | Varianta B (`B/`) |
 | :--- | :--- | :--- |
 | **Direcție Design** | Modern Tech & Civic Trust (stil Next-gen SaaS / civic dashboard) | Autoritate Instituțională & Editorială (stil whitepaper / fundație nobilă) |
 | **Tipografie** | `Plus Jakarta Sans` / Inter (precizie geometrică curată) | `Playfair Display` serif pentru titluri + `Plus Jakarta Sans` pentru corp |
