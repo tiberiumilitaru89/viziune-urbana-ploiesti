@@ -1,0 +1,59 @@
+export type AuditStatus = "nou" | "in_evaluare" | "acceptat" | "respins" | "finalizat";
+
+export type AuditRequest = {
+  readonly id: string;
+  readonly name: string;
+  readonly phone: string;
+  readonly building: string;
+  readonly address: string;
+  readonly problem: string;
+  readonly status: AuditStatus;
+  readonly formsCollected: number;
+  readonly formsTarget: number;
+  readonly fundsCollected: number;
+  readonly fundsTarget: number;
+  readonly createdAt: string;
+};
+
+export type PublicAssociationSummary = {
+  readonly id: string;
+  readonly building: string;
+  readonly address: string;
+  readonly status: AuditStatus;
+  readonly formsCollected: number;
+  readonly formsTarget: number;
+  readonly fundsCollected: number;
+  readonly fundsTarget: number;
+};
+
+export type ProjectItem = {
+  readonly id: string;
+  readonly title: string;
+  readonly description: string;
+  readonly status: "in_curs" | "finalizat";
+  readonly beforeImage: string;
+  readonly afterImage: string;
+  readonly completionDate: string;
+};
+
+export type SpecItem = {
+  readonly orderNum: number;
+  readonly title: string;
+  readonly description: string;
+  readonly image: string | null;
+};
+
+export type DonationEntry = {
+  readonly id: string;
+  readonly type: "bani" | "materiale";
+  readonly amountRon?: number;
+  readonly materialType?: string;
+  readonly quantity?: number;
+  readonly unit?: string;
+  readonly companyOrName: string;
+  readonly phone: string;
+  readonly email?: string;
+  readonly description?: string;
+  readonly status: "inregistrat" | "confirmat" | "finalizat";
+  readonly createdAt: string;
+};

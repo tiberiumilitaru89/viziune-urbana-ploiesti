@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Viziune Urbană Ploiești"
+description = "Site public pentru Asociația Viziune Urbană Ploiești, dedicat reabilitării subsolurilor de bloc. Prezintă misiunea, serviciile și etapele de lucru și permite locatarilor să trimită cereri de evaluare gratuită."
+version = "1.0.0"
+id = "artifacts/viziune-urbana"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23763
+
+[services.development]
+run = "pnpm --filter @workspace/viziune-urbana run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/viziune-urbana", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/viziune-urbana/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23763"
+BASE_PATH = "/"
