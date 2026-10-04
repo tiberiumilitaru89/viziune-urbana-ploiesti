@@ -2,7 +2,7 @@
 id: okf-copywriting-and-mission
 title: "Copywriting Canonic & Misiunea Asociației Viziune Urbană Ploiești"
 domain: business-rules
-last_verified: 2026-10-04
+last_verified: 2026-10-05
 dependencies: ["okf-index"]
 ---
 
