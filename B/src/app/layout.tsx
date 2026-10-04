@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +13,13 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#070d1e",
+};
 
 export const metadata: Metadata = {
   title: "Viziune Urbană Ploiești | Autoritate Civică & Reabilitare Subsoluri",
@@ -36,13 +43,13 @@ export default function RootLayout({
       lang="ro"
       className={`${playfairDisplay.variable} ${plusJakartaSans.variable} scroll-smooth`}
     >
-      <body className="min-h-screen bg-[#070d1e] text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950 relative">
+      <body className="min-h-screen bg-[#070d1e] text-slate-100 antialiased selection:bg-amber-500 selection:text-slate-950 relative overflow-x-hidden w-full">
         {/* Fixed Panoramic Civic Background — stays fixed on scroll across the entire application */}
         <div
-          className="fixed inset-0 pointer-events-none -z-50 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/ref-assets/cathedral-ploiesti.jpg')" }}
+          className="fixed inset-0 pointer-events-none -z-50 bg-cover bg-[center_28%] bg-no-repeat transition-all duration-700"
+          style={{ backgroundImage: "url('/ref-assets/cathedral-ploiesti-drone.jpg')" }}
         />
-        <div className="fixed inset-0 pointer-events-none -z-40 bg-gradient-to-b from-[#070d1e]/85 via-[#070d1e]/92 to-[#040814]/98" />
+        <div className="fixed inset-0 pointer-events-none -z-40 bg-gradient-to-b from-[#070d1e]/75 via-[#070d1e]/88 to-[#040814]/96" />
         <div className="fixed inset-0 pointer-events-none -z-30 bg-[radial-gradient(ellipse_70%_70%_at_50%_10%,rgba(217,119,6,0.12),rgba(0,0,0,0.5))]" />
 
         {children}

@@ -100,7 +100,7 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0a142f] border-b border-amber-900/30 px-5 pt-4 pb-6 space-y-3 shadow-2xl">
+        <div className="lg:hidden bg-[#0a142f] border-b border-amber-900/30 px-5 pt-4 pb-6 space-y-3 shadow-2xl max-h-[calc(100dvh-5rem)] overflow-y-auto">
           <div className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <a

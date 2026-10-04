@@ -82,8 +82,8 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#0a142f] border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-[#0a142f] border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl">
         {/* Close button */}
         <button
           onClick={onClose}

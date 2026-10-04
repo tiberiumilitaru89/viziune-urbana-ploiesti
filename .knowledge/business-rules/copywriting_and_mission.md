@@ -38,7 +38,8 @@ Acest nod păstrează cuvânt cu cuvânt tot conținutul editorial aprobat pentr
   > „Sponsorizări țevi și fitinguri pentru rețeaua principală a blocului tău — fără costuri pentru asociație.”
 * **CTA 1:** „Suntem o Asociație” (cu săgeată)
 * **CTA 2:** „Susține proiect”
-* **Fundal General (Fixed pe ecran la scroll):** Imagine panoramică reprezentativă Ploiești (Catedrala Sf. Ioan Botezătorul) fixată pe fundal în timpul scroll-ului pe pagină, cu overlay civic întunecat pentru lizibilitate maximă.
+* **Fundal General (Fixed pe ecran la scroll):** Fotografie panoramică aeriană de înaltă rezoluție (perspectivă dronă) reprezentativă pentru municipiul Ploiești (Catedrala Sfântul Ioan Botezătorul, scuarul civic și ansamblul urban de blocuri de locuințe), fixată pe fundal în timpul scroll-ului pe pagină (`bg-cover bg-[center_28%] fixed`), cu overlay civic calculat pentru lizibilitate și contrast WCAG AAA.
+* **Optimizare Mobilă Avansată:** Viewport defensiv cu protecție la tastaturi virtuale (`max-h-[92dvh] overflow-y-auto` în toate modalele), touch targets de minim 44px, drawer navigație scrollabil și prevenirea deplasărilor orizontale (`overflow-x-hidden`).
 
 ---
 

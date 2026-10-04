@@ -27,7 +27,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
           </div>
 
           {/* Majestic Editorial Title */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-serif font-black text-white tracking-normal leading-[1.12] mb-6">
+          <h1 className="text-3xl xs:text-4xl sm:text-6xl lg:text-7xl font-serif font-black text-white tracking-normal leading-[1.14] sm:leading-[1.12] mb-4 sm:mb-6">
             Fundația unui bloc sănătos{" "}
             <span className="italic font-normal text-amber-300 underline decoration-amber-500/50 decoration-wavy">
               începe de jos.
@@ -35,27 +35,27 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
           </h1>
 
           {/* Subtitle */}
-          <p className="text-base sm:text-lg lg:text-xl text-slate-300 font-light leading-relaxed mb-10 max-w-2xl">
+          <p className="text-sm sm:text-lg lg:text-xl text-slate-300 font-light leading-relaxed mb-8 sm:mb-10 max-w-2xl">
             Sponsorizări țevi și fitinguri pentru rețeaua principală a blocului tău — fără costuri de materiale pentru asociația de proprietari.
           </p>
 
           {/* Action CTAs */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-14">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-10 sm:mb-14">
             <button
               onClick={onOpenAuditModal}
-              className="group flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-xl shadow-amber-950/60 transition-all hover:-translate-y-0.5 active:translate-y-0"
+              className="group flex items-center justify-center gap-2.5 sm:gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-xl shadow-amber-950/60 transition-all active:scale-[0.98]"
             >
-              <ShieldCheck className="w-5 h-5 text-slate-950" />
-              Suntem o Asociație
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <ShieldCheck className="w-5 h-5 text-slate-950 shrink-0" />
+              <span>Suntem o Asociație</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform shrink-0" />
             </button>
 
             <button
               onClick={onOpenDonationModal}
-              className="flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-sm font-semibold text-slate-200 bg-[#0e1838] hover:bg-[#142352] border border-amber-500/30 transition-all shadow-md"
+              className="flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-semibold text-slate-200 bg-[#0e1838] hover:bg-[#142352] border border-amber-500/30 transition-all shadow-md active:scale-[0.98]"
             >
-              <Heart className="w-4 h-4 text-rose-400" />
-              Susține proiect
+              <Heart className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>Susține proiect</span>
             </button>
           </div>
 

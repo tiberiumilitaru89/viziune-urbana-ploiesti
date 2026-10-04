@@ -119,28 +119,28 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-[#0a0f1d] border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {isSuccess ? (
-          <div className="text-center py-8 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
-              <CheckCircle2 className="w-8 h-8" />
+          <div className="text-center py-6 sm:py-8 space-y-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+              <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h3 className="text-2xl font-bold text-white">
+            <h3 className="text-xl sm:text-2xl font-bold text-white">
               Sponsorizare Înregistrată cu Succes!
             </h3>
-            <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
               Vă mulțumim pentru implicare. Oferta dumneavoastră pentru <strong className="text-emerald-400">{targetAssociation}</strong> a fost transmisă departamentului civic. Vă vom contacta în maxim 24 de ore pentru transmiterea contractului de sponsorizare conform Legii 32/1994 (100% deductibil fiscal).
             </p>
-            <div className="pt-4">
+            <div className="pt-3 sm:pt-4">
               <button
                 onClick={() => {
                   setIsSuccess(false);
@@ -154,42 +154,42 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
           </div>
         ) : (
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-rose-400 uppercase tracking-widest mb-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-rose-400 uppercase tracking-widest mb-1.5 sm:mb-2">
               <Heart className="w-4 h-4" />
               Susține Proiectul Civic
             </div>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
+            <h3 className="text-xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
               Susține Proiectul
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 mb-6">
+            <p className="text-xs sm:text-sm text-slate-400 mb-5 sm:mb-6">
               Alegeți forma de susținere dorită: sponsorizarea directă a blocurilor înscrise sau donație financiară în contul asociației.
             </p>
 
             {/* Primary Bifurcation: Sponsorizeaza vs Donatie Financiara */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 mb-6">
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 mb-5 sm:mb-6">
               <button
                 type="button"
                 onClick={() => setMainTab("sponsorizeaza")}
-                className={`py-3 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 text-center ${
                   mainTab === "sponsorizeaza"
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                <PackageCheck className="w-4 h-4" />
-                Sponsorizează Proiect
+                <PackageCheck className="w-4 h-4 shrink-0" />
+                <span>Sponsorizează Proiect</span>
               </button>
               <button
                 type="button"
                 onClick={() => setMainTab("donatie_financiara")}
-                className={`py-3 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 text-center ${
                   mainTab === "donatie_financiara"
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                <Coins className="w-4 h-4" />
-                Donație Financiară
+                <Coins className="w-4 h-4 shrink-0" />
+                <span>Donație Financiară</span>
               </button>
             </div>
 
@@ -426,11 +426,11 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     <span className="font-bold text-slate-200 text-xs block mb-1">
                       Cod IBAN (RON):
                     </span>
-                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs text-emerald-400">
-                      <span>RO49 AAAA 1B31 0075 9384 0000</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs text-emerald-400">
+                      <span className="break-all sm:break-normal select-all">RO49 AAAA 1B31 0075 9384 0000</span>
                       <button
                         onClick={handleCopyIban}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors"
+                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors w-full sm:w-auto shrink-0"
                       >
                         {copiedIban ? (
                           <>
