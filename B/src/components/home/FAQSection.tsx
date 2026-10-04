@@ -12,9 +12,9 @@ export function FAQSection() {
   };
 
   return (
-    <section id="faq" className="py-28 bg-[#050914]/80 backdrop-blur-sm border-t border-amber-900/30">
+    <section id="faq" className="py-14 sm:py-20 lg:py-28 bg-[#050914]/80 backdrop-blur-sm border-t border-amber-900/30">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        <div className="text-center mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
             <Scale className="w-3.5 h-3.5" />
             Clarificări & Răspunsuri
@@ -27,32 +27,32 @@ export function FAQSection() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {FAQS.map((faq, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div
                 key={faq.q}
-                className="bg-[#0a142f] border border-amber-900/40 rounded-2xl overflow-hidden transition-all shadow-xl"
+                className="bg-[#0a142f] border border-amber-900/40 rounded-xl sm:rounded-2xl overflow-hidden transition-all shadow-xl"
               >
                 <button
                   onClick={() => toggle(idx)}
-                  className="w-full flex items-center justify-between p-6 text-left text-white hover:text-amber-300 transition-colors"
+                  className="w-full flex items-center justify-between p-4 sm:p-6 text-left text-white hover:text-amber-300 transition-colors"
                 >
-                  <span className="font-serif text-base font-bold pr-4 leading-snug">{faq.q}</span>
+                  <span className="font-serif text-sm sm:text-base font-bold pr-4 leading-snug">{faq.q}</span>
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${
+                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 ${
                       isOpen
                         ? "bg-amber-400 text-slate-950 rotate-180"
                         : "bg-[#050914] text-slate-400 border border-amber-900/40"
                     }`}
                   >
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 </button>
 
                 {isOpen && (
-                  <div className="px-6 pb-6 pt-1 text-sm text-slate-300 border-t border-amber-900/30 leading-relaxed font-sans animate-in fade-in duration-200">
+                  <div className="px-4 sm:px-6 pb-4 sm:pb-6 pt-1 text-xs sm:text-sm text-slate-300 border-t border-amber-900/30 leading-relaxed font-sans animate-in fade-in duration-200">
                     {faq.a}
                   </div>
                 )}

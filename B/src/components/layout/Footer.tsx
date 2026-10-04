@@ -6,9 +6,9 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#050914]/90 backdrop-blur-md text-slate-400 border-t border-amber-900/30 pt-16 pb-12">
+    <footer className="bg-[#050914]/90 backdrop-blur-md text-slate-400 border-t border-amber-900/30 pt-12 sm:pt-16 pb-8 sm:pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           {/* Identity */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
@@ -105,7 +105,7 @@ export function Footer() {
             <div className="p-3.5 rounded-xl bg-[#0a142f] border border-amber-900/30 text-xs space-y-2">
               <div className="text-slate-200 font-semibold">Asociația Viziune Urbană Ploiești</div>
               <div className="text-[11px] text-slate-400">Banca Comercială Română (BCR)</div>
-              <div className="font-mono text-[11px] text-amber-300 select-all bg-[#050914] p-2 rounded border border-amber-900/40">
+              <div className="font-mono text-[11px] text-amber-300 select-all bg-[#050914] p-2 rounded border border-amber-900/40 break-all">
                 RO49 AAAA 1B31 0075 9384 0000
               </div>
               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 pt-1">

@@ -12,9 +12,9 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
   const associations = getPublicAssociations();
 
   return (
-    <section id="asociatii" className="py-28 bg-[#070d1e]/80 backdrop-blur-sm border-t border-amber-900/30">
+    <section id="asociatii" className="py-14 sm:py-20 lg:py-28 bg-[#070d1e]/80 backdrop-blur-sm border-t border-amber-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
             <Landmark className="w-3.5 h-3.5" />
             Transparență Comunitară
@@ -27,7 +27,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
           {associations.map((assoc) => {
             const formPct = Math.min(100, Math.round((assoc.formsCollected / assoc.formsTarget) * 100));
             const fundPct = Math.min(100, Math.round((assoc.fundsCollected / assoc.fundsTarget) * 100));
@@ -35,7 +35,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
             return (
               <div
                 key={assoc.id}
-                className="bg-[#0a142f] border border-amber-900/40 rounded-3xl p-7 flex flex-col justify-between shadow-2xl relative overflow-hidden"
+                className="bg-[#0a142f] border border-amber-900/40 rounded-2xl sm:rounded-3xl p-4 sm:p-7 flex flex-col justify-between shadow-2xl relative overflow-hidden"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -112,7 +112,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
         <div className="text-center">
           <button
             onClick={onOpenAuditModal}
-            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl text-xs font-serif font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-xl shadow-amber-950/60 transition-all"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-xs font-serif font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-xl shadow-amber-950/60 transition-all text-center"
           >
             <ShieldCheck className="w-4 h-4 text-slate-950" />
             Înscrie Asociația Ta în Registrul Oficial <ArrowRight className="w-4 h-4" />

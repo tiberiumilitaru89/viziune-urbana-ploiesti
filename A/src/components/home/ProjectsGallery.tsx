@@ -16,7 +16,7 @@ export function ProjectsGallery() {
   };
 
   return (
-    <section id="proiecte" className="py-20 sm:py-24 bg-[#080d19]/80 backdrop-blur-sm border-t border-slate-800">
+    <section id="proiecte" className="py-14 sm:py-20 lg:py-24 bg-[#080d19]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
@@ -66,7 +66,7 @@ export function ProjectsGallery() {
             onPointerMove={(e) => {
               if (e.buttons === 1) handlePointerAction(e.clientX, e.currentTarget);
             }}
-            className="relative aspect-[16/9] w-full rounded-xl sm:rounded-2xl overflow-hidden select-none border border-slate-800 shadow-inner touch-none cursor-ew-resize"
+            className="relative aspect-[16/9] w-full rounded-xl sm:rounded-2xl overflow-hidden select-none border border-slate-800 shadow-inner touch-pan-y cursor-ew-resize"
           >
             {/* After Image (Full width background) */}
             <div className="absolute inset-0 pointer-events-none">
@@ -119,7 +119,7 @@ export function ProjectsGallery() {
               value={sliderPos}
               onChange={(e) => setSliderPos(Number(e.target.value))}
               aria-label="Glisează pentru comparație proiect"
-              className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30 touch-none"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30 touch-pan-y"
             />
           </div>
 

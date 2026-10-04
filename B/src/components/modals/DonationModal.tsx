@@ -211,7 +211,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                   <select
                     value={targetAssociation}
                     onChange={(e) => setTargetAssociation(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#050914] border border-amber-900/50 text-sm text-white focus:outline-none focus:border-amber-400 font-serif"
+                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-[#050914] border border-amber-900/50 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400 font-serif"
                   >
                     <option value="Fondul General de Reabilitare (Alocare Prioritară)">
                       🌟 Fondul General de Reabilitare (Alocare prioritară municipiu)
@@ -270,7 +270,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                       <select
                         value={materialType}
                         onChange={(e) => setMaterialType(e.target.value)}
-                        className="w-full px-3.5 py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-sm text-white focus:outline-none focus:border-amber-400"
+                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                       >
                         <option value="Țevi PPR fibră compozită">Țevi PPR cu inserție compozită</option>
                         <option value="Coloane scurgere PVC fonoabsorbante">Coloane scurgere PVC fonoabsorbante</option>
@@ -282,7 +282,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
                           Cantitate *
@@ -292,7 +292,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                           min="1"
                           value={quantity}
                           onChange={(e) => setQuantity(Number(e.target.value))}
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-sm text-white focus:outline-none focus:border-amber-400"
+                          className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                         />
                       </div>
                       <div>
@@ -304,7 +304,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                           value={unit}
                           onChange={(e) => setUnit(e.target.value)}
                           placeholder="metri liniari, buc"
-                          className="w-full px-3.5 py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-sm text-white focus:outline-none focus:border-amber-400"
+                          className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                         />
                       </div>
                     </div>
@@ -316,13 +316,13 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                       <label className="block text-xs font-serif font-bold text-slate-300 mb-1.5">
                         Valoare Sponsorizare Dedicată (Lei) *
                       </label>
-                      <div className="grid grid-cols-4 gap-2 mb-2">
+                      <div className="grid grid-cols-2 xs:grid-cols-4 gap-2 mb-2">
                         {[500, 1000, 2500, 5000].map((amt) => (
                           <button
                             key={amt}
                             type="button"
                             onClick={() => setMoneyAmount(amt)}
-                            className={`py-1.5 rounded-lg text-xs font-serif font-bold transition-all ${
+                            className={`py-2 sm:py-1.5 rounded-lg text-xs font-serif font-bold transition-all ${
                               moneyAmount === amt
                                 ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-950/60"
                                 : "bg-[#0a142f] text-slate-300 border border-amber-900/40 hover:bg-[#142352]"
@@ -338,7 +338,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                         value={moneyAmount}
                         onChange={(e) => setMoneyAmount(Number(e.target.value))}
                         placeholder="Altă sumă (Lei)"
-                        className="w-full px-3.5 py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-sm text-white focus:outline-none focus:border-amber-400"
+                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
@@ -355,7 +355,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                       value={companyOrName}
                       onChange={(e) => setCompanyOrName(e.target.value)}
                       placeholder="Ex: S.C. Partener S.R.L."
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-sm text-white focus:outline-none focus:border-amber-400"
+                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                     />
                   </div>
                   <div>
@@ -367,7 +367,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="0722 000 000"
-                      className="w-full px-3.5 py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-sm text-white focus:outline-none focus:border-amber-400"
+                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                     />
                   </div>
                 </div>
@@ -381,7 +381,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="contact@companie.ro"
-                    className="w-full px-3.5 py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-sm text-white focus:outline-none focus:border-amber-400"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                   />
                 </div>
 

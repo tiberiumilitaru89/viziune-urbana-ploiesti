@@ -38,9 +38,9 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
   ];
 
   return (
-    <section id="cum-functioneaza" className="py-28 bg-[#050914]/80 backdrop-blur-sm border-t border-amber-900/30">
+    <section id="cum-functioneaza" className="py-14 sm:py-20 lg:py-28 bg-[#050914]/80 backdrop-blur-sm border-t border-amber-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
             <Scale className="w-3.5 h-3.5" />
             Protocolul Civic Oficial
@@ -54,13 +54,13 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
         </div>
 
         {/* 4 Protocol Steps */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-14">
           {steps.map((st) => {
             const Icon = st.icon;
             return (
               <div
                 key={st.num}
-                className="p-7 rounded-2xl bg-[#0a142f] border border-amber-900/30 hover:border-amber-500/40 transition-all flex flex-col justify-between shadow-xl"
+                className="p-4 sm:p-7 rounded-xl sm:rounded-2xl bg-[#0a142f] border border-amber-900/30 hover:border-amber-500/40 transition-all flex flex-col justify-between shadow-xl"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
@@ -89,7 +89,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
         </div>
 
         {/* Financial Transparency Box */}
-        <div className="max-w-4xl mx-auto rounded-2xl bg-[#0a142f] border-2 border-amber-500/40 p-8 flex flex-col sm:flex-row items-start gap-6 shadow-2xl">
+        <div className="max-w-4xl mx-auto rounded-2xl bg-[#0a142f] border-2 border-amber-500/40 p-4 sm:p-8 flex flex-col sm:flex-row items-start gap-4 sm:gap-6 shadow-2xl">
           <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
             <AlertCircle className="w-7 h-7" />
           </div>
@@ -103,7 +103,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
           </div>
           <button
             onClick={onOpenAuditModal}
-            className="sm:self-center shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-colors shadow-lg"
+            className="w-full sm:w-auto justify-center sm:self-center shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-colors shadow-lg text-center"
           >
             Înscrie Asociația <ArrowRight className="w-4 h-4" />
           </button>

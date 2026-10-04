@@ -145,7 +145,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Ex: Ion Popescu (Președinte / Administrator)"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
                 {errors.name && <p className="text-[11px] text-rose-400 mt-1">{errors.name}</p>}
               </div>
@@ -161,7 +161,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="0722 123 456"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                   />
                   {errors.phone && <p className="text-[11px] text-rose-400 mt-1">{errors.phone}</p>}
                 </div>
@@ -176,7 +176,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                     value={formData.building}
                     onChange={handleChange}
                     placeholder="Ex: Bloc 14A, Sc. B"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                   />
                   {errors.building && <p className="text-[11px] text-rose-400 mt-1">{errors.building}</p>}
                 </div>
@@ -192,7 +192,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Ex: Str. Malu Roșu nr. 12, Cartier Nord"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
                 {errors.address && <p className="text-[11px] text-rose-400 mt-1">{errors.address}</p>}
               </div>
@@ -207,7 +207,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   value={formData.problem}
                   onChange={handleChange}
                   placeholder="Ex: Coloană canalizare spartă, bălți de apă în subsol, țevi calde neizolate..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
                 />
                 {errors.problem && <p className="text-[11px] text-rose-400 mt-1">{errors.problem}</p>}
               </div>

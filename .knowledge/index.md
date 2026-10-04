@@ -2,7 +2,7 @@
 id: okf-index
 title: "Harta de Cunoaștere Canonică: Viziune Urbană Noua Ploiești"
 domain: architecture
-last_verified: 2026-09-29
+last_verified: 2026-10-05
 dependencies: []
 ---
 
@@ -16,6 +16,7 @@ Acest document reprezintă Sursa Unică de Adevăr (SSOT) pentru ambele variante
 | **Tipografie** | `Plus Jakarta Sans` / Inter (precizie geometrică curată) | `Playfair Display` serif pentru titluri + `Plus Jakarta Sans` pentru corp |
 | **Paletă Cromatică** | Dark Slate (`#060911`), Emerald (`#10b981`), Electric Blue (`#3b82f6`) | Midnight Royal Navy (`#070d1e`), Warm Amber/Gold (`#d97706`), Alabaster |
 | **Elemente Cheie** | Carduri inginerești, glisor Before/After interactiv, badge-uri moderne | Sigilii heraldice de garanție 5 ani, citat manifest decret, cadru solemn |
+| **Optimizare Mobil** | Touch-pan-y, 16px iOS inputs (fără auto-zoom), IBAN break-all | Touch-pan-y, 16px iOS inputs (fără auto-zoom), IBAN break-all |
 | **Port Local** | `http://localhost:3005` | `http://localhost:3006` |
 | **Deploy Mode** | Pregătit pentru import Git pe Vercel | Pregătit pentru import Git pe Vercel |
 | **Stare Build** | ✓ 100% Finalizat (Next.js 15.5.27), zero erori de compilare | ✓ 100% Finalizat (Next.js 15.5.27), zero erori de compilare |

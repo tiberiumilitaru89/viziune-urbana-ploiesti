@@ -3,15 +3,15 @@ import { Wrench, GraduationCap, Building2, ShieldCheck, Award } from "lucide-rea
 
 export function PartnersStrip() {
   return (
-    <div className="bg-[#050914]/80 backdrop-blur-sm border-y border-amber-900/30 py-7">
+    <div className="bg-[#050914]/80 backdrop-blur-sm border-y border-amber-900/30 py-4 sm:py-7">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
+        <div className="flex flex-col lg:flex-row items-center gap-4 sm:gap-6 lg:gap-10">
           <div className="flex items-center gap-2.5 font-serif text-xs font-bold uppercase tracking-[0.2em] text-amber-300 lg:pr-8 lg:border-r border-amber-900/40 shrink-0">
             <Award className="w-4 h-4 text-amber-400" />
             Consorțiul Partenerilor Oficiali
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full items-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-6 w-full items-center">
             {/* Parteneri Tehnici: Parteneri de Execuție */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">

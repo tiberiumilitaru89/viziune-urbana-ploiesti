@@ -42,10 +42,10 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
   ];
 
   return (
-    <section id="cum-functioneaza" className="py-24 bg-[#090e1a]/80 backdrop-blur-sm border-t border-slate-800">
+    <section id="cum-functioneaza" className="py-14 sm:py-20 lg:py-24 bg-[#090e1a]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-4">
             Proces Transparent
           </div>
@@ -58,13 +58,13 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
         </div>
 
         {/* Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
           {steps.map((step) => {
             const IconComponent = step.icon;
             return (
               <div
                 key={step.num}
-                className="relative p-6 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all hover:-translate-y-1 group"
+                className="relative p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition-all hover:-translate-y-1 group"
               >
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-2xl font-black text-slate-700 group-hover:text-slate-500 transition-colors">
@@ -91,7 +91,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
         </div>
 
         {/* Financial Transparency Callout */}
-        <div className="max-w-4xl mx-auto rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 p-6 sm:p-8 flex flex-col sm:flex-row items-start gap-5">
+        <div className="max-w-4xl mx-auto rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 p-4 sm:p-8 flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
           <div className="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
             <AlertCircle className="w-6 h-6 text-amber-400" />
           </div>
@@ -105,7 +105,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
           </div>
           <button
             onClick={onOpenAuditModal}
-            className="sm:self-center shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 transition-colors shadow-lg shadow-amber-600/20"
+            className="w-full sm:w-auto justify-center sm:self-center shrink-0 flex items-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 transition-colors shadow-lg shadow-amber-600/20 text-center"
           >
             Înscrie Asociația <ArrowRight className="w-4 h-4" />
           </button>

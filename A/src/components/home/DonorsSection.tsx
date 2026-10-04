@@ -7,9 +7,9 @@ type DonorsSectionProps = {
 
 export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
   return (
-    <section id="donatori" className="py-24 bg-[#060911]/80 backdrop-blur-sm border-t border-slate-800">
+    <section id="donatori" className="py-14 sm:py-20 lg:py-24 bg-[#060911]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold uppercase tracking-widest mb-4">
             <Heart className="w-3.5 h-3.5" />
             Susține Inițiativa
@@ -22,9 +22,9 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto mb-8 sm:mb-12">
           {/* Box 1: Pentru Companii (Materiale / Deducere Impozit) */}
-          <div className="p-8 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
+          <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors" />
 
             <div>
@@ -32,7 +32,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
                 <Building2 className="w-6 h-6 text-blue-400" />
               </div>
 
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
                 Pentru Companii & Distribuitori
               </h3>
               <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-4">
@@ -43,7 +43,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
                 Puteți sponsoriza direct stocuri de țevi PPR, fitinguri, robineți sferici industriali, vopsea lavabilă de subsol sau izolații elastomerice. Conform Codului Fiscal, cheltuiala este <strong>100% deductibilă</strong> în limita a 20% din impozitul pe profit.
               </p>
 
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 space-y-1.5 mb-6">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 space-y-1.5 mb-6">
                 <div>✓ Contract de sponsorizare conform Legii 32/1994</div>
                 <div>✓ Vizibilitate în rapoartele noastre și pe paginile asociațiilor</div>
                 <div>✓ Livrare directă în șantier cu proces-verbal de custodie</div>
@@ -59,7 +59,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
           </div>
 
           {/* Box 2: Pentru Persoane Fizice (Formular 230 ANAF) */}
-          <div className="p-8 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
+          <div className="p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between shadow-2xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors" />
 
             <div>
@@ -67,7 +67,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
                 <FileSpreadsheet className="w-6 h-6 text-emerald-400" />
               </div>
 
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">
                 Pentru Persoane Fizice
               </h3>
               <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-4">
@@ -78,7 +78,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
                 Nu vă costă absolut nimic! Statul român vă permite să direcționați o cotă de 3.5% din impozitul pe venitul din salarii deja reținut de stat către Asociația Viziune Urbană Ploiești.
               </p>
 
-              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 space-y-1.5 mb-6">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 space-y-1.5 mb-6">
                 <div>✓ Fără costuri suplimentare din buzunarul propriu</div>
                 <div>✓ Fondurile merg exclusiv către achiziția de materiale pentru blocuri</div>
                 <div>✓ Puteți depune direct online pe platforma oficială ANAF</div>
@@ -98,12 +98,12 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
         </div>
 
         {/* Bank details bar */}
-        <div className="max-w-3xl mx-auto rounded-2xl bg-slate-900/60 border border-slate-800 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-3xl mx-auto rounded-2xl bg-slate-900/60 border border-slate-800 p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-xs text-center sm:text-left">
             <span className="font-bold text-slate-200 block mb-0.5">Donații directe prin transfer bancar:</span>
             <span className="text-slate-400">Beneficiar: Asociația Viziune Urbană Ploiești | Banca: BCR Ploiești</span>
           </div>
-          <div className="font-mono text-xs font-bold text-emerald-400 bg-slate-950 px-4 py-2 rounded-lg border border-slate-800 select-all">
+          <div className="font-mono text-[11px] sm:text-xs font-bold text-emerald-400 bg-slate-950 px-3 sm:px-4 py-2 rounded-lg border border-slate-800 select-all break-all sm:break-normal text-center">
             RO49 AAAA 1B31 0075 9384 0000
           </div>
         </div>
