@@ -16,10 +16,10 @@ export function ProjectsGallery() {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest mb-4">
             <Layers className="w-3.5 h-3.5" />
-            Lucrări Executate
+            Arhiva Lucrărilor
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Transformarea reală: Înainte și După.
+            Proiecte finalizate (înainte și după)
           </h2>
           <p className="mt-4 text-slate-400 text-base leading-relaxed">
             De la subsoluri insalubre, inundate și cu pierderi cronice de căldură, la spații tehnice uscate, vopsite profesional și echipate cu rețele moderne garantate 5 ani.

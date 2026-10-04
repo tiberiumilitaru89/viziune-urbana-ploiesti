@@ -25,10 +25,9 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
     { href: "#misiune", label: "Misiune" },
     { href: "#cum-functioneaza", label: "Cum Funcționează" },
     { href: "#proiecte", label: "Lucrări" },
-    { href: "#calculator", label: "Calculator Pierderi" },
     { href: "#asociatii", label: "Asociații Înscrise" },
-    { href: "#caiet-sarcini", label: "Specificații Tehnice" },
-    { href: "#partener", label: "Partener Tehnic" },
+    { href: "#caiet-sarcini", label: "Etape Execuție" },
+    { href: "#partener", label: "Parteneri Execuție" },
     { href: "#faq", label: "FAQ" },
   ];
 
@@ -76,7 +75,7 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
             className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold text-slate-300 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 transition-all"
           >
             <Heart className="w-3.5 h-3.5 text-rose-500" />
-            Donează Materiale
+            Susține proiect
           </button>
           <button
             onClick={onOpenAuditModal}
@@ -131,7 +130,7 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
               className="w-full flex justify-center items-center gap-2 py-2.5 rounded-lg text-sm font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700"
             >
               <Heart className="w-4 h-4 text-rose-500" />
-              Donează Materiale sau Fonduri
+              Susține proiect
             </button>
           </div>
         </div>

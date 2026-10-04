@@ -17,7 +17,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Viziune Urbană Ploiești | Autoritate Civică & Reabilitare Subsoluri",
   description: "Fundația unui bloc sănătos începe de jos. Asociația civică independentă Viziune Urbană Ploiești oferă evaluare gratuită și sponsorizări integrale în materiale tehnice pentru asociațiile de proprietari.",
-  keywords: ["Viziune Urbana Ploiesti", "reabilitare subsoluri Ploiesti", "asociatii de proprietari", "sponsorizare materiale tevi", "Instal Serv Becheanu", "caiet de sarcini subsol"],
+  keywords: ["Viziune Urbana Ploiesti", "reabilitare subsoluri Ploiesti", "asociatii de proprietari", "sponsorizare materiale tevi", "parteneri executie Ploiesti", "caiet de sarcini subsol"],
   openGraph: {
     title: "Viziune Urbană Ploiești | Fundația unui bloc sănătos începe de jos",
     description: "Sponsorizări materiale pentru rețeaua principală a blocului tău — fără costuri pentru asociație.",

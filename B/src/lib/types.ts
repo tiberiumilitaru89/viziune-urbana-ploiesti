@@ -46,6 +46,7 @@ export type SpecItem = {
 export type DonationEntry = {
   readonly id: string;
   readonly type: "bani" | "materiale";
+  readonly targetAssociationName?: string;
   readonly amountRon?: number;
   readonly materialType?: string;
   readonly quantity?: number;

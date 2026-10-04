@@ -12,17 +12,17 @@ export function PartnersStrip() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 w-full items-center">
-            {/* Partener Tehnic: Instal Serv Becheanu */}
+            {/* Parteneri Tehnici: Parteneri de Execuție */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
                 <Wrench className="w-5 h-5 text-amber-400" />
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                  Partener Tehnic
+                  Parteneri Tehnici
                 </div>
                 <div className="text-xs font-serif font-bold text-white">
-                  Instal Serv Becheanu
+                  Parteneri de Execuție
                 </div>
               </div>
             </div>

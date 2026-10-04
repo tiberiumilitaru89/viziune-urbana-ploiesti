@@ -18,7 +18,7 @@ export function ProjectsGallery() {
             Arhiva Lucrărilor
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-black text-white tracking-tight">
-            Dovada Faptică: Înainte și După
+            Proiecte finalizate (înainte și după)
           </h2>
           <p className="mt-4 text-slate-400 text-base leading-relaxed">
             Documentăm fotografic fiecare intervenție. Vedeți cum un spațiu insalubru devine o cameră tehnică de nivel european.

@@ -36,13 +36,14 @@ dependencies: ["okf-index"]
 ### C. Donații & Sponsorizări (`donations`)
 * `id`: serial / integer primary key
 * `type`: enum('bani', 'materiale')
-* `amount_ron`: integer nullable
-* `material_type`: varchar(100) nullable
-* `material_quantity`: integer nullable
-* `material_unit`: varchar(20) nullable
-* `donor_name_or_company`: varchar(255)
-* `donor_phone`: varchar(50)
-* `donor_email`: varchar(255) nullable
+* `target_association_name`: varchar(255) nullable — Asociația specifică aleasă sau "Fond General"
+* `amount_ron`: integer nullable — Sumă donată (lei)
+* `material_type`: varchar(100) nullable — Tip materiale (țevi, robineți, izolație)
+* `material_quantity`: integer nullable — Cantitate
+* `material_unit`: varchar(20) nullable — Unitate de măsură (m, buc, etc.)
+* `donor_name_or_company`: varchar(255) — Nume donator sau companie
+* `donor_phone`: varchar(50) — Telefon contact
+* `donor_email`: varchar(255) nullable — Email contact
 * `status`: enum('inregistrat', 'confirmat', 'finalizat')
 * `created_at`: timestamp with time zone default now()
 

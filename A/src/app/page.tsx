@@ -8,7 +8,6 @@ import { PartnersStrip } from "@/components/home/PartnersStrip";
 import { MissionSection } from "@/components/home/MissionSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { ProjectsGallery } from "@/components/home/ProjectsGallery";
-import { LossEstimator } from "@/components/home/LossEstimator";
 import { AssociationTracker } from "@/components/home/AssociationTracker";
 import { TechnicalSpecs } from "@/components/home/TechnicalSpecs";
 import { TechnicalPartnerSection } from "@/components/home/TechnicalPartnerSection";
@@ -40,7 +39,6 @@ export default function HomePage() {
         <MissionSection />
         <HowItWorksSection onOpenAuditModal={() => setAuditModalOpen(true)} />
         <ProjectsGallery />
-        <LossEstimator onOpenAuditModal={() => setAuditModalOpen(true)} />
         <AssociationTracker onOpenAuditModal={() => setAuditModalOpen(true)} />
         <TechnicalSpecs onOpenAuditModal={() => setAuditModalOpen(true)} />
         <TechnicalPartnerSection />

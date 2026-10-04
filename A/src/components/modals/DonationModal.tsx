@@ -1,14 +1,21 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Heart, Building2, CheckCircle2, ArrowRight, Loader2, Copy } from "lucide-react";
+import { X, Heart, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check } from "lucide-react";
 import { z } from "zod";
+import { INITIAL_ASSOCIATIONS } from "@/lib/data";
 
-const materialFormSchema = z.object({
-  materialType: z.string().min(2, "Specificați materialul oferit"),
-  quantity: z.number().min(1, "Introduceți o cantitate minimă"),
-  unit: z.string().min(1, "Specificați unitatea (m, buc, ml)"),
-  companyOrName: z.string().min(3, "Introduceți denumirea companiei sau a donatorului"),
+const sponsorshipSchema = z.object({
+  sponsorshipMode: z.enum(["materiale", "bani"]),
+  targetAssociationName: z.string().min(2, "Selectați asociația vizată"),
+  // Material fields
+  materialType: z.string().optional(),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  // Money fields
+  amountRon: z.number().optional(),
+  // Contact
+  companyOrName: z.string().min(3, "Introduceți denumirea companiei sau a sponsorului"),
   phone: z.string().regex(/^(\+4|)?(07[0-9]{8}|0244[0-9]{6})$/, "Introduceți un telefon valid"),
   email: z.string().email("Introduceți un email valid").optional().or(z.literal("")),
 });
@@ -19,18 +26,23 @@ type DonationModalProps = {
 };
 
 export function DonationModal({ isOpen, onClose }: DonationModalProps) {
-  const [activeTab, setActiveTab] = useState<"materiale" | "bani">("materiale");
-  const [selectedAmount, setSelectedAmount] = useState<number>(250);
+  // Main bifurcation: "sponsorizeaza" vs "donatie_financiara"
+  const [mainTab, setMainTab] = useState<"sponsorizeaza" | "donatie_financiara">("sponsorizeaza");
+  
+  // Sub-bifurcation for sponsorship: "materiale" vs "bani"
+  const [sponsorshipType, setSponsorshipType] = useState<"materiale" | "bani">("materiale");
+  
+  const [targetAssociation, setTargetAssociation] = useState<string>("Fondul General de Reabilitare (Alocare Prioritară)");
   const [copiedIban, setCopiedIban] = useState(false);
 
-  const [formData, setFormData] = useState({
-    materialType: "Țevi PPR fibră compozită",
-    quantity: 100,
-    unit: "metri liniari",
-    companyOrName: "",
-    phone: "",
-    email: "",
-  });
+  // Form states
+  const [materialType, setMaterialType] = useState("Țevi PPR fibră compozită");
+  const [quantity, setQuantity] = useState<number>(100);
+  const [unit, setUnit] = useState("metri liniari");
+  const [moneyAmount, setMoneyAmount] = useState<number>(1000);
+  const [companyOrName, setCompanyOrName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -44,17 +56,35 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
     setTimeout(() => setCopiedIban(false), 2500);
   };
 
-  const handleSubmitMaterial = async (e: React.FormEvent) => {
+  const handleSponsorshipSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    const parseResult = materialFormSchema.safeParse({
-      ...formData,
-      quantity: Number(formData.quantity),
-    });
+    const payload = {
+      sponsorshipMode: sponsorshipType,
+      targetAssociationName: targetAssociation,
+      materialType: sponsorshipType === "materiale" ? materialType : undefined,
+      quantity: sponsorshipType === "materiale" ? Number(quantity) : undefined,
+      unit: sponsorshipType === "materiale" ? unit : undefined,
+      amountRon: sponsorshipType === "bani" ? Number(moneyAmount) : undefined,
+      companyOrName,
+      phone,
+      email,
+    };
 
+    const parseResult = sponsorshipSchema.safeParse(payload);
     if (!parseResult.success) {
       setErrorMessage(parseResult.error.errors[0]?.message || "Verificați datele completate.");
+      return;
+    }
+
+    if (sponsorshipType === "materiale" && (!quantity || quantity <= 0)) {
+      setErrorMessage("Introduceți o cantitate validă de materiale.");
+      return;
+    }
+
+    if (sponsorshipType === "bani" && (!moneyAmount || moneyAmount <= 0)) {
+      setErrorMessage("Introduceți o sumă validă.");
       return;
     }
 
@@ -64,13 +94,20 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "materiale",
-          ...parseResult.data,
+          type: sponsorshipType,
+          targetAssociationName: targetAssociation,
+          amountRon: sponsorshipType === "bani" ? Number(moneyAmount) : undefined,
+          materialType: sponsorshipType === "materiale" ? materialType : undefined,
+          quantity: sponsorshipType === "materiale" ? Number(quantity) : undefined,
+          unit: sponsorshipType === "materiale" ? unit : undefined,
+          companyOrName,
+          phone,
+          email,
         }),
       });
 
       if (!res.ok) {
-        throw new Error("A apărut o eroare la salvarea donației.");
+        throw new Error("A apărut o eroare la salvarea sponsorizării.");
       }
 
       setIsSuccess(true);
@@ -83,7 +120,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -98,10 +135,10 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
               <CheckCircle2 className="w-8 h-8" />
             </div>
             <h3 className="text-2xl font-bold text-white">
-              Vă Mulțumim pentru Generozitate!
+              Sponsorizare Înregistrată cu Succes!
             </h3>
-            <p className="text-sm text-slate-300 max-w-sm mx-auto leading-relaxed">
-              Oferta dumneavoastră de sponsorizare a fost înregistrată. Echipa Viziune Urbană vă va contacta pentru semnarea contractului de sponsorizare și stabilirea detaliilor de livrare pe șantier.
+            <p className="text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
+              Vă mulțumim pentru implicare. Oferta dumneavoastră pentru <strong className="text-emerald-400">{targetAssociation}</strong> a fost transmisă departamentului civic. Vă vom contacta în maxim 24 de ore pentru transmiterea contractului de sponsorizare conform Legii 32/1994 (100% deductibil fiscal).
             </p>
             <div className="pt-4">
               <button
@@ -119,35 +156,40 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-rose-400 uppercase tracking-widest mb-2">
               <Heart className="w-4 h-4" />
-              Susține Blocurile din Ploiești
+              Susține Proiectul Civic
             </div>
-            <h3 className="text-2xl font-extrabold text-white mb-2 tracking-tight">
-              Sponsorizează Inițiativa
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
+              Susține Proiectul
             </h3>
+            <p className="text-xs sm:text-sm text-slate-400 mb-6">
+              Alegeți forma de susținere dorită: sponsorizarea directă a blocurilor înscrise sau donație financiară în contul asociației.
+            </p>
 
-            {/* Toggle Tabs */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-900 rounded-xl border border-slate-800 my-4">
+            {/* Primary Bifurcation: Sponsorizeaza vs Donatie Financiara */}
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 mb-6">
               <button
                 type="button"
-                onClick={() => setActiveTab("materiale")}
-                className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === "materiale"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                onClick={() => setMainTab("sponsorizeaza")}
+                className={`py-3 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                  mainTab === "sponsorizeaza"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                Donează Materiale Tehnice
+                <PackageCheck className="w-4 h-4" />
+                Sponsorizează Proiect
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab("bani")}
-                className={`py-2 text-xs font-bold rounded-lg transition-all ${
-                  activeTab === "bani"
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                onClick={() => setMainTab("donatie_financiara")}
+                className={`py-3 px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 ${
+                  mainTab === "donatie_financiara"
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                Donație Financiară (BCR)
+                <Coins className="w-4 h-4" />
+                Donație Financiară
               </button>
             </div>
 
@@ -157,65 +199,163 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
               </div>
             )}
 
-            {activeTab === "materiale" ? (
-              <form onSubmit={handleSubmitMaterial} className="space-y-4">
+            {/* BRANCH 1: SPONSORIZEAZA PROIECT */}
+            {mainTab === "sponsorizeaza" && (
+              <form onSubmit={handleSponsorshipSubmit} className="space-y-4">
+                {/* 1. Association Selection */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Tip Material Oferit *
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                    Asociația Vizată (Înscrise în Proiect) *
                   </label>
                   <select
-                    value={formData.materialType}
-                    onChange={(e) => setFormData({ ...formData, materialType: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                    value={targetAssociation}
+                    onChange={(e) => setTargetAssociation(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
                   >
-                    <option value="Țevi PPR fibră compozită">Țevi PPR cu inserție compozită</option>
-                    <option value="Coloane scurgere PVC fonoabsorbante">Coloane scurgere PVC fonoabsorbante</option>
-                    <option value="Robineți de trecere industriali">Robineți de trecere industriali (DN25 - DN50)</option>
-                    <option value="Izolație elastomerică Armaflex">Izolație elastomerică tip Armaflex</option>
-                    <option value="Vopsea lavabilă anti-igrasie & grund">Vopsea lavabilă anti-igrasie & grund</option>
-                    <option value="Fitinguri și coturi zincate/alamă">Fitinguri și coturi alamă / PPR</option>
-                    <option value="Alt material specific">Alt material specific</option>
+                    <option value="Fondul General de Reabilitare (Alocare Prioritară)">
+                      🌟 Fondul General de Reabilitare (Alocare prioritară municipiu)
+                    </option>
+                    {INITIAL_ASSOCIATIONS.map((assoc) => (
+                      <option key={assoc.id} value={`${assoc.building} — ${assoc.address}`}>
+                        🏢 {assoc.building} ({assoc.address})
+                      </option>
+                    ))}
                   </select>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Sponsorizarea dumneavoastră va fi alocată direct asociației selectate sau fondului general.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Cantitate *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={formData.quantity}
-                      onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
-                    />
+                {/* 2. Sub-Toggle: Bani vs Materiale */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                    Modalitate Sponsorizare *
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setSponsorshipType("materiale")}
+                      className={`py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                        sponsorshipType === "materiale"
+                          ? "bg-slate-800 text-emerald-400 border border-emerald-500/40 shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <PackageCheck className="w-3.5 h-3.5" />
+                      În Materiale Tehnice
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSponsorshipType("bani")}
+                      className={`py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                        sponsorshipType === "bani"
+                          ? "bg-slate-800 text-blue-400 border border-blue-500/40 shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      <Coins className="w-3.5 h-3.5" />
+                      În Bani (Sumă Fixă)
+                    </button>
                   </div>
+                </div>
+
+                {/* Material Inputs */}
+                {sponsorshipType === "materiale" ? (
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Tip Material Oferit *
+                      </label>
+                      <select
+                        value={materialType}
+                        onChange={(e) => setMaterialType(e.target.value)}
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="Țevi PPR fibră compozită">Țevi PPR cu inserție compozită</option>
+                        <option value="Coloane scurgere PVC fonoabsorbante">Coloane scurgere PVC fonoabsorbante</option>
+                        <option value="Robineți de trecere industriali">Robineți de trecere industriali (DN25 - DN50)</option>
+                        <option value="Izolație elastomerică Armaflex">Izolație elastomerică tip Armaflex</option>
+                        <option value="Vopsea lavabilă anti-igrasie & grund">Vopsea lavabilă anti-igrasie & grund</option>
+                        <option value="Fitinguri și coturi zincate/alamă">Fitinguri și coturi alamă / PPR</option>
+                        <option value="Alt material specific">Alt material specific conform caiet de sarcini</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-300 mb-1">
+                          Cantitate *
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={quantity}
+                          onChange={(e) => setQuantity(Number(e.target.value))}
+                          className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-300 mb-1">
+                          Unitate Măsură
+                        </label>
+                        <input
+                          type="text"
+                          value={unit}
+                          onChange={(e) => setUnit(e.target.value)}
+                          placeholder="metri liniari, buc"
+                          className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Money Sponsorship Inputs */
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                        Valoare Sponsorizare Dedicată (Lei) *
+                      </label>
+                      <div className="grid grid-cols-4 gap-2 mb-2">
+                        {[500, 1000, 2500, 5000].map((amt) => (
+                          <button
+                            key={amt}
+                            type="button"
+                            onClick={() => setMoneyAmount(amt)}
+                            className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                              moneyAmount === amt
+                                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                                : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                            }`}
+                          >
+                            {amt} Lei
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="number"
+                        min="50"
+                        value={moneyAmount}
+                        onChange={(e) => setMoneyAmount(Number(e.target.value))}
+                        placeholder="Altă sumă (Lei)"
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact Information */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
                     <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Unitate Măsură
+                      Companie / Nume Sponsor *
                     </label>
                     <input
                       type="text"
-                      value={formData.unit}
-                      onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                      placeholder="Ex: metri, bucăți, găleți"
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      Companie / Nume Donator *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.companyOrName}
-                      onChange={(e) => setFormData({ ...formData, companyOrName: e.target.value })}
-                      placeholder="Ex: S.C. Distribuitor S.R.L."
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                      value={companyOrName}
+                      onChange={(e) => setCompanyOrName(e.target.value)}
+                      placeholder="Ex: S.C. Partener S.R.L."
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <div>
@@ -224,23 +364,36 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     </label>
                     <input
                       type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       placeholder="0722 000 000"
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                    Email Oficial (opțional)
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="contact@companie.ro"
+                    className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white focus:outline-none focus:border-blue-500"
+                  />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-600/30 transition-all disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-600/30 transition-all disabled:opacity-50 mt-2"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Se procesează...
+                      Se transmite solicitarea...
                     </>
                   ) : (
                     <>
@@ -249,63 +402,70 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                   )}
                 </button>
               </form>
-            ) : (
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-2">
-                    Alegeți valoarea donației (Lei)
-                  </label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {[50, 100, 250, 500, 1000].map((val) => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => setSelectedAmount(val)}
-                        className={`py-2 rounded-xl text-xs font-extrabold transition-all ${
-                          selectedAmount === val
-                            ? "bg-emerald-500 text-slate-950 font-black shadow-lg shadow-emerald-500/20"
-                            : "bg-slate-900 text-slate-300 border border-slate-800 hover:bg-slate-800"
-                        }`}
-                      >
-                        {val} Lei
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            )}
 
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
-                  <div className="text-xs text-slate-400">
-                    <span className="font-bold text-slate-200 block mb-0.5">Beneficiar:</span>
-                    Asociația Viziune Urbană Ploiești
+            {/* BRANCH 2: DONATIE FINANCIARA */}
+            {mainTab === "donatie_financiara" && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                    <Building2 className="w-4 h-4" />
+                    Cont Bancar Oficial al Asociației
                   </div>
-                  <div className="text-xs text-slate-400">
-                    <span className="font-bold text-slate-200 block mb-0.5">Banca:</span>
-                    Banca Comercială Română (BCR) Ploiești
+
+                  <div className="text-xs text-slate-400 space-y-1">
+                    <div>
+                      <span className="font-bold text-slate-200">Beneficiar:</span> Asociația Viziune Urbană Ploiești
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-200">Banca:</span> Banca Comercială Română (BCR) Ploiești
+                    </div>
                   </div>
+
                   <div>
                     <span className="font-bold text-slate-200 text-xs block mb-1">
-                      Cod IBAN Oficial:
+                      Cod IBAN (RON):
                     </span>
-                    <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-900 border border-slate-700 font-mono text-xs text-emerald-400">
+                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs text-emerald-400">
                       <span>RO49 AAAA 1B31 0075 9384 0000</span>
                       <button
                         onClick={handleCopyIban}
-                        className="p-1 rounded text-slate-400 hover:text-white"
-                        title="Copiază IBAN"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors"
                       >
-                        <Copy className="w-4 h-4" />
+                        {copiedIban ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            Copiat
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            Copiază
+                          </>
+                        )}
                       </button>
                     </div>
-                    {copiedIban && (
-                      <p className="text-[10px] text-emerald-400 mt-1 font-semibold">
-                        IBAN copiat în clipboard!
-                      </p>
-                    )}
+                  </div>
+
+                  <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                    Mențiune obligatorie la detalii transfer:{" "}
+                    <strong className="text-slate-200">„Donație civică reabilitare subsoluri Ploiești”</strong>.
                   </div>
                 </div>
 
-                <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800">
-                  La detaliile plății menționați: <em>„Donație reabilitare subsoluri Ploiești”</em>.
+                {/* Formular 230 ANAF card */}
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 to-slate-900 border border-blue-900/40 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-wider">
+                    <FileText className="w-4 h-4" />
+                    Redirecționează 3.5% din Impozit (Formular 230)
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Dacă ești persoană fizică salariată în Ploiești, poți direcționa 3.5% din impozitul pe venit datorat statului fără să plătești nimic în plus. Fiecare formular strâns ajută la plata manoperei pentru blocurile înscrise.
+                  </p>
+                  <div className="text-[11px] text-blue-300 font-semibold flex items-center gap-1.5 pt-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                    Datele asociației sunt înregistrate în Registrul Entităților de Cult / ONG la ANAF.
+                  </div>
                 </div>
               </div>
             )}

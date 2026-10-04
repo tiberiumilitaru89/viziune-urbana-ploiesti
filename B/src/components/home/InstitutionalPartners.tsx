@@ -6,7 +6,7 @@ export function InstitutionalPartners() {
     {
       name: "Liceul Tehnologic „Toma Socolescu”",
       role: "Partener de Practică Profesională",
-      desc: "Elevii din clasele profesionale de instalații participă la stagii practice pe șantierele de reabilitare din subsoluri, sub îndrumarea maiștrilor și tehnicienilor Instal Serv Becheanu.",
+      desc: "Elevii din clasele profesionale de instalații participă la stagii practice pe șantierele de reabilitare din subsoluri, sub îndrumarea maiștrilor și tehnicienilor partenerilor de execuție.",
       icon: GraduationCap,
       badge: "Formare Generații Noi",
     },

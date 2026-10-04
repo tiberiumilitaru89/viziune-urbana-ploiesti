@@ -12,7 +12,7 @@ export function TechnicalPartnerSection() {
             <div className="relative rounded-3xl overflow-hidden border border-slate-800 shadow-2xl bg-slate-900 aspect-[4/3]">
               <Image
                 src="/tehnician-tevi-cupru.jpg"
-                alt="Tehnician profesionist Instal Serv Becheanu montând instalație"
+                alt="Tehnician profesionist partener montând instalație"
                 fill
                 className="object-cover"
               />
@@ -32,15 +32,15 @@ export function TechnicalPartnerSection() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-4">
               <ShieldCheck className="w-3.5 h-3.5" />
-              Partener Tehnic Oficial de Execuție
+              Parteneri Tehnici de Execuție
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-6">
-              INSTAL SERV BECHEANU
+              PARTENERI DE EXECUȚIE AUTORIZAȚI
             </h2>
 
             <p className="text-slate-300 text-base leading-relaxed mb-8">
-              Cu o experiență de peste 15 ani în domeniul instalațiilor de bloc din Ploiești și județul Prahova, echipa condusă de George Becheanu aduce expertiză industrială, scule profesionale și proceduri certificate.
+              Cu o experiență de peste 15 ani în domeniul instalațiilor de bloc din Ploiești și județul Prahova, echipele partenere de execuție aduc expertiză industrială, scule profesionale și proceduri certificate.
             </p>
 
             {/* Highlights */}
@@ -61,10 +61,10 @@ export function TechnicalPartnerSection() {
                 <CalendarCheck className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-bold text-white mb-0.5">
-                    Garanție 5 Ani & Verificări Trimestriale Gratuite
+                    Garanție 5 ani oferită de către partenerii de execuție
                   </h4>
                   <p className="text-xs text-slate-400">
-                    Fiecare lucrare beneficiază de contract ferm de garanție și inspecții periodice trimestriale fără costuri adăugate pentru asociație.
+                    Fiecare lucrare beneficiază de garanție de 5 ani oferită de către partenerii de execuție și inspecții periodice fără costuri adăugate pentru asociație.
                   </p>
                 </div>
               </div>

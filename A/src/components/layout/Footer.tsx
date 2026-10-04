@@ -52,17 +52,17 @@ export function Footer() {
               </li>
               <li>
                 <a href="#proiecte" className="hover:text-emerald-400 transition-colors">
-                  Lucrări Finalizate Înainte / După
-                </a>
-              </li>
-              <li>
-                <a href="#calculator" className="hover:text-emerald-400 transition-colors">
-                  Simulator Pierderi Întreținere
+                  Proiecte finalizate (înainte și după)
                 </a>
               </li>
               <li>
                 <a href="#asociatii" className="hover:text-emerald-400 transition-colors">
                   Tabelul Progresului Asociațiilor
+                </a>
+              </li>
+              <li>
+                <a href="#caiet-sarcini" className="hover:text-emerald-400 transition-colors">
+                  Etapele Execuției Proiectului
                 </a>
               </li>
               <li>
@@ -81,10 +81,10 @@ export function Footer() {
             <div className="space-y-3">
               <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
                 <div className="text-xs font-bold text-white flex items-center justify-between">
-                  INSTAL SERV BECHEANU
+                  PARTENERI DE EXECUȚIE
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
-                <div className="text-[11px] text-slate-400">Partener tehnic execuție (Garanție 5 ani)</div>
+                <div className="text-[11px] text-slate-400">Garanție 5 ani oferită de către partenerii de execuție</div>
               </div>
               <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
                 <div className="text-xs font-bold text-white">Liceul Tehnic Toma Socolescu</div>

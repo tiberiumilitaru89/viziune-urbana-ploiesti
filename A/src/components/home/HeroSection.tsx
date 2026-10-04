@@ -11,14 +11,15 @@ type HeroSectionProps = {
 export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSectionProps) {
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-20 overflow-hidden">
-      {/* Background with Ploiești Cathedral & Blocks overlay */}
+      {/* Background with Ploiești Cathedral & Civic Architecture overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/ploiesti-blocuri.jpg')" }}
+        style={{ backgroundImage: "url('/ref-assets/cathedral-ploiesti.jpg')" }}
       />
-      {/* Layered high-tech dark gradient overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#060911] via-[#060911]/90 to-[#060911]/80" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.15),rgba(255,255,255,0))]" />
+      {/* Layered civic dark gradient overlays */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#060911] via-[#060911]/90 to-[#060911]/75" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#060911] via-transparent to-[#060911]/80" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.15),rgba(0,0,0,0.4))]" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-3xl">
@@ -60,7 +61,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
               className="flex items-center justify-center gap-2.5 px-8 py-4 rounded-xl text-base font-bold text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 transition-all"
             >
               <Heart className="w-5 h-5 text-rose-500" />
-              Donează Materiale
+              Susține proiect
             </button>
           </div>
 
@@ -76,7 +77,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
             </div>
             <div className="flex items-center gap-2.5 text-xs text-slate-300 col-span-2 sm:col-span-1">
               <Wrench className="w-4 h-4 text-blue-400 shrink-0" />
-              <span>Garanție 5 ani de la Becheanu</span>
+              <span>Garanție 5 ani oferită de către partenerii de execuție</span>
             </div>
           </div>
         </div>

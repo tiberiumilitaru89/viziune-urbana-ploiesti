@@ -12,13 +12,13 @@ export function TechnicalPartnerSection() {
             <div className="lg:col-span-5 relative aspect-[4/5] rounded-2xl overflow-hidden border-2 border-amber-900/40 shadow-2xl">
               <Image
                 src="/tehnician-tevi-cupru.jpg"
-                alt="Instal Serv Becheanu - Tehnician calificat pe șantier"
+                alt="Tehnician calificat partener pe șantier"
                 fill
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#050914] via-transparent to-transparent opacity-80" />
               <div className="absolute bottom-4 left-4 right-4 bg-[#0a142f]/90 backdrop-blur-md p-3.5 rounded-xl border border-amber-500/30 text-xs">
-                <div className="font-serif font-bold text-white">Instal Serv Becheanu</div>
+                <div className="font-serif font-bold text-white">Parteneri de Execuție</div>
                 <div className="text-[11px] text-amber-300">Peste 15 ani pe șantierele din Prahova</div>
               </div>
             </div>
@@ -27,15 +27,15 @@ export function TechnicalPartnerSection() {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-serif font-bold uppercase tracking-[0.2em]">
                 <Award className="w-3.5 h-3.5" />
-                Partener Tehnic Acreditat
+                Parteneri Tehnici Acreditați
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight leading-tight">
-                Instal Serv Becheanu
+                Parteneri de Execuție Autorizați
               </h2>
 
               <p className="text-sm text-slate-300 leading-relaxed font-serif">
-                Pentru că materialele de calitate au nevoie de o mână de lucru la fel de sigură, am ales un partener local cu reputație impecabilă.
+                Pentru că materialele de calitate au nevoie de o mână de lucru la fel de sigură, lucrările sunt încredințate exclusiv partenerilor de execuție autorizați, cu reputație impecabilă.
               </p>
 
               <div className="space-y-3 pt-2">
@@ -52,9 +52,9 @@ export function TechnicalPartnerSection() {
                 <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#0a142f] border border-amber-900/30">
                   <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-serif text-xs font-bold text-white">Garanție Extinsă de 5 Ani</h4>
+                    <h4 className="font-serif text-xs font-bold text-white">Garanție de 5 ani oferită de către partenerii de execuție</h4>
                     <p className="text-[11px] text-slate-400">
-                      Contract ferm de garanție și asistență directă cu asociația de proprietari.
+                      Contract ferm de garanție de 5 ani oferit de către partenerii de execuție și asistență directă cu asociația de proprietari.
                     </p>
                   </div>
                 </div>

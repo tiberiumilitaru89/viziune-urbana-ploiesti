@@ -4,6 +4,7 @@ import { addDonation } from "@/lib/data";
 
 const donationSchema = z.object({
   type: z.enum(["bani", "materiale"]),
+  targetAssociationName: z.string().optional(),
   amountRon: z.number().optional(),
   materialType: z.string().optional(),
   quantity: z.number().optional(),
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
 
     const saved = addDonation({
       type: validated.type,
+      targetAssociationName: validated.targetAssociationName,
       amountRon: validated.amountRon,
       materialType: validated.materialType,
       quantity: validated.quantity,

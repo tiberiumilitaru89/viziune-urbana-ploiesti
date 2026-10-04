@@ -17,14 +17,14 @@ export function TechnicalSpecs({ onOpenAuditModal }: TechnicalSpecsProps) {
             Normativ Tehnic
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-black text-white tracking-tight">
-            Caiet de Sarcini & Standarde de Execuție
+            Etapele execuției proiectului vor fi:
           </h2>
           <p className="mt-4 text-slate-400 text-base leading-relaxed">
-            Fiecare subsol reabilitat respectă strict aceste 8 etape tehnologice, asigurând o durabilitate de minimum 30 de ani.
+            Standarde riguroase de execuție tehnică și igienizare pentru fiecare subsol reabilitat.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-14">
           {SPEC_ITEMS.map((item) => (
             <div
               key={item.orderNum}
