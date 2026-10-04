@@ -4,7 +4,7 @@ import { AlertTriangle, TrendingUp, Users, CheckCircle } from "lucide-react";
 
 export function MissionSection() {
   return (
-    <section id="misiune" className="py-24 bg-[#060911] relative overflow-hidden">
+    <section id="misiune" className="py-24 bg-[#060911]/75 backdrop-blur-[2px] relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Text column */}

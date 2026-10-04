@@ -42,7 +42,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
   ];
 
   return (
-    <section id="cum-functioneaza" className="py-24 bg-[#090e1a] border-t border-slate-800">
+    <section id="cum-functioneaza" className="py-24 bg-[#090e1a]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">

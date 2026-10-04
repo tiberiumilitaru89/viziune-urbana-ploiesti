@@ -3,7 +3,7 @@ import { Wrench, GraduationCap, Building2, ShieldCheck } from "lucide-react";
 
 export function PartnersStrip() {
   return (
-    <div className="bg-[#080d19] border-y border-slate-800/80 py-6">
+    <div className="bg-[#080d19]/80 backdrop-blur-sm border-y border-slate-800/80 py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 lg:pr-8 lg:border-r border-slate-800 shrink-0">

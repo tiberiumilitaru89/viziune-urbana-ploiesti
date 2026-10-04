@@ -4,7 +4,7 @@ import { ShieldCheck, Award, CalendarCheck, Phone, CheckCircle, Wrench } from "l
 
 export function TechnicalPartnerSection() {
   return (
-    <section id="partener" className="py-24 bg-[#060911] border-t border-slate-800">
+    <section id="partener" className="py-24 bg-[#060911]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Visual Column */}

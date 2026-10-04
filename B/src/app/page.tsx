@@ -22,7 +22,7 @@ export default function HomePage() {
   const [donationModalOpen, setDonationModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#070d1e] text-slate-100 selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen flex flex-col bg-transparent text-slate-100 selection:bg-amber-400 selection:text-slate-950">
       {/* Navigation */}
       <Navbar
         onOpenAuditModal={() => setAuditModalOpen(true)}

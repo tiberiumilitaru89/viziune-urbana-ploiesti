@@ -10,7 +10,7 @@ export function ProjectsGallery() {
   const [sliderPos, setSliderPos] = useState(50);
 
   return (
-    <section id="proiecte" className="py-24 bg-[#080d19] border-t border-slate-800">
+    <section id="proiecte" className="py-24 bg-[#080d19]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -19,7 +19,7 @@ export function ProjectsGallery() {
             Arhiva Lucrărilor
           </div>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
-            Proiecte finalizate (înainte și după)
+            Proiecte finalizate
           </h2>
           <p className="mt-4 text-slate-400 text-base leading-relaxed">
             De la subsoluri insalubre, inundate și cu pierderi cronice de căldură, la spații tehnice uscate, vopsite profesional și echipate cu rețele moderne garantate 5 ani.
@@ -106,7 +106,7 @@ export function ProjectsGallery() {
               max="100"
               value={sliderPos}
               onChange={(e) => setSliderPos(Number(e.target.value))}
-              aria-label="Glisează pentru comparație Înainte și După"
+              aria-label="Glisează pentru comparație proiect"
               className="absolute inset-0 w-full h-full opacity-0 cursor-ew-resize z-30"
             />
           </div>

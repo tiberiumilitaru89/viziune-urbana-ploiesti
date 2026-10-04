@@ -4,7 +4,7 @@ import { BookOpen, CheckCircle, Landmark, ShieldCheck } from "lucide-react";
 
 export function MissionSection() {
   return (
-    <section id="misiune" className="py-28 bg-[#070d1e] relative overflow-hidden">
+    <section id="misiune" className="py-28 bg-[#070d1e]/80 backdrop-blur-sm relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Editorial manifesto column */}

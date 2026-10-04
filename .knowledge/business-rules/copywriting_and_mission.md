@@ -38,7 +38,7 @@ Acest nod păstrează cuvânt cu cuvânt tot conținutul editorial aprobat pentr
   > „Sponsorizări țevi și fitinguri pentru rețeaua principală a blocului tău — fără costuri pentru asociație.”
 * **CTA 1:** „Suntem o Asociație” (cu săgeată)
 * **CTA 2:** „Susține proiect”
-* **Fundal Hero:** Imagine reprezentativă Ploiești (Catedrala Sf. Ioan Botezătorul / peisaj urban Ploiești) cu overlay civic întunecat pentru lizibilitate maximă.
+* **Fundal General (Fixed pe ecran la scroll):** Imagine panoramică reprezentativă Ploiești (Catedrala Sf. Ioan Botezătorul) fixată pe fundal în timpul scroll-ului pe pagină, cu overlay civic întunecat pentru lizibilitate maximă.
 
 ---
 
@@ -97,7 +97,7 @@ Acest nod păstrează cuvânt cu cuvânt tot conținutul editorial aprobat pentr
 ---
 
 ## 8. Arhiva Lucrărilor & Proiecte Finalizate
-* Tab / Buton interactiv: **„Proiecte finalizate”** (înainte și după).
+* Tab / Buton interactiv: **„Proiecte finalizate”** (fără adăugarea cuvintelor „înainte și după”, acestea fiind subînțelese din etichetele vizuale ale fotografiilor).
 * Demonstrație vizuală a subsolurilor înainte de intervenție și după finalizarea completă a celor 5 etape.
 
 ---

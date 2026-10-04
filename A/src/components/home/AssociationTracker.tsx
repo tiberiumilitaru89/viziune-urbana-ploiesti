@@ -10,7 +10,7 @@ type AssociationTrackerProps = {
 
 export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps) {
   return (
-    <section id="asociatii" className="py-24 bg-[#060911] border-t border-slate-800">
+    <section id="asociatii" className="py-24 bg-[#060911]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="max-w-2xl">

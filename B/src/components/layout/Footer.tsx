@@ -6,7 +6,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-[#050914] text-slate-400 border-t border-amber-900/30 pt-16 pb-12">
+    <footer className="bg-[#050914]/90 backdrop-blur-md text-slate-400 border-t border-amber-900/30 pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Identity */}
@@ -52,7 +52,7 @@ export function Footer() {
               </li>
               <li>
                 <a href="#proiecte" className="hover:text-amber-300 transition-colors">
-                  Proiecte finalizate (înainte și după)
+                  Proiecte finalizate
                 </a>
               </li>
               <li>

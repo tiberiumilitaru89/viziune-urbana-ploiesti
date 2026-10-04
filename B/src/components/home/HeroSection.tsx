@@ -11,15 +11,10 @@ type HeroSectionProps = {
 export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSectionProps) {
   return (
     <section className="relative min-h-[92vh] flex items-center justify-center pt-32 pb-24 overflow-hidden">
-      {/* Background with Ploiești Cathedral & Civic Architecture overlay */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/ref-assets/cathedral-ploiesti.jpg')" }}
-      />
-      {/* Editorial Royal Navy Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#070d1e] via-[#070d1e]/95 to-[#070d1e]/80" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#070d1e] via-transparent to-[#070d1e]/85" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_70%_at_50%_10%,rgba(217,119,6,0.12),rgba(0,0,0,0.5))]" />
+      {/* Editorial Royal Navy Gradient Overlays for optimal readability */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#070d1e]/85 via-[#070d1e]/65 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#070d1e]/90 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_70%_at_50%_10%,rgba(217,119,6,0.12),transparent)] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-3xl">

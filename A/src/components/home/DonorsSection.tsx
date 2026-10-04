@@ -7,7 +7,7 @@ type DonorsSectionProps = {
 
 export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
   return (
-    <section id="donatori" className="py-24 bg-[#060911] border-t border-slate-800">
+    <section id="donatori" className="py-24 bg-[#060911]/80 backdrop-blur-sm border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold uppercase tracking-widest mb-4">

@@ -4,7 +4,7 @@ import { Wrench, ShieldCheck, Clock, Award, CheckCircle, Landmark } from "lucide
 
 export function TechnicalPartnerSection() {
   return (
-    <section id="partener" className="py-28 bg-[#070d1e] border-t border-amber-900/30">
+    <section id="partener" className="py-28 bg-[#070d1e]/80 backdrop-blur-sm border-t border-amber-900/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto bg-gradient-to-br from-[#0a142f] to-[#050914] border-2 border-amber-500/40 rounded-3xl p-8 sm:p-12 shadow-2xl overflow-hidden relative">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
