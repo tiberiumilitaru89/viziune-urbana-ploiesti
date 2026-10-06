@@ -12,7 +12,7 @@ export function FAQSection() {
   };
 
   return (
-    <section id="faq" className="py-14 sm:py-20 lg:py-24 bg-[#FAF7F2] border-t border-amber-900/15">
+    <section id="faq" className="py-14 sm:py-20 lg:py-24 bg-transparent border-t border-amber-900/15">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5EDE1] border border-amber-700/30 text-amber-900 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
@@ -33,7 +33,7 @@ export function FAQSection() {
             return (
               <div
                 key={faq.q}
-                className="bg-white border border-amber-900/15 rounded-2xl overflow-hidden transition-all shadow-md"
+                className="bg-white/85 backdrop-blur-md border border-amber-900/15 rounded-2xl overflow-hidden transition-all shadow-md"
               >
                 <button
                   onClick={() => toggle(idx)}

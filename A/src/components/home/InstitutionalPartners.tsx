@@ -12,9 +12,9 @@ export function InstitutionalPartners() {
       accent: "text-amber-800 border-amber-600/30 bg-amber-500/15",
     },
     {
-      name: "ACCRP Ploiești",
+      name: "ACCRP",
       role: "Partener de Calificare & Formare Profesională",
-      desc: "Centrul de calificare și recalificare profesională din Ploiești asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
+      desc: "Centrul de calificare și recalificare profesională asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
       icon: Users2,
       badge: "Calificare Tehnică",
       accent: "text-purple-800 border-purple-600/30 bg-purple-500/15",
@@ -30,7 +30,7 @@ export function InstitutionalPartners() {
   ];
 
   return (
-    <section className="py-20 bg-[#FAF7F2] border-t border-amber-900/15">
+    <section className="py-20 bg-transparent border-t border-amber-900/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5EDE1] border border-amber-700/30 text-amber-900 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
@@ -51,7 +51,7 @@ export function InstitutionalPartners() {
             return (
               <div
                 key={p.name}
-                className="p-6 rounded-2xl bg-white border border-amber-900/15 flex flex-col justify-between hover:border-amber-600/40 transition-all shadow-md"
+                className="p-6 rounded-2xl bg-white/85 backdrop-blur-md border border-amber-900/15 flex flex-col justify-between hover:border-amber-600/40 transition-all shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">

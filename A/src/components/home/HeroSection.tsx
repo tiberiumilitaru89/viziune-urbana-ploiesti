@@ -11,19 +11,8 @@ type HeroSectionProps = {
 export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSectionProps) {
   return (
     <section
-      className="relative min-h-[92vh] flex items-center justify-center pt-32 pb-24 overflow-hidden bg-[#FAF7F2] text-slate-900 border-b border-amber-900/15"
-      style={{
-        backgroundImage: "url('/ploiesti-hero-background.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center right",
-      }}
+      className="relative min-h-[90vh] flex items-center justify-center pt-32 pb-24 overflow-hidden bg-transparent text-slate-900"
     >
-      {/* High-legibility Ivory Mist Gradient Overlays:
-          - Left side ensures 100% crisp, dark text readability (contrast > 15:1)
-          - Right side remains transparent to showcase the historic Ploiesti building, clock tower and golden cursive handwriting */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#FAF7F2]/95 via-[#FAF7F2]/85 to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#FAF7F2]/40 via-transparent to-[#FAF7F2]/75 pointer-events-none" />
-
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-3xl">
           {/* Institutional Civic Badge */}
@@ -69,7 +58,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
 
           {/* Official Seals in crisp white cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 border-t border-amber-900/20">
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/95 border border-amber-900/15 shadow-sm">
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/85 backdrop-blur-md border border-amber-900/15 shadow-md">
               <CheckCircle2 className="w-5 h-5 text-amber-700 shrink-0" />
               <div className="text-xs">
                 <span className="font-bold text-[#071330] block">Evaluare Gratuită</span>
@@ -77,7 +66,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/95 border border-amber-900/15 shadow-sm">
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/85 backdrop-blur-md border border-amber-900/15 shadow-md">
               <ShieldCheck className="w-5 h-5 text-amber-700 shrink-0" />
               <div className="text-xs">
                 <span className="font-bold text-[#071330] block">Materiale Sponsorizate</span>
@@ -85,7 +74,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/95 border border-amber-900/15 shadow-sm">
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-white/85 backdrop-blur-md border border-amber-900/15 shadow-md">
               <Landmark className="w-5 h-5 text-amber-700 shrink-0" />
               <div className="text-xs">
                 <span className="font-bold text-[#071330] block">Garanție 5 Ani</span>

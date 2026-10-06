@@ -12,13 +12,16 @@ Acest document reprezintă Sursa Unică de Adevăr (SSOT) pentru platforma unifi
 
 | Criteriu | Aplicația Oficială (`A/`) |
 | :--- | :--- |
-| **Identitate Vizuală** | Sigla heraldică oficială (`official-logo.jpg`), Fundal civic Ploiești (`ploiesti-hero-background.jpg`) |
+| **Identitate Vizuală** | Sigla heraldică oficială mărită și adaptată pe fildeș (`official-logo.jpg`), Fundal civic panoramic cu Halele Centrale Ploiești, frunze aurii, caligrafia „Pentru un Ploiești mai bun!” și pilonii civici verticali („COMUNITATE / TRANSPARENȚĂ / INFRASTRUCTURĂ / VIITOR”) pe fildeș curat (`ploiesti-hero-background.jpg`) |
+| **Design & Carduri** | Glassmorphism civic translucid (`bg-white/85 backdrop-blur-md`) pe toate cardurile și dashboard-urile (inclusiv `/admin`), permițând vizibilitatea fundalului fix |
 | **Tipografie & Contrast** | `Playfair Display` serif + `Plus Jakarta Sans`, contrast maxim WCAG AAA (Navy `#071330` pe Fildeș `#FAF7F2`) |
-| **Partener Tehnic** | Instal Serv Becheanu (clauza *„Garanție 5 Ani oferită de către partenerii de execuție”* intactă) |
+| **Partener Tehnic** | Instal Serv Becheanu (siglă oficială integrată `becheanu-logo.png`; clauza *„Garanție 5 Ani oferită de către partenerii de execuție”* intactă) |
 | **Partener Calificare** | ACCRP Ploiești (Centrul de Calificare și Recalificare Profesională Ploiești) |
-| **Panou Admin (`/admin`)** | 4 Taburi complete (Asociații, Parteneri, Galerie/Poze, Metrici), parolă `vup2026`, anti-autofill |
-| **Deploy Vercel** | `https://viziune-urbana-ploiesti.vercel.app` (Root Directory: `A`) |
-| **Stare Build** | ✓ 100% Finalizat (Next.js 15.5.27), zero erori de compilare statică |
+| **Cont Bancar Oficial** | UniCredit Bank România — `RO94 BACX 0000 0042 3447 3000` |
+| **SEO & Googlebot** | Sitemap dinamic (`/sitemap.xml`), robots.txt optimizat, Schema.org JSON-LD (NGO, Service, FAQPage), 30+ cuvinte cheie Ploiești |
+| **Panou Admin (`/admin`)** | 4 Taburi complete (Asociații, Parteneri, Galerie/Poze, Metrici), persistență sesiune, parolă `vup2026`, buton deconectare |
+| **Deploy Vercel & Hostico** | `https://viziune-urbana-ploiesti.vercel.app` (Root Directory: `A`) -> Mapare DNS Hostico (A + CNAME) |
+| **Stare Build** | ✓ 100% Finalizat (Next.js 15.5.27), zero erori de compilare statică (8/8 rute) |
 
 ---
 

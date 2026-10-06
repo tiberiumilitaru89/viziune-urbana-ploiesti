@@ -1,4 +1,4 @@
-import { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary, PartnerItem, GlobalMetrics } from "./types";
+import { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary, PartnerItem, GlobalMetrics, Formular230Entry, OngConfig, Formular230Status } from "./types";
 
 export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   {
@@ -129,6 +129,7 @@ export const INITIAL_PARTNERS: readonly PartnerItem[] = [
     role: "Partener Tehnic de Execuție",
     category: "executie",
     description: "Firmă autorizată cu peste 15 ani de experiență în rețele hidraulice și termoficare de bloc în Ploiești. Echipă certificată și garanție contractuală.",
+    logoUrl: "/becheanu-logo.png",
     badgeText: "Partener Oficial",
   },
   {
@@ -141,10 +142,10 @@ export const INITIAL_PARTNERS: readonly PartnerItem[] = [
   },
   {
     id: "part-3",
-    name: "ACCRP Ploiești",
+    name: "ACCRP",
     role: "Partener de Calificare & Formare Profesională",
     category: "practica",
-    description: "Centrul de calificare și recalificare profesională din Ploiești asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
+    description: "Centrul de calificare și recalificare profesională asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
     badgeText: "Calificare Tehnică",
   },
   {
@@ -289,4 +290,83 @@ export function addDonation(data: Omit<DonationEntry, "id" | "status" | "created
 
 export function getDonations(): readonly DonationEntry[] {
   return donationsState;
+}
+
+// Configurație oficială ONG pentru Formularul 230 (Editabilă din Panou Admin)
+let ongConfigState: OngConfig = {
+  name: "Asociația Viziune Urbană Ploiești",
+  cif: "48923410", // CIF configurabil
+  iban: "RO94BACX0000004234473000",
+  bank: "UniCredit Bank România",
+  percentage: "3,5%",
+  distributeYears: 2,
+};
+
+export function getOngConfig(): OngConfig {
+  return ongConfigState;
+}
+
+export function updateOngConfig(updates: Partial<OngConfig>): OngConfig {
+  ongConfigState = { ...ongConfigState, ...updates };
+  return ongConfigState;
+}
+
+// Stare Formulare 230 depuse
+let formulare230State: Formular230Entry[] = [
+  {
+    id: "f230-1",
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    lastName: "Radu",
+    firstName: "Constantin",
+    initialaTata: "I",
+    cnp: "1850312297123",
+    email: "c.radu@gmail.com",
+    phone: "0723456789",
+    address: "Str. Malu Roșu nr. 14, Bl. 32A, Sc. B, Ap. 24",
+    city: "Ploiești",
+    county: "Prahova",
+    signatureDataUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60'><path d='M10 40 Q 50 10 90 35 T 180 20' stroke='%23071330' stroke-width='2' fill='none'/></svg>",
+    distributeFor2Years: true,
+    consentBorderou: true,
+    status: "validat",
+  },
+  {
+    id: "f230-2",
+    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+    lastName: "Popescu",
+    firstName: "Elena",
+    initialaTata: "G",
+    cnp: "2900714298456",
+    email: "elena.popescu@yahoo.com",
+    phone: "0731987654",
+    address: "B-dul Republicii nr. 112, Bl. 14A, Sc. A, Ap. 12",
+    city: "Ploiești",
+    county: "Prahova",
+    signatureDataUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='60'><path d='M15 30 Q 60 50 110 20 T 170 45' stroke='%23071330' stroke-width='2' fill='none'/></svg>",
+    distributeFor2Years: true,
+    consentBorderou: true,
+    status: "inregistrat",
+  },
+];
+
+export function getAllFormulare230(): readonly Formular230Entry[] {
+  return formulare230State;
+}
+
+export function addFormular230(data: Omit<Formular230Entry, "id" | "createdAt" | "status">): Formular230Entry {
+  const newEntry: Formular230Entry = {
+    ...data,
+    id: `f230-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    status: "inregistrat",
+  };
+  formulare230State = [newEntry, ...formulare230State];
+  return newEntry;
+}
+
+export function updateFormular230Status(id: string, status: Formular230Status): boolean {
+  const index = formulare230State.findIndex((f) => f.id === id);
+  if (index === -1) return false;
+  formulare230State[index] = { ...formulare230State[index], status };
+  return true;
 }

@@ -82,25 +82,25 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-[#0a142f] border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-amber-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-900">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-xl text-slate-500 hover:text-slate-950 hover:bg-amber-50 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {isSuccess ? (
           <div className="text-center py-8 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-600">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h3 className="font-serif text-2xl font-bold text-white">
+            <h3 className="font-serif text-2xl font-bold text-[#071330]">
               Cerere Înregistrată în Registru!
             </h3>
-            <p className="text-sm text-slate-300 max-w-sm mx-auto leading-relaxed font-serif">
+            <p className="text-sm text-slate-700 max-w-sm mx-auto leading-relaxed font-serif">
               Vă mulțumim. Un inginer evaluator din cadrul Asociației Viziune Urbană și al Instal Serv Becheanu vă va contacta în termen de 24-48 de ore pentru stabilirea vizitei gratuite în teren.
             </p>
             <div className="pt-4">
@@ -109,7 +109,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   setIsSuccess(false);
                   onClose();
                 }}
-                className="px-6 py-2.5 rounded-xl text-xs font-serif font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-colors"
+                className="px-6 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 transition-colors shadow-md"
               >
                 Închide fereastra
               </button>
@@ -117,26 +117,26 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
           </div>
         ) : (
           <div>
-            <div className="flex items-center gap-2 text-xs font-serif font-bold text-amber-400 uppercase tracking-widest mb-2">
-              <Award className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-xs font-serif font-bold text-amber-900 uppercase tracking-widest mb-2">
+              <Award className="w-4 h-4 text-amber-700" />
               Evaluare Gratuită în Teren
             </div>
-            <h3 className="font-serif text-2xl font-black text-white mb-2 tracking-tight">
+            <h3 className="font-serif text-2xl font-black text-[#071330] mb-2 tracking-tight">
               Înscriere Asociație de Proprietari
             </h3>
-            <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+            <p className="text-xs text-slate-600 mb-6 leading-relaxed">
               Completați datele de mai jos. Deplasarea echipei tehnice și întocmirea devizului de materiale sunt 100% gratuite.
             </p>
 
             {serverError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-semibold">
+              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-700 text-xs font-semibold">
                 {serverError}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
                   Nume Persoană Contact *
                 </label>
                 <input
@@ -145,14 +145,14 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Ex: Ion Popescu (Președinte / Administrator)"
-                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors"
                 />
-                {errors.name && <p className="text-[11px] text-rose-400 mt-1">{errors.name}</p>}
+                {errors.name && <p className="text-[11px] text-rose-600 mt-1">{errors.name}</p>}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
                     Număr Telefon *
                   </label>
                   <input
@@ -161,13 +161,13 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                     value={formData.phone}
                     onChange={handleChange}
                     placeholder="0722 123 456"
-                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors"
                   />
-                  {errors.phone && <p className="text-[11px] text-rose-400 mt-1">{errors.phone}</p>}
+                  {errors.phone && <p className="text-[11px] text-rose-600 mt-1">{errors.phone}</p>}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
                     Asociație / Bloc *
                   </label>
                   <input
@@ -176,14 +176,14 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                     value={formData.building}
                     onChange={handleChange}
                     placeholder="Ex: Bloc 14A, Sc. B"
-                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors"
                   />
-                  {errors.building && <p className="text-[11px] text-rose-400 mt-1">{errors.building}</p>}
+                  {errors.building && <p className="text-[11px] text-rose-600 mt-1">{errors.building}</p>}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
                   Adresă Completă în Ploiești *
                 </label>
                 <input
@@ -192,13 +192,13 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Ex: Str. Malu Roșu nr. 12, Cartier Nord"
-                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors"
                 />
-                {errors.address && <p className="text-[11px] text-rose-400 mt-1">{errors.address}</p>}
+                {errors.address && <p className="text-[11px] text-rose-600 mt-1">{errors.address}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
                   Descrierea Problemelor Subsolului *
                 </label>
                 <textarea
@@ -207,15 +207,15 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   value={formData.problem}
                   onChange={handleChange}
                   placeholder="Ex: Coloană canalizare spartă, bălți de apă în subsol, țevi calde neizolate..."
-                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors resize-none"
                 />
-                {errors.problem && <p className="text-[11px] text-rose-400 mt-1">{errors.problem}</p>}
+                {errors.problem && <p className="text-[11px] text-rose-600 mt-1">{errors.problem}</p>}
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-xs font-serif font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-xl shadow-amber-950/60 transition-all disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 shadow-md transition-all disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>

@@ -79,3 +79,32 @@ export type GlobalMetrics = {
   readonly totalFundsTargetRon: number;
   readonly activeAssociationsCount: number;
 };
+
+export type OngConfig = {
+  name: string;
+  cif: string;
+  iban: string;
+  bank: string;
+  percentage: string;
+  distributeYears: number;
+};
+
+export type Formular230Status = "inregistrat" | "validat" | "depus_anaf";
+
+export type Formular230Entry = {
+  readonly id: string;
+  readonly createdAt: string;
+  readonly lastName: string; // Nume
+  readonly firstName: string; // Prenume
+  readonly initialaTata?: string;
+  readonly cnp: string;
+  readonly email: string;
+  readonly phone: string;
+  readonly address: string;
+  readonly city: string;
+  readonly county: string;
+  readonly signatureDataUrl: string; // Base64 PNG signature
+  readonly distributeFor2Years: boolean;
+  readonly consentBorderou: boolean;
+  readonly status: Formular230Status;
+};

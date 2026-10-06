@@ -38,16 +38,8 @@ export function ProjectsGallery() {
   return (
     <section
       id="proiecte"
-      className="relative py-16 sm:py-24 lg:py-28 bg-[#fbf9f4] text-slate-900 border-t border-amber-900/20 overflow-hidden"
-      style={{
-        backgroundImage: "url('/ploiesti-hero-background.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center right",
-      }}
+      className="relative py-16 sm:py-24 lg:py-28 bg-transparent text-slate-900 border-t border-amber-900/15 overflow-hidden"
     >
-      {/* Subtle overlay to enhance contrast while keeping landmark & handwriting clearly visible */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#fbf9f4]/95 via-[#fbf9f4]/80 to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#fbf9f4]/60 pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Top Header layout matching exactly the reference image */}
@@ -115,7 +107,7 @@ export function ProjectsGallery() {
         </div>
 
         {/* Comparison Showcase Container */}
-        <div className="bg-white/95 backdrop-blur-md border border-amber-900/15 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl shadow-amber-950/5">
+        <div className="bg-white/85 backdrop-blur-md border border-amber-900/15 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl shadow-amber-950/5">
           <div className="mb-5 sm:mb-7">
             <h3 className="font-serif text-lg sm:text-2xl font-black text-[#071330] mb-1.5">
               {activeProject.title}

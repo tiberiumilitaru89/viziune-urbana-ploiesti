@@ -40,7 +40,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
   }, []);
 
   return (
-    <section id="asociatii" className="py-14 sm:py-20 lg:py-28 bg-[#FAF7F2] border-t border-amber-900/15">
+    <section id="asociatii" className="py-14 sm:py-20 lg:py-28 bg-transparent border-t border-amber-900/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5EDE1] border border-amber-700/30 text-amber-900 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
@@ -64,7 +64,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
             return (
               <div
                 key={assoc.id}
-                className="bg-white border border-amber-900/15 rounded-2xl p-5 sm:p-6 shadow-md hover:border-amber-600/40 transition-all flex flex-col justify-between"
+                className="bg-white/85 backdrop-blur-md border border-amber-900/15 rounded-2xl p-5 sm:p-6 shadow-md hover:border-amber-600/40 transition-all flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">
@@ -119,16 +119,16 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
                   <div>
                     <div className="flex justify-between items-center text-xs mb-1.5 font-sans">
                       <span className="font-semibold text-slate-700 flex items-center gap-1.5">
-                        <Coins className="w-3.5 h-3.5 text-blue-700" />
+                        <Coins className="w-3.5 h-3.5 text-emerald-700" />
                         Fond Manoperă Bloc
                       </span>
-                      <span className="font-mono font-bold text-blue-800">
+                      <span className="font-mono font-bold text-emerald-800">
                         {assoc.fundsCollected.toLocaleString()} / {assoc.fundsTarget.toLocaleString()} Lei
                       </span>
                     </div>
                     <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                       <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full transition-all duration-500"
                         style={{ width: `${fundPct}%` }}
                       />
                     </div>

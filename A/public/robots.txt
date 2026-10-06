@@ -1,2 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Googlebot specific directives
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Canonical Sitemap URL
+Sitemap: https://viziune-urbana-ploiesti.ro/sitemap.xml

@@ -42,7 +42,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
   ];
 
   return (
-    <section id="cum-functioneaza" className="py-14 sm:py-20 lg:py-24 bg-[#FAF7F2] border-t border-amber-900/15">
+    <section id="cum-functioneaza" className="py-14 sm:py-20 lg:py-24 bg-transparent border-t border-amber-900/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
@@ -64,7 +64,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
             return (
               <div
                 key={s.num}
-                className="relative p-5 sm:p-6 rounded-2xl bg-white border border-amber-900/15 hover:border-amber-600/40 transition-all hover:-translate-y-1 shadow-md group flex flex-col justify-between"
+                className="relative p-5 sm:p-6 rounded-2xl bg-white/85 backdrop-blur-md border border-amber-900/15 hover:border-amber-600/40 transition-all hover:-translate-y-1 shadow-md group flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">

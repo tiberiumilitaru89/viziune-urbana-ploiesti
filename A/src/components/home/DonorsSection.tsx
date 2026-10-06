@@ -7,7 +7,7 @@ type DonorsSectionProps = {
 
 export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
   return (
-    <section id="donatori" className="py-14 sm:py-20 lg:py-24 bg-[#FAF7F2] border-t border-amber-900/15">
+    <section id="donatori" className="py-14 sm:py-20 lg:py-24 bg-transparent border-t border-amber-900/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5EDE1] border border-amber-700/30 text-amber-900 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
@@ -24,7 +24,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto mb-8 sm:mb-12">
           {/* Box 1: Pentru Companii */}
-          <div className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-amber-900/15 flex flex-col justify-between shadow-md relative overflow-hidden group">
+          <div className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/85 backdrop-blur-md border border-amber-900/15 flex flex-col justify-between shadow-md relative overflow-hidden group">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-600/30 flex items-center justify-center mb-6">
                 <Building2 className="w-6 h-6 text-amber-800" />
@@ -58,7 +58,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
           </div>
 
           {/* Box 2: Pentru Persoane Fizice (3.5% ANAF) */}
-          <div className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-amber-900/15 flex flex-col justify-between shadow-md relative overflow-hidden group">
+          <div className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/85 backdrop-blur-md border border-amber-900/15 flex flex-col justify-between shadow-md relative overflow-hidden group">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-600/30 flex items-center justify-center mb-6">
                 <Heart className="w-6 h-6 text-rose-600" />
