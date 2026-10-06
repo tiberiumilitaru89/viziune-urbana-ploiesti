@@ -1,15 +1,26 @@
 @import "tailwindcss";
 
+:root {
+  --navbar-height: 88px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --navbar-height: 96px;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
     color-scheme: light;
     overflow-x: hidden;
     max-width: 100vw;
+    background-color: #FAF7F2;
   }
 
   body {
-    background-color: transparent;
+    background-color: #FAF7F2;
     color: #0f172a;
     font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
     -webkit-font-smoothing: antialiased;

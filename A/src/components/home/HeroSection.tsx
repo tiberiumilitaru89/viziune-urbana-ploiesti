@@ -11,7 +11,7 @@ type HeroSectionProps = {
 export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSectionProps) {
   return (
     <section
-      className="relative min-h-[90vh] flex items-center justify-center pt-32 pb-24 overflow-hidden bg-transparent text-slate-900"
+      className="relative min-h-[calc(100vh-var(--navbar-height,88px))] flex items-center justify-center pt-28 sm:pt-32 pb-20 sm:pb-24 overflow-hidden bg-transparent text-slate-900"
     >
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-3xl">

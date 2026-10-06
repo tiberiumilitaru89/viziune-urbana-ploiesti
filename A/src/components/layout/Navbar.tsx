@@ -36,11 +36,11 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-[#FAF7F2]/95 backdrop-blur-md border-b border-amber-900/20 shadow-md py-3.5"
-          : "bg-[#FAF7F2]/90 backdrop-blur-md border-b border-amber-900/15 py-4"
+          ? "bg-[#FAF7F2]/95 backdrop-blur-md border-b border-amber-900/20 shadow-md"
+          : "bg-[#FAF7F2]/90 backdrop-blur-md border-b border-amber-900/15"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="h-[88px] sm:h-[96px] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Heraldic Official Logo - adapted, larger & clearly legible */}
         <Link href="/" className="flex items-center gap-3 sm:gap-3.5 group">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border border-amber-600/30 shadow-md group-hover:border-amber-600 group-hover:scale-105 transition-all bg-[#FAF7F2] shrink-0">

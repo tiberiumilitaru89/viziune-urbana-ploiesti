@@ -138,18 +138,18 @@ export default function RootLayout({
       <head>
         <JsonLd />
       </head>
-      <body className="min-h-screen bg-transparent text-slate-900 antialiased selection:bg-amber-500 selection:text-slate-950 relative overflow-x-hidden w-full font-sans">
-        {/* Fixed Civic Panoramic Background — permanently fixed in viewport, content scrolls over it */}
+      <body className="min-h-screen bg-[#FAF7F2] text-slate-900 antialiased selection:bg-amber-500 selection:text-slate-950 relative overflow-x-hidden w-full font-sans">
+        {/* Fixed Civic Panoramic Background — starts cleanly right after the menu bar so entire image is visible */}
         <div
           className="pointer-events-none"
           style={{
             position: "fixed",
-            top: 0,
+            top: "var(--navbar-height, 88px)",
             left: 0,
             right: 0,
             bottom: 0,
             width: "100vw",
-            height: "100vh",
+            height: "calc(100vh - var(--navbar-height, 88px))",
             zIndex: 0,
             backgroundImage: "url('/ploiesti-hero-background.jpg')",
             backgroundSize: "cover",
