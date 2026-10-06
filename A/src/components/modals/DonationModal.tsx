@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Heart, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check } from "lucide-react";
+import { X, Heart, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check, Award, Landmark } from "lucide-react";
 import { z } from "zod";
 import { INITIAL_ASSOCIATIONS } from "@/lib/data";
 
@@ -119,8 +119,8 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-[#0a0f1d] border border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#050914]/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-[#0a142f] border-2 border-amber-500/40 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -131,14 +131,14 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
 
         {isSuccess ? (
           <div className="text-center py-6 sm:py-8 space-y-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center mx-auto text-amber-400">
               <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-white">
-              Sponsorizare Înregistrată cu Succes!
+            <h3 className="font-serif text-xl sm:text-2xl font-bold text-white">
+              Sponsorizare Înregistrată Oficial!
             </h3>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed">
-              Vă mulțumim pentru implicare. Oferta dumneavoastră pentru <strong className="text-emerald-400">{targetAssociation}</strong> a fost transmisă departamentului civic. Vă vom contacta în maxim 24 de ore pentru transmiterea contractului de sponsorizare conform Legii 32/1994 (100% deductibil fiscal).
+            <p className="text-xs sm:text-sm text-slate-300 max-w-md mx-auto leading-relaxed font-serif">
+              Vă mulțumim pentru generozitate. Oferta dumneavoastră destinată asociației <strong className="text-amber-300">{targetAssociation}</strong> a fost înscrisă în Registrul Donatorilor. Un reprezentant vă va contacta pentru redactarea contractului de sponsorizare (conform Legii 32/1994, 100% deductibil).
             </p>
             <div className="pt-3 sm:pt-4">
               <button
@@ -146,7 +146,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                   setIsSuccess(false);
                   onClose();
                 }}
-                className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors"
+                className="px-6 py-2.5 rounded-xl text-xs font-serif font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition-colors"
               >
                 Închide fereastra
               </button>
@@ -154,25 +154,25 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
           </div>
         ) : (
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-rose-400 uppercase tracking-widest mb-1.5 sm:mb-2">
-              <Heart className="w-4 h-4" />
+            <div className="flex items-center gap-2 text-xs font-serif font-bold text-amber-400 uppercase tracking-widest mb-1.5 sm:mb-2">
+              <Award className="w-4 h-4" />
               Susține Proiectul Civic
             </div>
-            <h3 className="text-xl sm:text-3xl font-extrabold text-white mb-2 tracking-tight">
+            <h3 className="text-xl sm:text-3xl font-serif font-black text-white mb-2 tracking-tight">
               Susține Proiectul
             </h3>
-            <p className="text-xs sm:text-sm text-slate-400 mb-5 sm:mb-6">
-              Alegeți forma de susținere dorită: sponsorizarea directă a blocurilor înscrise sau donație financiară în contul asociației.
+            <p className="text-xs sm:text-sm text-slate-300 mb-5 sm:mb-6 font-serif">
+              Alegeți modalitatea de implicare: sponsorizarea unei asociații înscrise (bani sau materiale) ori donație directă.
             </p>
 
             {/* Primary Bifurcation: Sponsorizeaza vs Donatie Financiara */}
-            <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-900 rounded-2xl border border-slate-800 mb-5 sm:mb-6">
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-[#050914] rounded-2xl border border-amber-900/40 mb-5 sm:mb-6">
               <button
                 type="button"
                 onClick={() => setMainTab("sponsorizeaza")}
-                className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 text-center ${
+                className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm font-serif font-bold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 text-center ${
                   mainTab === "sponsorizeaza"
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                    ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-950/60"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -182,9 +182,9 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
               <button
                 type="button"
                 onClick={() => setMainTab("donatie_financiara")}
-                className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm font-bold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 text-center ${
+                className={`py-2.5 sm:py-3 px-2 sm:px-3 text-xs sm:text-sm font-serif font-bold rounded-xl transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 text-center ${
                   mainTab === "donatie_financiara"
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
+                    ? "bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-lg shadow-amber-950/60"
                     : "text-slate-400 hover:text-white"
                 }`}
               >
@@ -204,14 +204,14 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
               <form onSubmit={handleSponsorshipSubmit} className="space-y-4">
                 {/* 1. Association Selection */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-blue-400" />
-                    Asociația Vizată (Înscrise în Proiect) *
+                  <label className="block text-xs font-serif font-bold text-amber-300 mb-1.5 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-amber-400" />
+                    Asociația Vizată (Înscrise în Proiect până în prezent) *
                   </label>
                   <select
                     value={targetAssociation}
                     onChange={(e) => setTargetAssociation(e.target.value)}
-                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-[#050914] border border-amber-900/50 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400 font-serif"
                   >
                     <option value="Fondul General de Reabilitare (Alocare Prioritară)">
                       🌟 Fondul General de Reabilitare (Alocare prioritară municipiu)
@@ -223,22 +223,22 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     ))}
                   </select>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    Sponsorizarea dumneavoastră va fi alocată direct asociației selectate sau fondului general.
+                    Sponsorizarea va fi direcționată punctual către asociația selectată.
                   </p>
                 </div>
 
                 {/* 2. Sub-Toggle: Bani vs Materiale */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-serif font-bold text-amber-300 mb-1.5">
                     Modalitate Sponsorizare *
                   </label>
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-[#050914] rounded-xl border border-amber-900/40">
                     <button
                       type="button"
                       onClick={() => setSponsorshipType("materiale")}
-                      className={`py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                      className={`py-2 text-xs font-serif font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
                         sponsorshipType === "materiale"
-                          ? "bg-slate-800 text-emerald-400 border border-emerald-500/40 shadow-sm"
+                          ? "bg-[#0e1838] text-amber-300 border border-amber-400/40 shadow-sm"
                           : "text-slate-400 hover:text-white"
                       }`}
                     >
@@ -248,29 +248,29 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     <button
                       type="button"
                       onClick={() => setSponsorshipType("bani")}
-                      className={`py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                      className={`py-2 text-xs font-serif font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
                         sponsorshipType === "bani"
-                          ? "bg-slate-800 text-blue-400 border border-blue-500/40 shadow-sm"
+                          ? "bg-[#0e1838] text-amber-300 border border-amber-400/40 shadow-sm"
                           : "text-slate-400 hover:text-white"
                       }`}
                     >
                       <Coins className="w-3.5 h-3.5" />
-                      În Bani (Sumă Fixă)
+                      În Bani (Financiar)
                     </button>
                   </div>
                 </div>
 
                 {/* Material Inputs */}
                 {sponsorshipType === "materiale" ? (
-                  <div className="space-y-3 p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-[#050914]/70 border border-amber-900/30">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                      <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
                         Tip Material Oferit *
                       </label>
                       <select
                         value={materialType}
                         onChange={(e) => setMaterialType(e.target.value)}
-                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                       >
                         <option value="Țevi PPR fibră compozită">Țevi PPR cu inserție compozită</option>
                         <option value="Coloane scurgere PVC fonoabsorbante">Coloane scurgere PVC fonoabsorbante</option>
@@ -284,7 +284,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-bold text-slate-300 mb-1">
+                        <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
                           Cantitate *
                         </label>
                         <input
@@ -292,11 +292,11 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                           min="1"
                           value={quantity}
                           onChange={(e) => setQuantity(Number(e.target.value))}
-                          className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-300 mb-1">
+                        <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
                           Unitate Măsură
                         </label>
                         <input
@@ -304,16 +304,16 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                           value={unit}
                           onChange={(e) => setUnit(e.target.value)}
                           placeholder="metri liniari, buc"
-                          className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                          className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                         />
                       </div>
                     </div>
                   </div>
                 ) : (
                   /* Money Sponsorship Inputs */
-                  <div className="space-y-3 p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800">
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-[#050914]/70 border border-amber-900/30">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      <label className="block text-xs font-serif font-bold text-slate-300 mb-1.5">
                         Valoare Sponsorizare Dedicată (Lei) *
                       </label>
                       <div className="grid grid-cols-2 xs:grid-cols-4 gap-2 mb-2">
@@ -322,10 +322,10 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                             key={amt}
                             type="button"
                             onClick={() => setMoneyAmount(amt)}
-                            className={`py-2 sm:py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            className={`py-2 sm:py-1.5 rounded-lg text-xs font-serif font-bold transition-all ${
                               moneyAmount === amt
-                                ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                                : "bg-slate-900 text-slate-300 border border-slate-700 hover:bg-slate-800"
+                                ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-950/60"
+                                : "bg-[#0a142f] text-slate-300 border border-amber-900/40 hover:bg-[#142352]"
                             }`}
                           >
                             {amt} Lei
@@ -338,7 +338,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                         value={moneyAmount}
                         onChange={(e) => setMoneyAmount(Number(e.target.value))}
                         placeholder="Altă sumă (Lei)"
-                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                        className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#0a142f] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                       />
                     </div>
                   </div>
@@ -347,7 +347,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                 {/* Contact Information */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                    <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
                       Companie / Nume Sponsor *
                     </label>
                     <input
@@ -355,11 +355,11 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                       value={companyOrName}
                       onChange={(e) => setCompanyOrName(e.target.value)}
                       placeholder="Ex: S.C. Partener S.R.L."
-                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
+                    <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
                       Telefon Contact *
                     </label>
                     <input
@@ -367,13 +367,13 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="0722 000 000"
-                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-serif font-bold text-slate-300 mb-1">
                     Email Oficial (opțional)
                   </label>
                   <input
@@ -381,18 +381,18 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="contact@companie.ro"
-                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-slate-900 border border-slate-700 text-base sm:text-sm text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 sm:py-2 rounded-xl bg-[#050914] border border-amber-900/40 text-base sm:text-sm text-white focus:outline-none focus:border-amber-400"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 shadow-xl shadow-blue-600/30 transition-all disabled:opacity-50 mt-2"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-serif font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-xl shadow-amber-950/60 transition-all disabled:opacity-50 mt-2"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
                       Se transmite solicitarea...
                     </>
                   ) : (
@@ -407,30 +407,30 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
             {/* BRANCH 2: DONATIE FINANCIARA */}
             {mainTab === "donatie_financiara" && (
               <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                    <Building2 className="w-4 h-4" />
-                    Cont Bancar Oficial al Asociației
+                <div className="p-5 rounded-2xl bg-[#050914] border border-amber-900/40 space-y-3.5">
+                  <div className="flex items-center gap-2 text-xs font-serif font-bold text-amber-400 uppercase tracking-wider">
+                    <Landmark className="w-4 h-4" />
+                    Cont Bancar Oficial al Asociației Civice
                   </div>
 
-                  <div className="text-xs text-slate-400 space-y-1">
+                  <div className="text-xs text-slate-300 space-y-1 font-serif">
                     <div>
-                      <span className="font-bold text-slate-200">Beneficiar:</span> Asociația Viziune Urbană Ploiești
+                      <span className="font-bold text-amber-300">Beneficiar:</span> Asociația Viziune Urbană Ploiești
                     </div>
                     <div>
-                      <span className="font-bold text-slate-200">Banca:</span> Banca Comercială Română (BCR) Ploiești
+                      <span className="font-bold text-amber-300">Banca:</span> Banca Comercială Română (BCR) Ploiești
                     </div>
                   </div>
 
                   <div>
-                    <span className="font-bold text-slate-200 text-xs block mb-1">
-                      Cod IBAN (RON):
+                    <span className="font-serif font-bold text-slate-200 text-xs block mb-1">
+                      Cod IBAN Oficial (RON):
                     </span>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-xl bg-slate-900 border border-slate-700 font-mono text-xs text-emerald-400">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-2.5 rounded-xl bg-[#0a142f] border border-amber-500/30 font-mono text-xs text-amber-300">
                       <span className="break-all sm:break-normal select-all">RO49 AAAA 1B31 0075 9384 0000</span>
                       <button
                         onClick={handleCopyIban}
-                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors w-full sm:w-auto shrink-0"
+                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg text-xs font-serif font-bold bg-[#050914] hover:bg-slate-800 text-amber-300 border border-amber-500/30 transition-colors w-full sm:w-auto shrink-0"
                       >
                         {copiedIban ? (
                           <>
@@ -447,23 +447,23 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     </div>
                   </div>
 
-                  <div className="text-[11px] text-slate-400 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800/80">
+                  <div className="text-[11px] text-slate-400 leading-relaxed bg-[#0a142f]/60 p-3 rounded-xl border border-amber-900/30">
                     Mențiune obligatorie la detalii transfer:{" "}
                     <strong className="text-slate-200">„Donație civică reabilitare subsoluri Ploiești”</strong>.
                   </div>
                 </div>
 
                 {/* Formular 230 ANAF card */}
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-950/40 to-slate-900 border border-blue-900/40 space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-blue-400 uppercase tracking-wider">
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#0e1838] to-[#050914] border border-amber-500/30 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-serif font-bold text-amber-300 uppercase tracking-wider">
                     <FileText className="w-4 h-4" />
                     Redirecționează 3.5% din Impozit (Formular 230)
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-300 leading-relaxed font-serif">
                     Dacă ești persoană fizică salariată în Ploiești, poți direcționa 3.5% din impozitul pe venit datorat statului fără să plătești nimic în plus. Fiecare formular strâns ajută la plata manoperei pentru blocurile înscrise.
                   </p>
-                  <div className="text-[11px] text-blue-300 font-semibold flex items-center gap-1.5 pt-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                  <div className="text-[11px] text-amber-400 font-semibold flex items-center gap-1.5 pt-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />
                     Datele asociației sunt înregistrate în Registrul Entităților de Cult / ONG la ANAF.
                   </div>
                 </div>

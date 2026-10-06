@@ -1,57 +1,57 @@
 import React from "react";
-import { Wrench, GraduationCap, Building2, ShieldCheck } from "lucide-react";
+import { Wrench, GraduationCap, Building2, Award } from "lucide-react";
 
 export function PartnersStrip() {
   return (
-    <div className="bg-[#080d19]/80 backdrop-blur-sm border-y border-slate-800/80 py-4 sm:py-6">
+    <div className="bg-[#F3EFE8] border-y border-amber-900/15 py-4 sm:py-6 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center gap-4 sm:gap-6 lg:gap-8">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 lg:pr-8 lg:border-r border-slate-800 shrink-0">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            Partenerii Noștri Oficiali
+          <div className="flex items-center gap-2.5 font-serif text-xs font-bold uppercase tracking-[0.2em] text-amber-900 lg:pr-8 lg:border-r border-amber-900/20 shrink-0">
+            <Award className="w-4 h-4 text-amber-700" />
+            Consorțiul Partenerilor Oficiali
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-6 w-full items-center">
-            {/* Parteneri Tehnici: Parteneri de Execuție */}
+            {/* Partener Tehnic de Executie */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shrink-0">
-                <Wrench className="w-4 h-4 text-blue-400" />
+              <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-600/30 flex items-center justify-center shrink-0">
+                <Wrench className="w-4 h-4 text-amber-800" />
               </div>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-900">
                   Parteneri Tehnici
                 </div>
-                <div className="text-xs font-bold text-white">
-                  Parteneri de Execuție
+                <div className="text-xs font-serif font-bold text-[#071330]">
+                  Instal Serv Becheanu
                 </div>
               </div>
             </div>
 
             {/* Partener de Practică: Toma Socolescu */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
-                <GraduationCap className="w-4 h-4 text-amber-400" />
+              <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-600/30 flex items-center justify-center shrink-0">
+                <GraduationCap className="w-4 h-4 text-blue-800" />
               </div>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-blue-900">
                   Partener Practică
                 </div>
-                <div className="text-xs font-bold text-white">
+                <div className="text-xs font-serif font-bold text-[#071330]">
                   Lic. Toma Socolescu
                 </div>
               </div>
             </div>
 
-            {/* Partener de Practică: ACCR */}
+            {/* Partener Calificare: ACCRP */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
-                <GraduationCap className="w-4 h-4 text-purple-400" />
+              <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-600/30 flex items-center justify-center shrink-0">
+                <GraduationCap className="w-4 h-4 text-purple-800" />
               </div>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-purple-900">
                   Partener Calificare
                 </div>
-                <div className="text-xs font-bold text-white">
+                <div className="text-xs font-serif font-bold text-[#071330]">
                   ACCRP Ploiești
                 </div>
               </div>
@@ -59,14 +59,14 @@ export function PartnersStrip() {
 
             {/* Susținător: UPG Ploiești */}
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                <Building2 className="w-4 h-4 text-emerald-400" />
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-600/30 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4 text-emerald-800" />
               </div>
               <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-900">
                   Susținător Proiect
                 </div>
-                <div className="text-xs font-bold text-white">
+                <div className="text-xs font-serif font-bold text-[#071330]">
                   UPG Ploiești
                 </div>
               </div>

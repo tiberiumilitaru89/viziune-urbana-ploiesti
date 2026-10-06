@@ -1,4 +1,4 @@
-import { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary } from "./types";
+import { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary, PartnerItem, GlobalMetrics } from "./types";
 
 export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   {
@@ -106,7 +106,7 @@ export const FAQS = [
   },
   {
     q: "Asociația mai plătește ceva pentru materiale?",
-    a: "Nu! Asociația plătește DOAR manopera (munca instalatorilor) către partenerul tehnic de execuție. Toate materialele (țevi, robineți, izolații, fitinguri) sunt sponsorizate gratuit de Asociația Viziune Urbană.",
+    a: "Nu! Asociația plătește DOAR manopera (munca instalatorilor) către Instal Serv Becheanu. Toate materialele (țevi, robineți, izolații, fitinguri) sunt sponsorizate gratuit de Asociația Viziune Urbană.",
   },
   {
     q: "Ce înseamnă sponsorizare în materiale?",
@@ -122,8 +122,53 @@ export const FAQS = [
   },
 ] as const;
 
-// In-memory persistent state container for runtime
+export const INITIAL_PARTNERS: readonly PartnerItem[] = [
+  {
+    id: "part-1",
+    name: "Instal Serv Becheanu",
+    role: "Partener Tehnic de Execuție",
+    category: "executie",
+    description: "Firmă autorizată cu peste 15 ani de experiență în rețele hidraulice și termoficare de bloc în Ploiești. Echipă certificată și garanție contractuală.",
+    badgeText: "Partener Oficial",
+  },
+  {
+    id: "part-2",
+    name: "Liceul Tehnologic „Toma Socolescu” Ploiești",
+    role: "Partener de Practică Profesională",
+    category: "practica",
+    description: "Elevii din clasele profesionale de instalații participă la stagii practice pe șantierele de reabilitare sub îndrumarea maiștrilor și tehnicienilor Instal Serv Becheanu.",
+    badgeText: "Educațional",
+  },
+  {
+    id: "part-3",
+    name: "ACCRP Ploiești",
+    role: "Partener de Calificare & Formare Profesională",
+    category: "practica",
+    description: "Centrul de calificare și recalificare profesională din Ploiești asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
+    badgeText: "Calificare Tehnică",
+  },
+  {
+    id: "part-4",
+    name: "Universitatea Petrol-Gaze (UPG) Ploiești",
+    role: "Partener Academic & Tehnologic",
+    category: "academic",
+    description: "Expertiză tehnică, monitorizare a eficienței energetice și susținere științifică a programului de modernizare a infrastructurii municipale.",
+    badgeText: "Academic",
+  },
+];
+
+export const INITIAL_METRICS: GlobalMetrics = {
+  totalFormsCollected: 95,
+  totalFormsTarget: 130,
+  totalFundsCollectedRon: 25700,
+  totalFundsTargetRon: 40500,
+  activeAssociationsCount: 3,
+};
+
 let requestsState: AuditRequest[] = [...INITIAL_ASSOCIATIONS];
+let projectsState: ProjectItem[] = [...INITIAL_PROJECTS];
+let partnersState: PartnerItem[] = [...INITIAL_PARTNERS];
+let metricsState: GlobalMetrics = { ...INITIAL_METRICS };
 let donationsState: DonationEntry[] = [];
 
 export function getPublicAssociations(): PublicAssociationSummary[] {
@@ -143,26 +188,92 @@ export function getAllAuditRequests(): readonly AuditRequest[] {
   return requestsState;
 }
 
-export function addAuditRequest(data: Omit<AuditRequest, "id" | "status" | "formsCollected" | "formsTarget" | "fundsCollected" | "fundsTarget" | "createdAt">): AuditRequest {
+export function addAuditRequest(data: Omit<AuditRequest, "id" | "status" | "formsCollected" | "formsTarget" | "fundsCollected" | "fundsTarget" | "createdAt"> & {
+  formsCollected?: number;
+  formsTarget?: number;
+  fundsCollected?: number;
+  fundsTarget?: number;
+  status?: AuditRequest["status"];
+}): AuditRequest {
   const newReq: AuditRequest = {
     ...data,
     id: `req-${Date.now()}`,
-    status: "nou",
-    formsCollected: 0,
-    formsTarget: 40,
-    fundsCollected: 0,
-    fundsTarget: 12000,
+    status: data.status ?? "nou",
+    formsCollected: data.formsCollected ?? 0,
+    formsTarget: data.formsTarget ?? 40,
+    fundsCollected: data.fundsCollected ?? 0,
+    fundsTarget: data.fundsTarget ?? 12000,
     createdAt: new Date().toISOString(),
   };
   requestsState = [newReq, ...requestsState];
+  metricsState = {
+    ...metricsState,
+    activeAssociationsCount: requestsState.length,
+  };
   return newReq;
 }
 
-export function updateAuditRequestStatus(id: string, status: AuditRequest["status"]): boolean {
+export function updateAuditRequest(
+  id: string,
+  updates: Partial<Pick<AuditRequest, "status" | "formsCollected" | "formsTarget" | "fundsCollected" | "fundsTarget" | "building" | "address" | "problem" | "name" | "phone">>
+): boolean {
   const index = requestsState.findIndex((r) => r.id === id);
   if (index === -1) return false;
-  requestsState[index] = { ...requestsState[index], status };
+  requestsState[index] = { ...requestsState[index], ...updates };
   return true;
+}
+
+export function updateAuditRequestStatus(id: string, status: AuditRequest["status"]): boolean {
+  return updateAuditRequest(id, { status });
+}
+
+export function getAllProjects(): readonly ProjectItem[] {
+  return projectsState;
+}
+
+export function addProject(item: Omit<ProjectItem, "id">): ProjectItem {
+  const newProj: ProjectItem = {
+    ...item,
+    id: `proj-${Date.now()}`,
+  };
+  projectsState = [newProj, ...projectsState];
+  return newProj;
+}
+
+export function updateProject(id: string, updates: Partial<Omit<ProjectItem, "id">>): boolean {
+  const index = projectsState.findIndex((p) => p.id === id);
+  if (index === -1) return false;
+  projectsState[index] = { ...projectsState[index], ...updates };
+  return true;
+}
+
+export function getAllPartners(): readonly PartnerItem[] {
+  return partnersState;
+}
+
+export function addPartner(item: Omit<PartnerItem, "id">): PartnerItem {
+  const newPart: PartnerItem = {
+    ...item,
+    id: `part-${Date.now()}`,
+  };
+  partnersState = [...partnersState, newPart];
+  return newPart;
+}
+
+export function updatePartner(id: string, updates: Partial<Omit<PartnerItem, "id">>): boolean {
+  const index = partnersState.findIndex((p) => p.id === id);
+  if (index === -1) return false;
+  partnersState[index] = { ...partnersState[index], ...updates };
+  return true;
+}
+
+export function getGlobalMetrics(): GlobalMetrics {
+  return metricsState;
+}
+
+export function updateGlobalMetrics(updates: Partial<GlobalMetrics>): GlobalMetrics {
+  metricsState = { ...metricsState, ...updates };
+  return metricsState;
 }
 
 export function addDonation(data: Omit<DonationEntry, "id" | "status" | "createdAt">): DonationEntry {

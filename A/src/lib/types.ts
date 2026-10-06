@@ -58,3 +58,24 @@ export type DonationEntry = {
   readonly status: "inregistrat" | "confirmat" | "finalizat";
   readonly createdAt: string;
 };
+
+export type PartnerCategory = "executie" | "practica" | "comunitate" | "academic";
+
+export type PartnerItem = {
+  readonly id: string;
+  readonly name: string;
+  readonly role: string;
+  readonly category: PartnerCategory;
+  readonly description: string;
+  readonly logoUrl?: string;
+  readonly website?: string;
+  readonly badgeText?: string;
+};
+
+export type GlobalMetrics = {
+  readonly totalFormsCollected: number;
+  readonly totalFormsTarget: number;
+  readonly totalFundsCollectedRon: number;
+  readonly totalFundsTargetRon: number;
+  readonly activeAssociationsCount: number;
+};
