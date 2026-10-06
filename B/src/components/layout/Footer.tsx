@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { Landmark, MapPin, Phone, ShieldCheck, ArrowUpRight, Scale } from "lucide-react";
+import Image from "next/image";
+import { MapPin, Phone, ShieldCheck, ArrowUpRight, Scale } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,8 +13,14 @@ export function Footer() {
           {/* Identity */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-                <Landmark className="w-5 h-5 text-amber-400" />
+              <div className="w-11 h-11 rounded-xl overflow-hidden border border-amber-500/40 shadow-md shrink-0 bg-[#0a142f]">
+                <Image
+                  src="/official-logo.jpg"
+                  alt="Siglă Asociația Viziune Urbană Ploiești"
+                  width={44}
+                  height={44}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="font-serif font-black text-white text-base tracking-wide">
                 VIZIUNE URBANĂ PLOIEȘTI
@@ -81,7 +88,7 @@ export function Footer() {
             <div className="space-y-3">
               <div className="p-3 rounded-xl bg-[#0a142f] border border-amber-900/30">
                 <div className="text-xs font-bold text-white flex items-center justify-between">
-                  PARTENERI DE EXECUȚIE
+                  INSTAL SERV BECHEANU
                   <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
                 </div>
                 <div className="text-[11px] text-slate-400">Garanție 5 ani oferită de către partenerii de execuție</div>
@@ -91,8 +98,8 @@ export function Footer() {
                 <div className="text-[11px] text-amber-400">Convenție de practică duală</div>
               </div>
               <div className="p-3 rounded-xl bg-[#0a142f] border border-amber-900/30">
-                <div className="text-xs font-bold text-white">UPG Ploiești & ACCR</div>
-                <div className="text-[11px] text-blue-300">Comitet științific și civic</div>
+                <div className="text-xs font-bold text-white">UPG Ploiești & ACCRP</div>
+                <div className="text-[11px] text-blue-300">Comitet științific & calificare</div>
               </div>
             </div>
           </div>

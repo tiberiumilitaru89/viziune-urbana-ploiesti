@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getPublicAssociations } from "@/lib/data";
+import { PublicAssociationSummary } from "@/lib/types";
 import { Building2, FileSpreadsheet, Coins, CheckCircle, Clock, ShieldCheck, ArrowRight, Landmark } from "lucide-react";
 
 type AssociationTrackerProps = {
@@ -9,7 +10,34 @@ type AssociationTrackerProps = {
 };
 
 export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps) {
-  const associations = getPublicAssociations();
+  const [associations, setAssociations] = useState<PublicAssociationSummary[]>(() => getPublicAssociations());
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("vup_associations");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setAssociations(
+              (parsed as Partial<PublicAssociationSummary>[]).map((r) => ({
+                id: String(r.id || `req-${Math.random()}`),
+                building: String(r.building || ""),
+                address: String(r.address || ""),
+                status: (r.status as PublicAssociationSummary["status"]) || "nou",
+                formsCollected: Number(r.formsCollected || 0),
+                formsTarget: Number(r.formsTarget || 40),
+                fundsCollected: Number(r.fundsCollected || 0),
+                fundsTarget: Number(r.fundsTarget || 12000),
+              }))
+            );
+          }
+        }
+      } catch {
+        // fallback
+      }
+    }
+  }, []);
 
   return (
     <section id="asociatii" className="py-14 sm:py-20 lg:py-28 bg-[#070d1e]/80 backdrop-blur-sm border-t border-amber-900/30">

@@ -2,7 +2,7 @@
 id: okf-copywriting-and-mission
 title: "Copywriting Canonic & Misiunea Asociației Viziune Urbană Ploiești"
 domain: business-rules
-last_verified: 2026-10-05
+last_verified: 2026-10-06
 dependencies: ["okf-index"]
 ---
 
@@ -44,10 +44,10 @@ Acest nod păstrează cuvânt cu cuvânt tot conținutul editorial aprobat pentr
 ---
 
 ## 3. Parteneri Oficiali (Banda de încredere)
-1. **Parteneri Tehnici:** Parteneri de execuție autorizați și acreditați
-2. **Partener de Practică:** Liceul Tehnologic „Toma Socolescu” Ploiești
-3. **Partener de Practică:** Asociația Comunitară Calea Renașterii (ACCR) Ploiești
-4. **Susținător Proiect:** Universitatea Petrol-Gaze (UPG) din Ploiești
+1. **Partener Tehnic de Execuție Oficial:** **Instal Serv Becheanu** (menționat pe tot parcursul platformei, cu excepția strictă a paragrafului garanției de 5 ani care rămâne: *„Garanție de 5 ani oferită de către partenerii de execuție”*)
+2. **Partener de Practică Profesională:** Liceul Tehnologic „Toma Socolescu” Ploiești
+3. **Partener de Calificare & Formare Profesională:** ACCRP Ploiești (Centrul de calificare și recalificare profesională din Ploiești)
+4. **Susținător Academic & Științific:** Universitatea Petrol-Gaze (UPG) din Ploiești
 
 ---
 

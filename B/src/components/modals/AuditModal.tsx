@@ -101,7 +101,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
               Cerere Înregistrată în Registru!
             </h3>
             <p className="text-sm text-slate-300 max-w-sm mx-auto leading-relaxed font-serif">
-              Vă mulțumim. Un inginer evaluator din cadrul Asociației Viziune Urbană și al partenerilor de execuție vă va contacta în termen de 24-48 de ore pentru stabilirea vizitei gratuite în teren.
+              Vă mulțumim. Un inginer evaluator din cadrul Asociației Viziune Urbană și al Instal Serv Becheanu vă va contacta în termen de 24-48 de ore pentru stabilirea vizitei gratuite în teren.
             </p>
             <div className="pt-4">
               <button

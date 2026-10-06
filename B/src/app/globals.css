@@ -27,6 +27,16 @@
     background-color: #d97706;
     color: #ffffff;
   }
+
+  /* Mobile viewport & touch optimizations */
+  @media screen and (max-width: 768px) {
+    input, select, textarea {
+      font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+    }
+    button, a {
+      touch-action: manipulation; /* Eliminates 300ms click delay on mobile */
+    }
+  }
 }
 
 /* Institutional refined scrollbar */

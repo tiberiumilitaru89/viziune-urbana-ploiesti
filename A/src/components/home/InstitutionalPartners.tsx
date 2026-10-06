@@ -12,11 +12,11 @@ export function InstitutionalPartners() {
       accent: "text-amber-400 border-amber-500/30 bg-amber-500/10",
     },
     {
-      name: "ACCR Ploiești",
-      role: "Partener de Practică & Implicare Comunitară",
-      desc: "Asociația Comunitară Calea Renașterii sprijină dialogul cu locatarii și organizarea asociațiilor de proprietari pentru luarea deciziilor în adunările generale.",
+      name: "ACCRP Ploiești",
+      role: "Partener de Calificare & Formare Profesională",
+      desc: "Centrul de calificare și recalificare profesională din Ploiești asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
       icon: Users2,
-      badge: "Coeziune Civic",
+      badge: "Calificare Tehnică",
       accent: "text-purple-400 border-purple-500/30 bg-purple-500/10",
     },
     {

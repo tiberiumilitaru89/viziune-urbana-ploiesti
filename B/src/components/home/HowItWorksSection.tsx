@@ -32,7 +32,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
       num: "IV",
       icon: Wrench,
       title: "Execuție Autorizată",
-      desc: "Partenerul autorizat execută lucrarea, asociația plătind doar manopera.",
+      desc: "Instal Serv Becheanu execută lucrarea, asociația plătind doar manopera.",
       tag: "Garanție 5 Ani de Execuție",
     },
   ];
@@ -98,7 +98,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
               Transparență Financiară Absolută — Asociația mai plătește ceva?
             </h4>
             <p className="text-sm text-slate-300 leading-relaxed">
-              Asociația plătește <strong>DOAR manopera</strong> (munca instalatorilor) către partenerul tehnic. Materialele, care reprezintă o mare parte din cost, sunt <strong>gratuite</strong>.
+              Asociația plătește <strong>DOAR manopera</strong> (munca instalatorilor) către Instal Serv Becheanu. Materialele, care reprezintă o mare parte din cost, sunt <strong>gratuite</strong>.
             </p>
           </div>
           <button

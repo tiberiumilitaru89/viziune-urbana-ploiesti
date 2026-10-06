@@ -22,7 +22,7 @@ export function PartnersStrip() {
                   Parteneri Tehnici
                 </div>
                 <div className="text-xs font-serif font-bold text-white">
-                  Parteneri de Execuție
+                  Instal Serv Becheanu
                 </div>
               </div>
             </div>
@@ -49,10 +49,10 @@ export function PartnersStrip() {
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-purple-300">
-                  Partener Practică
+                  Partener Calificare
                 </div>
                 <div className="text-xs font-serif font-bold text-white">
-                  ACCR Ploiești
+                  ACCRP Ploiești
                 </div>
               </div>
             </div>

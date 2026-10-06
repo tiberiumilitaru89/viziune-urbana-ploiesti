@@ -49,10 +49,10 @@ export function PartnersStrip() {
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
-                  Partener Practică
+                  Partener Calificare
                 </div>
                 <div className="text-xs font-bold text-white">
-                  ACCR Ploiești
+                  ACCRP Ploiești
                 </div>
               </div>
             </div>

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Landmark, Menu, X, ArrowRight, ShieldCheck, Heart, Award } from "lucide-react";
+import Image from "next/image";
+import { Menu, X, ArrowRight, ShieldCheck, Heart, Award } from "lucide-react";
 
 type NavbarProps = {
   readonly onOpenAuditModal: () => void;
@@ -27,7 +28,7 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
     { href: "#proiecte", label: "Arhivă Lucrări" },
     { href: "#asociatii", label: "Registru Asociații" },
     { href: "#caiet-sarcini", label: "Etape Execuție" },
-    { href: "#partener", label: "Parteneri Execuție" },
+    { href: "#partener", label: "Instal Serv Becheanu" },
     { href: "#faq", label: "Clarificări" },
   ];
 
@@ -42,8 +43,15 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Heraldic Logo */}
         <Link href="/" className="flex items-center gap-3.5 group">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1e2c52] to-[#0f172a] border border-amber-500/40 flex items-center justify-center shadow-lg shadow-amber-950/40 group-hover:border-amber-400 transition-colors">
-            <Landmark className="w-6 h-6 text-amber-400" />
+          <div className="w-11 h-11 rounded-xl overflow-hidden border border-amber-500/50 shadow-lg shadow-amber-950/40 group-hover:border-amber-400 group-hover:scale-105 transition-all bg-[#0a142f] shrink-0">
+            <Image
+              src="/official-logo.jpg"
+              alt="Sigla Oficială Asociația Viziune Urbană Ploiești"
+              width={48}
+              height={48}
+              className="w-full h-full object-cover"
+              priority
+            />
           </div>
           <div>
             <div className="font-serif font-black text-white text-lg tracking-wide leading-none">

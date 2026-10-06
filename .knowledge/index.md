@@ -2,7 +2,7 @@
 id: okf-index
 title: "Harta de Cunoaștere Canonică: Viziune Urbană Noua Ploiești"
 domain: architecture
-last_verified: 2026-10-05
+last_verified: 2026-10-06
 dependencies: []
 ---
 

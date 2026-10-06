@@ -6,16 +6,16 @@ export function InstitutionalPartners() {
     {
       name: "Liceul Tehnologic „Toma Socolescu”",
       role: "Partener de Practică Profesională",
-      desc: "Elevii din clasele profesionale de instalații participă la stagii practice pe șantierele de reabilitare din subsoluri, sub îndrumarea maiștrilor și tehnicienilor partenerilor de execuție.",
+      desc: "Elevii din clasele profesionale de instalații participă la stagii practice pe șantierele de reabilitare din subsoluri, sub îndrumarea maiștrilor și tehnicienilor Instal Serv Becheanu.",
       icon: GraduationCap,
       badge: "Formare Generații Noi",
     },
     {
-      name: "ACCR Ploiești",
-      role: "Partener de Practică & Implicare Comunitară",
-      desc: "Asociația Comunitară Calea Renașterii sprijină dialogul cu locatarii și organizarea asociațiilor de proprietari pentru luarea deciziilor în adunările generale.",
+      name: "ACCRP Ploiești",
+      role: "Partener de Calificare & Formare Profesională",
+      desc: "Centrul de calificare și recalificare profesională din Ploiești asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
       icon: Users2,
-      badge: "Coeziune Civic",
+      badge: "Calificare Tehnică",
     },
     {
       name: "Universitatea Petrol-Gaze (UPG)",

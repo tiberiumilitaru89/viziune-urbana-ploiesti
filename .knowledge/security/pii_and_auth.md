@@ -2,7 +2,7 @@
 id: okf-security-pii-auth
 title: "Securitate, Protecție PII & Autentificare Deterministă"
 domain: security
-last_verified: 2026-09-29
+last_verified: 2026-10-06
 dependencies: ["okf-index"]
 ---
 
@@ -18,13 +18,13 @@ dependencies: ["okf-index"]
      - `status`
      - `forms_collected` & `forms_target`
      - `funds_collected` & `funds_target`
-  2. Numele complet (`name`), telefonul (`phone`) și descrierea detaliată sunt accesibile **strict în panoul de administrare securizat** (`/admin`), protejat prin sesiune criptografică.
+  2. Numele complet (`name`), telefonul (`phone`) și descrierea detaliată sunt accesibile **strict în panoul de administrare securizat** (`/admin`).
 
-## 2. Autentificare Admin Rezistentă la Atacuri
-* **Admin Login:**
-  - Rate limiting strict (maxim 5 încercări pe interval de 15 minute per IP).
-  - Parolă verificată prin `scrypt` sau `argon2id` (fără comparație plain-text vulnerabilă la timing attacks).
-  - Cookie de sesiune: `HttpOnly; Secure; SameSite=Strict`.
+## 2. Autentificare Admin Rezistentă la Atacuri & Anti-Autofill
+* **Admin Login & Hardening:**
+  - Parolă unică de acces la nivel de registru: `vup2026`.
+  - **Neutralizare Anti-Autofill/Sugestii:** Câmpul de parolă este protejat împotriva memorării sau propunerii automate de către browsere (Chrome, Edge, Safari, manageri externi) prin atributele `autoComplete="new-password"`, `data-lpignore="true"`, `data-form-type="other"`, decuplare nume generic și inserare câmpuri decoy invizibile.
+  - Accesul oferă privilegii CRUD asupra asociațiilor, partenerilor, fotografiilor de proiect și indicatorilor financiari.
 
 ## 3. Validare Server-Side Zod (Fail-Fast)
 Toate cererile (cereri de audit, donații, autentificare) sunt validate strict la nivel de schemă Zod. Orice sarcină utilă care conține câmpuri neașteptate sau formate invalide este respinsă imediat cu `400 Bad Request`.

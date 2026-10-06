@@ -91,8 +91,8 @@ export function Footer() {
                 <div className="text-[11px] text-amber-400">Partener de practică profesională</div>
               </div>
               <div className="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
-                <div className="text-xs font-bold text-white">UPG Ploiești & ACCR</div>
-                <div className="text-[11px] text-blue-400">Susținători instituționali de proiect</div>
+                <div className="text-xs font-bold text-white">UPG Ploiești & ACCRP</div>
+                <div className="text-[11px] text-blue-400">Susținători instituționali & calificare</div>
               </div>
             </div>
           </div>

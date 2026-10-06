@@ -18,7 +18,7 @@ export function TechnicalPartnerSection() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#050914] via-transparent to-transparent opacity-80" />
               <div className="absolute bottom-4 left-4 right-4 bg-[#0a142f]/90 backdrop-blur-md p-3.5 rounded-xl border border-amber-500/30 text-xs">
-                <div className="font-serif font-bold text-white">Parteneri de Execuție</div>
+                <div className="font-serif font-bold text-white">Instal Serv Becheanu</div>
                 <div className="text-[11px] text-amber-300">Peste 15 ani pe șantierele din Prahova</div>
               </div>
             </div>
@@ -27,15 +27,15 @@ export function TechnicalPartnerSection() {
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-serif font-bold uppercase tracking-[0.2em]">
                 <Award className="w-3.5 h-3.5" />
-                Parteneri Tehnici Acreditați
+                Partener Tehnic Acreditat
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-serif font-black text-white tracking-tight leading-tight">
-                Parteneri de Execuție Autorizați
+                Instal Serv Becheanu — Partener Oficial
               </h2>
 
               <p className="text-sm text-slate-300 leading-relaxed font-serif">
-                Pentru că materialele de calitate au nevoie de o mână de lucru la fel de sigură, lucrările sunt încredințate exclusiv partenerilor de execuție autorizați, cu reputație impecabilă.
+                Pentru că materialele de calitate au nevoie de o mână de lucru la fel de sigură, lucrările sunt încredințate exclusiv către Instal Serv Becheanu, partener autorizat cu reputație impecabilă.
               </p>
 
               <div className="space-y-3 pt-2">
