@@ -10,6 +10,21 @@
   }
 }
 
+.civic-site-bg {
+  background-image: url('/ploiesti-hero-mobile.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center top;
+}
+
+@media (min-width: 1024px) {
+  .civic-site-bg {
+    background-image: url('/ploiesti-hero-background.jpg');
+    background-size: cover;
+    background-position: right top;
+  }
+}
+
 
 @layer base {
   html {

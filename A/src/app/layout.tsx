@@ -139,22 +139,18 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body className="min-h-screen bg-[#FAF7F2] text-slate-900 antialiased selection:bg-amber-500 selection:text-slate-950 relative overflow-x-hidden w-full font-sans">
-        {/* Desktop Fixed Civic Panoramic Background — active on desktop (lg:block), mobile uses in-flow showcase */}
+        {/* Civic Background: Responsive — Portrait for mobile, Landscape for desktop */}
         <div
-          className="hidden lg:block pointer-events-none"
+          className="pointer-events-none civic-site-bg"
           style={{
             position: "fixed",
-            top: "var(--navbar-height, 96px)",
+            top: "var(--navbar-height, 88px)",
             left: 0,
             right: 0,
             bottom: 0,
             width: "100vw",
-            height: "calc(100vh - var(--navbar-height, 96px))",
+            height: "calc(100vh - var(--navbar-height, 88px))",
             zIndex: 0,
-            backgroundImage: "url('/ploiesti-hero-background.jpg')",
-            backgroundSize: "cover",
-            backgroundPosition: "right top",
-            backgroundRepeat: "no-repeat",
           }}
           aria-hidden="true"
         />

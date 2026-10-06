@@ -12,7 +12,7 @@ Acest document reprezintă Sursa Unică de Adevăr (SSOT) pentru platforma unifi
 
 | Criteriu | Aplicația Oficială (`A/`) |
 | :--- | :--- |
-| **Identitate Vizuală** | Sigla heraldică oficială mărită și adaptată pe fildeș (`official-logo.jpg`), Fundal civic panoramic cu Halele Centrale Ploiești, frunze aurii și caligrafia „Pentru un Ploiești mai bun!” (`ploiesti-hero-background.jpg`). **Responsivitate dublă demonstrată:** Pe desktop (`lg:`), fundal fixat determinist la `top: var(--navbar-height, 96px)` pe dreapta; pe mobil (`< lg`), vitrină panoramică 16:9 integrată nativ sub meniu, asigurând vizibilitate 100% completă (fără trunchiere, fără suprapunere text) |
+| **Identitate Vizuală** | Sigla heraldică oficială mărită și adaptată pe fildeș (`official-logo.jpg`). **Fundal responsiv diferențiat:** Pe PC/laptop (`min-width: 1024px`), fundal panoramic orizontal cu Halele Centrale pe dreapta (`ploiesti-hero-background.jpg`), aliniat imediat sub meniu (`top: 96px`); pe mobil/tabletă (`< 1024px`), fundal vertical portret 9:16 dedicat (`ploiesti-hero-mobile.jpg`), centrat impecabil pentru ecrane de telefon. |
 | **Design & Carduri** | Glassmorphism civic translucid (`bg-white/85 backdrop-blur-md`) pe toate cardurile și dashboard-urile (inclusiv `/admin`), permițând vizibilitatea fundalului fix |
 | **Tipografie & Contrast** | `Playfair Display` serif + `Plus Jakarta Sans`, contrast maxim WCAG AAA (Navy `#071330` pe Fildeș `#FAF7F2`) |
 | **Navigație & Header** | Înălțime fixă deterministă `88px` (mobil) / `96px` (desktop) sincronizată via variabila CSS `--navbar-height`, eliminând orice suprapunere peste fundal |

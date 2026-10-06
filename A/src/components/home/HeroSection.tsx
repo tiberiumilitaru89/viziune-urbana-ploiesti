@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import { ArrowRight, ShieldCheck, Heart, Award, CheckCircle2, Landmark } from "lucide-react";
 
 type HeroSectionProps = {
@@ -12,24 +11,12 @@ type HeroSectionProps = {
 export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSectionProps) {
   return (
     <section
-      className="relative min-h-[calc(100vh-var(--navbar-height,88px))] flex items-center justify-center pt-24 sm:pt-28 lg:pt-32 pb-16 sm:pb-20 lg:pb-24 overflow-hidden bg-transparent text-slate-900"
+      className="relative min-h-[calc(100vh-var(--navbar-height,88px))] flex items-center justify-center pt-28 sm:pt-32 pb-20 sm:pb-24 overflow-hidden bg-transparent text-slate-900"
     >
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-3xl">
-          {/* Mobile Full Panoramic Artwork — 100% visible with all details on phones */}
-          <div className="lg:hidden w-full relative mb-6 overflow-hidden rounded-2xl border border-amber-900/15 shadow-md bg-[#FAF7F2]">
-            <Image
-              src="/ploiesti-hero-background.jpg"
-              alt="Viziune Urbană Ploiești - Halele Centrale & Inițiativă Civică"
-              width={2752}
-              height={1536}
-              className="w-full h-auto object-contain block"
-              priority
-            />
-          </div>
-
           {/* Institutional Civic Badge */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#F5EDE1] border border-amber-700/30 backdrop-blur-md mb-6 sm:mb-8 shadow-sm">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#F5EDE1] border border-amber-700/30 backdrop-blur-md mb-8 shadow-sm">
             <Award className="w-4 h-4 text-amber-800" />
             <span className="text-xs font-serif font-bold tracking-[0.2em] uppercase text-amber-900">
               Inițiativă civică în municipiul Ploiești
