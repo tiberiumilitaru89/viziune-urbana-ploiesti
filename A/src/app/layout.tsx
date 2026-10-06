@@ -37,11 +37,11 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#060911] text-slate-100 antialiased selection:bg-emerald-500 selection:text-white relative overflow-x-hidden w-full">
         {/* Fixed Panoramic Civic Background — stays fixed on scroll across the entire application */}
         <div
-          className="fixed inset-0 pointer-events-none -z-50 bg-cover bg-[center_28%] bg-no-repeat transition-all duration-700"
-          style={{ backgroundImage: "url('/ref-assets/cathedral-ploiesti-drone.jpg')" }}
+          className="fixed inset-0 pointer-events-none -z-50 bg-cover bg-[center_28%] bg-no-repeat transition-all duration-700 opacity-60"
+          style={{ backgroundImage: "url('/ploiesti-hero-background.jpg')" }}
         />
-        <div className="fixed inset-0 pointer-events-none -z-40 bg-gradient-to-b from-[#060911]/75 via-[#060911]/88 to-[#04070f]/96" />
-        <div className="fixed inset-0 pointer-events-none -z-30 bg-[radial-gradient(ellipse_80%_80%_at_50%_-10%,rgba(16,185,129,0.12),rgba(0,0,0,0.5))]" />
+        <div className="fixed inset-0 pointer-events-none -z-40 bg-gradient-to-b from-[#060911]/50 via-[#060911]/75 to-[#04070f]/90" />
+        <div className="fixed inset-0 pointer-events-none -z-30 bg-[radial-gradient(ellipse_80%_80%_at_50%_-10%,rgba(16,185,129,0.12),rgba(0,0,0,0.3))]" />
 
         {children}
       </body>

@@ -37,13 +37,13 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
           ? "bg-[#070d1e]/95 backdrop-blur-md border-b border-amber-900/40 shadow-2xl py-3.5"
-          : "bg-gradient-to-b from-[#070d1e] to-transparent py-5"
+          : "bg-[#fbf9f4]/90 backdrop-blur-md border-b border-amber-900/15 shadow-sm py-4"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         {/* Heraldic Logo */}
         <Link href="/" className="flex items-center gap-3.5 group">
-          <div className="w-11 h-11 rounded-xl overflow-hidden border border-amber-500/50 shadow-lg shadow-amber-950/40 group-hover:border-amber-400 group-hover:scale-105 transition-all bg-[#0a142f] shrink-0">
+          <div className="w-11 h-11 rounded-xl overflow-hidden border border-amber-500/50 shadow-md group-hover:border-amber-400 group-hover:scale-105 transition-all bg-[#0a142f] shrink-0">
             <Image
               src="/official-logo.jpg"
               alt="Sigla Oficială Asociația Viziune Urbană Ploiești"
@@ -54,13 +54,21 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
             />
           </div>
           <div>
-            <div className="font-serif font-black text-white text-lg tracking-wide leading-none">
+            <div
+              className={`font-serif font-black text-lg tracking-wide leading-none transition-colors ${
+                isScrolled ? "text-white" : "text-[#071330]"
+              }`}
+            >
               VIZIUNE URBANĂ
             </div>
-            <div className="text-[10px] font-bold text-amber-400 uppercase tracking-[0.25em] mt-1 flex items-center gap-1.5">
-              <span>PLOIEȘTI</span>
-              <span className="w-1 h-1 rounded-full bg-amber-400" />
-              <span className="text-slate-400 font-sans font-medium text-[9px]">ASOCIAȚIE CIVICĂ</span>
+            <div className="text-[10px] font-bold uppercase tracking-[0.25em] mt-1 flex items-center gap-1.5">
+              <span className={isScrolled ? "text-amber-400" : "text-amber-700 font-bold"}>
+                PLOIEȘTI
+              </span>
+              <span className={`w-1 h-1 rounded-full ${isScrolled ? "bg-amber-400" : "bg-amber-600"}`} />
+              <span className={`font-sans font-medium text-[9px] ${isScrolled ? "text-slate-400" : "text-slate-600"}`}>
+                ASOCIAȚIE CIVICĂ
+              </span>
             </div>
           </div>
         </Link>
@@ -71,7 +79,11 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
             <a
               key={link.href}
               href={link.href}
-              className="text-xs font-medium text-slate-300 hover:text-amber-300 transition-colors tracking-wide"
+              className={`text-xs font-medium transition-colors tracking-wide ${
+                isScrolled
+                  ? "text-slate-300 hover:text-amber-300"
+                  : "text-slate-700 hover:text-amber-800 font-semibold"
+              }`}
             >
               {link.label}
             </a>
@@ -82,14 +94,18 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
         <div className="hidden sm:flex items-center gap-3.5">
           <button
             onClick={onOpenDonationModal}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-slate-200 bg-[#0e1838] hover:bg-[#142352] border border-amber-500/30 transition-all shadow-sm"
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm ${
+              isScrolled
+                ? "text-slate-200 bg-[#0e1838] hover:bg-[#142352] border border-amber-500/30"
+                : "text-slate-800 bg-white hover:bg-slate-50 border border-amber-900/20"
+            }`}
           >
-            <Heart className="w-3.5 h-3.5 text-rose-400" />
+            <Heart className="w-3.5 h-3.5 text-rose-500" />
             Susține proiect
           </button>
           <button
             onClick={onOpenAuditModal}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-lg shadow-amber-950/60 transition-all active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 hover:from-amber-300 hover:to-amber-400 shadow-md shadow-amber-950/30 transition-all active:scale-95"
           >
             <ShieldCheck className="w-4 h-4 text-slate-950" />
             Înscrie Asociația
@@ -99,7 +115,11 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
         {/* Mobile menu trigger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+          className={`lg:hidden p-2 rounded-lg transition-colors ${
+            isScrolled
+              ? "text-slate-300 hover:text-white hover:bg-slate-800"
+              : "text-slate-700 hover:text-slate-950 hover:bg-amber-100/50"
+          }`}
           aria-label="Navigație mobilă"
         >
           {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

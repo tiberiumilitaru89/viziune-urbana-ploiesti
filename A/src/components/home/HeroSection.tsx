@@ -10,10 +10,17 @@ type HeroSectionProps = {
 
 export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSectionProps) {
   return (
-    <section className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-20 overflow-hidden">
-      {/* Layered civic dark gradient overlays for maximum legibility */}
-      <div className="absolute inset-0 bg-gradient-to-r from-[#060911]/85 via-[#060911]/65 to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#060911]/90 via-transparent to-transparent pointer-events-none" />
+    <section
+      className="relative min-h-[92vh] flex items-center justify-center pt-28 pb-20 overflow-hidden"
+      style={{
+        backgroundImage: "url('/ploiesti-hero-background.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center right",
+      }}
+    >
+      {/* Layered civic gradient overlays allowing landmark & cursive text to shine through */}
+      <div className="absolute inset-0 bg-gradient-to-r from-[#060911]/90 via-[#060911]/70 to-[#060911]/25 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#060911] via-transparent to-[#060911]/60 pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.15),transparent)] pointer-events-none" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
