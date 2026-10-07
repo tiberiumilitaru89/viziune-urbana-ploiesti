@@ -104,7 +104,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
               Notă Importantă — Asociația mai plătește ceva?
             </h4>
             <p className="text-sm text-slate-700 leading-relaxed">
-              Asociația plătește <strong className="text-[#071330] font-bold">DOAR manopera</strong> (munca propriu-zisă a instalatorilor calificați) către <strong className="text-[#071330] font-bold">Instal Serv Becheanu</strong>. Toate materialele (care reprezintă cea mai mare pondere financiară dintr-un deviz) sunt <strong className="text-[#071330] font-bold">100% asigurate și donate</strong> prin Asociația Viziune Urbană Ploiești.
+              Nu! Asociația plătește <strong className="text-[#071330] font-bold">DOAR manopera</strong> catre partenerii tehinici de executie . Toate materialele (țevi, robineți, izolații, fitinguri, etc.) sunt sponsorizate gratuit de Asociația Viziune Urbana Ploiesti.
             </p>
           </div>
 
