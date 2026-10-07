@@ -146,13 +146,42 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Bottom banner */}
-        <div className="pt-8 border-t border-amber-900/15 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
-          <div>
-            &copy; {currentYear} Asociația Viziune Urbană Ploiești. Înregistrată în Registrul Asociațiilor și Fundațiilor.
+        {/* Bottom banner & T.M. Solutions Signature */}
+        <div className="pt-8 border-t border-amber-900/15 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-600">
+          <div className="space-y-1.5 text-center md:text-left">
+            <div>
+              &copy; {currentYear} Asociația Viziune Urbană Ploiești. Înregistrată în Registrul Asociațiilor și Fundațiilor.
+            </div>
+            <div className="font-serif italic text-amber-900">
+              Fundația unui bloc sănătos începe de jos.
+            </div>
           </div>
-          <div className="text-right font-serif italic text-amber-900">
-            Fundația unui bloc sănătos începe de jos.
+
+          {/* Signature: Designed & Developed by T.M. Solutions */}
+          <div className="flex flex-col items-center md:items-end text-center md:text-right bg-white/80 backdrop-blur-sm p-3.5 rounded-2xl border border-amber-900/15 shadow-sm hover:border-amber-700/40 transition-all">
+            <span className="text-[11px] font-semibold text-[#071330] tracking-tight mb-2">
+              Designed & Developed by T.M. Solutions
+            </span>
+            <a
+              href="https://www.tiberiumilitaru.ro"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center md:items-end gap-1.5"
+              title="Portofoliu Tiberiu Militaru - T.M. Solutions"
+            >
+              <div className="p-1.5 bg-white rounded-xl shadow-sm border border-amber-900/15 group-hover:shadow-md group-hover:scale-105 transition-all">
+                <Image
+                  src="/qr-tiberiu.webp"
+                  alt="QR Code Portofoliu Tiberiu Militaru"
+                  width={72}
+                  height={72}
+                  className="rounded-lg object-contain"
+                />
+              </div>
+              <span className="font-mono text-[11px] font-medium text-amber-900 group-hover:text-amber-700 underline underline-offset-2 transition-colors">
+                www.tiberiumilitaru.ro
+              </span>
+            </a>
           </div>
         </div>
       </div>
