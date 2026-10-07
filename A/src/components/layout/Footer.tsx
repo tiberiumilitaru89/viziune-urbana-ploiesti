@@ -105,11 +105,11 @@ export function Footer() {
               </div>
               <div className="p-3 rounded-xl bg-white border border-amber-900/15 shadow-sm">
                 <div className="text-xs font-serif font-bold text-[#071330]">UPG</div>
-                <div className="text-[11px] text-emerald-800">Științific</div>
+                <div className="text-[11px] text-emerald-800">Comitet științific</div>
               </div>
               <div className="p-3 rounded-xl bg-white border border-amber-900/15 shadow-sm">
                 <div className="text-xs font-serif font-bold text-[#071330]">InfoACCRP</div>
-                <div className="text-[11px] text-purple-800">Calificare</div>
+                <div className="text-[11px] text-purple-800">Comitet de Calificare</div>
               </div>
             </div>
           </div>
