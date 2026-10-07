@@ -23,7 +23,7 @@ export function MissionSection() {
                 Sute de blocuri din Ploiești ascund la subsol o adevărată bombă cu ceas: țevi de oțel și fontă vechi de peste 40 de ani, ruginite, inundații recurente, pierderi masive de agent termic și un mediu insalubru care afectează sănătatea tuturor locatarilor.
               </p>
               <p>
-                Asociația <strong className="text-[#071330] font-bold">Viziune Urbană</strong> a pornit din frustrarea comună a multor ploieșteni: subsoluri inundate, mirosuri insuportabile pe casa scării și facturi umflate nejustificat de pierderile din rețea.
+                Asociația <strong className="text-[#071330] font-bold">Viziune Urbană Ploiești</strong> a pornit din frustrarea comună a multor ploieșteni: subsoluri inundate, mirosuri insuportabile pe casa scării și facturi umflate nejustificat de pierderile din rețea.
               </p>
             </div>
 

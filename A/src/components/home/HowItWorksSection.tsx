@@ -27,7 +27,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
       num: "03",
       icon: Gift,
       title: "Sponsorizare în Materiale",
-      desc: "Viziune Urbană cumpără direct de la distribuitori toate materialele (PPR, robineți, izolație Armaflex) și le donează blocului.",
+      desc: "Viziune Urbană Ploiești cumpără direct de la distribuitori toate materialele (PPR, robineți, izolație Armaflex) și le donează blocului.",
       tag: "Materiale Sponsorizate 100%",
       accent: "text-blue-800 border-blue-600/30 bg-blue-500/15",
     },
@@ -104,7 +104,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
               Notă Importantă — Asociația mai plătește ceva?
             </h4>
             <p className="text-sm text-slate-700 leading-relaxed">
-              Asociația plătește <strong className="text-[#071330] font-bold">DOAR manopera</strong> (munca propriu-zisă a instalatorilor calificați) către <strong className="text-[#071330] font-bold">Instal Serv Becheanu</strong>. Toate materialele (care reprezintă cea mai mare pondere financiară dintr-un deviz) sunt <strong className="text-[#071330] font-bold">100% asigurate și donate</strong> prin Viziune Urbană.
+              Asociația plătește <strong className="text-[#071330] font-bold">DOAR manopera</strong> (munca propriu-zisă a instalatorilor calificați) către <strong className="text-[#071330] font-bold">Instal Serv Becheanu</strong>. Toate materialele (care reprezintă cea mai mare pondere financiară dintr-un deviz) sunt <strong className="text-[#071330] font-bold">100% asigurate și donate</strong> prin Asociația Viziune Urbană Ploiești.
             </p>
           </div>
 

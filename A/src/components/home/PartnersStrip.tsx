@@ -49,7 +49,7 @@ export function PartnersStrip() {
               </div>
             </div>
 
-            {/* Partener Calificare: ACCRP */}
+            {/* Partener Calificare: InfoACCRP */}
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-600/30 flex items-center justify-center shrink-0">
                 <GraduationCap className="w-4 h-4 text-purple-800" />
@@ -59,7 +59,7 @@ export function PartnersStrip() {
                   Partener Calificare
                 </div>
                 <div className="text-xs font-serif font-bold text-[#071330]">
-                  ACCRP
+                  InfoACCRP
                 </div>
               </div>
             </div>

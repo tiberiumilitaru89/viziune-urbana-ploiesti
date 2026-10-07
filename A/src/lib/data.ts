@@ -106,11 +106,11 @@ export const FAQS = [
   },
   {
     q: "Asociația mai plătește ceva pentru materiale?",
-    a: "Nu! Asociația plătește DOAR manopera (munca instalatorilor) către Instal Serv Becheanu. Toate materialele (țevi, robineți, izolații, fitinguri) sunt sponsorizate gratuit de Asociația Viziune Urbană.",
+    a: "Nu! Asociația plătește DOAR manopera catre partenerii tehinici de executie . Toate materialele (țevi, robineți, izolații, fitinguri, etc.) sunt sponsorizate gratuit de Asociația Viziune Urbana Ploiesti.",
   },
   {
     q: "Ce înseamnă sponsorizare în materiale?",
-    a: "Viziune Urbană achiziționează direct de la distribuitori autorizați toate materialele din deviz și le livrează fizic la blocul dumneavoastră pe bază de proces-verbal de predare-primire și contract de sponsorizare.",
+    a: "Viziune Urbană Ploiești achiziționează direct de la distribuitori autorizați toate materialele din deviz și le livrează fizic la blocul dumneavoastră pe bază de proces-verbal de predare-primire și contract de sponsorizare.",
   },
   {
     q: "Cât durează procesul de la înscriere la începerea lucrărilor?",
@@ -142,10 +142,10 @@ export const INITIAL_PARTNERS: readonly PartnerItem[] = [
   },
   {
     id: "part-3",
-    name: "ACCRP",
+    name: "InfoACCRP",
     role: "Partener de Calificare & Formare Profesională",
     category: "practica",
-    description: "Centrul de calificare și recalificare profesională asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
+    description: "Centrul de calificare și recalificare profesională asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și partenerilor tehnici autorizați pe șantierele de modernizare.",
     badgeText: "Calificare Tehnică",
   },
   {

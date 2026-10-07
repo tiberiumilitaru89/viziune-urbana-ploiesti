@@ -12,9 +12,9 @@ export function InstitutionalPartners() {
       accent: "text-amber-800 border-amber-600/30 bg-amber-500/15",
     },
     {
-      name: "ACCRP",
+      name: "InfoACCRP",
       role: "Partener de Calificare & Formare Profesională",
-      desc: "Centrul de calificare și recalificare profesională asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și meșterilor pe șantierele de modernizare.",
+      desc: "Centrul de calificare și recalificare profesională asigură instruirea practică, atestarea oficială și perfecționarea continuă a instalatorilor și partenerilor tehnici autorizați pe șantierele de modernizare.",
       icon: Users2,
       badge: "Calificare Tehnică",
       accent: "text-purple-800 border-purple-600/30 bg-purple-500/15",

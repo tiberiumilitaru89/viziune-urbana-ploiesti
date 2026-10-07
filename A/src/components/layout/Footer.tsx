@@ -27,7 +27,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-xs leading-relaxed text-slate-600">
-              Asociație civică independentă, dedicată salubrizării și reabilitării capitale a infrastructurii subterane din municipiul Ploiești. Un parteneriat durabil între proprietari, meșteri calificați și mediul academic.
+              Asociație civică independentă, dedicată salubrizării și reabilitării capitale a infrastructurii subterane din municipiul Ploiești. Un parteneriat durabil între proprietari, parteneri tehnici autorizați și mediul academic.
             </p>
             <div className="pt-2 text-xs space-y-2 text-slate-600">
               <div className="flex items-center gap-2">
@@ -104,8 +104,12 @@ export function Footer() {
                 <div className="text-[11px] text-amber-800">Convenție de practică duală</div>
               </div>
               <div className="p-3 rounded-xl bg-white border border-amber-900/15 shadow-sm">
-                <div className="text-xs font-serif font-bold text-[#071330]">UPG & ACCRP</div>
-                <div className="text-[11px] text-blue-800">Comitet științific & calificare</div>
+                <div className="text-xs font-serif font-bold text-[#071330]">UPG</div>
+                <div className="text-[11px] text-emerald-800">Științific</div>
+              </div>
+              <div className="p-3 rounded-xl bg-white border border-amber-900/15 shadow-sm">
+                <div className="text-xs font-serif font-bold text-[#071330]">InfoACCRP</div>
+                <div className="text-[11px] text-purple-800">Calificare</div>
               </div>
             </div>
           </div>

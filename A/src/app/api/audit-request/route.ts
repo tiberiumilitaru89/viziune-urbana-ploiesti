@@ -35,6 +35,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Eroare la salvare în baza de date" }, { status: 500 });
     }
 
+    // Notificare pe email către administrator
+    const { sendAdminNotification } = await import("@/lib/email");
+    await sendAdminNotification({
+      type: "audit_request",
+      subject: `Cerere Nouă de Înscriere Asociație: ${validated.building}`,
+      title: "Cerere Nouă de Evaluare Tehnică / Înscriere Asociație",
+      fields: [
+        { label: "Nume Contact", value: validated.name },
+        { label: "Telefon", value: validated.phone },
+        { label: "Bloc / Asociație", value: validated.building },
+        { label: "Adresă", value: validated.address },
+        { label: "Descriere Problemă", value: validated.problem },
+      ],
+    }).catch((err) => console.error("Eroare trimitere notificare email:", err));
+
     return NextResponse.json({ success: true, id }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {

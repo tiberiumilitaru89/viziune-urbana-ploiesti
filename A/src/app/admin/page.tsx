@@ -33,6 +33,7 @@ import {
   Formular230Entry,
   Formular230Status,
   OngConfig,
+  PartnerApplication,
 } from "@/lib/types";
 import {
   INITIAL_ASSOCIATIONS,
@@ -54,6 +55,7 @@ export default function AdminPage() {
   // Core Data States
   const [associations, setAssociations] = useState<AuditRequest[]>([...INITIAL_ASSOCIATIONS]);
   const [partners, setPartners] = useState<PartnerItem[]>([...INITIAL_PARTNERS]);
+  const [partnerApplications, setPartnerApplications] = useState<PartnerApplication[]>([]);
   const [projects, setProjects] = useState<ProjectItem[]>([...INITIAL_PROJECTS]);
   const [metrics, setMetrics] = useState<GlobalMetrics>({ ...INITIAL_METRICS });
 
@@ -141,6 +143,7 @@ export default function AdminPage() {
       if (json.success && json.data) {
         if (json.data.associations?.length > 0) setAssociations(json.data.associations);
         if (json.data.partners?.length > 0) setPartners(json.data.partners);
+        if (json.data.partnerApplications?.length > 0) setPartnerApplications(json.data.partnerApplications);
         if (json.data.projects?.length > 0) setProjects(json.data.projects);
         if (json.data.metrics) setMetrics(json.data.metrics);
         if (json.data.ongConfig) setOngConfig(json.data.ongConfig);
@@ -306,6 +309,28 @@ export default function AdminPage() {
       } catch {
         alert("Eroare la arhivare.");
       }
+    }
+  };
+
+  const handleUpdatePartnerAppStatus = async (id: string, status: "nou" | "contactat" | "arhivat") => {
+    try {
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_partner_application_status",
+          payload: { id, status },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPartnerApplications((prev) =>
+          prev.map((app) => (app.id === id ? { ...app, status } : app))
+        );
+        showToast("Statusul solicitării de parteneriat a fost actualizat.");
+      }
+    } catch {
+      alert("Eroare la actualizarea statusului.");
     }
   };
 
@@ -1127,7 +1152,7 @@ export default function AdminPage() {
                       className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
                     >
                       <option value="executie">Execuție Tehnică (Instal Serv Becheanu)</option>
-                      <option value="practica">Practică & Calificare Profesională (ACCRP / Toma Socolescu)</option>
+                      <option value="practica">Practică & Calificare Profesională (InfoACCRP / Toma Socolescu)</option>
                       <option value="comunitate">Comunitate & Inițiativă Civic</option>
                       <option value="academic">Academic & Științific (UPG)</option>
                     </select>
@@ -1191,6 +1216,90 @@ export default function AdminPage() {
                   <p className="text-xs text-slate-600 leading-relaxed font-sans">{partner.description}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Secțiune Solicitări Noi de la Potențiali Parteneri (Devino Partener) */}
+            <div className="pt-8 border-t border-amber-900/20 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-serif text-base font-bold text-[#071330]">
+                    Solicitări Primite: „Devino Partener Tehnic” ({partnerApplications.length})
+                  </h4>
+                  <p className="text-xs text-slate-600">
+                    Firme și instalatori care au completat formularul din site pentru a fi contactați de administrator
+                  </p>
+                </div>
+              </div>
+
+              {partnerApplications.length === 0 ? (
+                <div className="p-8 text-center bg-white/70 rounded-2xl border border-amber-900/15 text-xs text-slate-500 font-serif">
+                  Nu există încă solicitări de parteneriat înregistrate.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {partnerApplications.map((app) => (
+                    <div
+                      key={app.id}
+                      className="bg-white/90 backdrop-blur-md border border-amber-900/15 rounded-2xl p-5 space-y-3 shadow-md text-slate-900"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span
+                            className={`text-[10px] font-mono uppercase tracking-wider font-bold px-2.5 py-0.5 rounded border ${
+                              app.status === "nou"
+                                ? "bg-amber-100 text-amber-900 border-amber-300"
+                                : app.status === "contactat"
+                                ? "bg-emerald-100 text-emerald-900 border-emerald-300"
+                                : "bg-slate-100 text-slate-600 border-slate-300"
+                            }`}
+                          >
+                            {app.status === "nou" ? "NOU • DE CONTACTAT" : app.status.toUpperCase()}
+                          </span>
+                          <h4 className="font-serif text-base font-bold text-[#071330] mt-2">
+                            {app.companyName}
+                          </h4>
+                          <div className="flex items-center gap-1.5 text-xs text-amber-900 font-bold mt-1">
+                            <Phone className="w-3.5 h-3.5" />
+                            <a href={`tel:${app.phone}`} className="hover:underline">
+                              {app.phone}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-[#FAF7F2] p-3 rounded-xl border border-amber-900/10 text-xs text-slate-700 leading-relaxed font-sans">
+                        {app.description}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-amber-900/10 text-[11px] font-serif">
+                        <span className="text-slate-500">
+                          {new Date(app.createdAt).toLocaleDateString("ro-RO")}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {app.status !== "contactat" && (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdatePartnerAppStatus(app.id, "contactat")}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                            >
+                              Marchează Contactat
+                            </button>
+                          )}
+                          {app.status !== "arhivat" && (
+                            <button
+                              type="button"
+                              onClick={() => handleUpdatePartnerAppStatus(app.id, "arhivat")}
+                              className="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold"
+                            >
+                              Arhivează
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

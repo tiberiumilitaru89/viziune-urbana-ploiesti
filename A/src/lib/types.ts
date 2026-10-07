@@ -72,6 +72,15 @@ export type PartnerItem = {
   readonly badgeText?: string;
 };
 
+export type PartnerApplication = {
+  readonly id: string;
+  readonly companyName: string;
+  readonly phone: string;
+  readonly description: string;
+  readonly status: "nou" | "contactat" | "arhivat";
+  readonly createdAt: string;
+};
+
 export type GlobalMetrics = {
   readonly totalFormsCollected: number;
   readonly totalFormsTarget: number;

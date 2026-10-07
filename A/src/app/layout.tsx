@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     "George Becheanu instalator",
     "Asociația Viziune Urbană Ploiești",
     "Viziune Urbană Ploiești",
-    "ACCRP",
+    "InfoACCRP",
     "Liceul Tehnologic Toma Socolescu",
     "Universitatea Petrol-Gaze Ploiești UPG",
 

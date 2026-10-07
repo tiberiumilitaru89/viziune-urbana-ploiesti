@@ -74,6 +74,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Eroare la salvare în baza de date" }, { status: 500 });
     }
 
+    // Notificare pe email către administrator
+    const { sendAdminNotification } = await import("@/lib/email");
+    await sendAdminNotification({
+      type: "formular_230",
+      subject: `Formular 230 Nou (3,5%): ${validatedData.firstName} ${validatedData.lastName}`,
+      title: "Formular 230 Înregistrat Online (Redirecționare 3,5%)",
+      fields: [
+        { label: "Nume Contribuabil", value: `${validatedData.firstName} ${validatedData.lastName}` },
+        { label: "Telefon", value: validatedData.phone },
+        { label: "Email", value: validatedData.email },
+        { label: "Localitate", value: `${validatedData.city}, ${validatedData.county}` },
+        { label: "Opțiune 2 Ani", value: validatedData.distributeFor2Years ? "DA (2 ani)" : "NU (1 an)" },
+        { label: "Borderou ANAF", value: validatedData.consentBorderou ? "Acord depunere borderou asociație" : "Depunere individuală" },
+      ],
+    }).catch((err) => console.error("Eroare trimitere notificare email:", err));
+
     return NextResponse.json({
       success: true,
       message: "Formularul 230 a fost înregistrat cu succes în registrul asociației.",
