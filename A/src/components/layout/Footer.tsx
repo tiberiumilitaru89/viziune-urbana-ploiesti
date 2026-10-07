@@ -109,7 +109,7 @@ export function Footer() {
               </div>
               <div className="p-3 rounded-xl bg-white border border-amber-900/15 shadow-sm">
                 <div className="text-xs font-serif font-bold text-[#071330]">InfoACCRP</div>
-                <div className="text-[11px] text-purple-800">Comitet de Calificare</div>
+                <div className="text-[11px] text-purple-800">Comitet de calificare</div>
               </div>
             </div>
           </div>
