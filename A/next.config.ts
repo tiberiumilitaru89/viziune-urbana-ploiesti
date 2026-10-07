@@ -13,6 +13,21 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   outputFileTracingRoot: path.resolve(__dirname),
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "viziune-urbana-ploiesti.vercel.app",
+          },
+        ],
+        destination: "https://www.viziuneurbanaploiesti.ro/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
