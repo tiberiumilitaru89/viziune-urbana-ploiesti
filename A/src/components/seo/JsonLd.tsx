@@ -2,7 +2,7 @@ import React from "react";
 import { FAQS } from "@/lib/data";
 
 export function JsonLd() {
-  const baseUrl = "https://viziune-urbana-ploiesti.ro";
+  const baseUrl = "https://viziuneurbanaploiesti.ro";
 
   const organizationSchema = {
     "@context": "https://schema.org",

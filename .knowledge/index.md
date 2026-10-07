@@ -21,7 +21,7 @@ Acest document reprezintă Sursa Unică de Adevăr (SSOT) pentru platforma unifi
 | **Cont Bancar Oficial** | UniCredit Bank România — `RO94 BACX 0000 0042 3447 3000` |
 | **SEO & Googlebot** | Sitemap dinamic (`/sitemap.xml`), robots.txt optimizat, Schema.org JSON-LD (NGO, Service, FAQPage), 30+ cuvinte cheie Ploiești |
 | **Panou Admin (`/admin`)** | 4 Taburi complete (Asociații, Parteneri, Galerie/Poze, Metrici), persistență sesiune, parolă `vup2026`, buton deconectare |
-| **Deploy Vercel & Hostico** | `https://viziune-urbana-ploiesti.vercel.app` (Root Directory: `A`) -> Mapare DNS Hostico (A + CNAME) |
+| **Deploy Vercel & Hostico** | `https://viziuneurbanaploiesti.ro` (Vercel Root Directory: `A`) -> Mapare DNS Hostico (A + CNAME) |
 | **Stare Build** | ✓ 100% Finalizat (Next.js 15.5.27), zero erori de compilare statică (10/10 pagini generate) |
 
 ---

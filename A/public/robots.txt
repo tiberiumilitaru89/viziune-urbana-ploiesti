@@ -10,4 +10,4 @@ Disallow: /api/
 Disallow: /admin
 
 # Canonical Sitemap URL
-Sitemap: https://viziune-urbana-ploiesti.ro/sitemap.xml
+Sitemap: https://viziuneurbanaploiesti.ro/sitemap.xml
