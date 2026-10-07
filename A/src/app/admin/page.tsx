@@ -123,43 +123,32 @@ export default function AdminPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Load from LocalStorage on mount
+  // Load from Supabase on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      try {
-        const savedAssoc = localStorage.getItem("vup_associations");
-        if (savedAssoc) {
-          const parsed = JSON.parse(savedAssoc);
-          if (Array.isArray(parsed) && parsed.length > 0) setAssociations(parsed);
-        }
-
-        const savedPartners = localStorage.getItem("vup_partners");
-        if (savedPartners) {
-          const parsed = JSON.parse(savedPartners);
-          if (Array.isArray(parsed) && parsed.length > 0) setPartners(parsed);
-        }
-
-        const savedProjects = localStorage.getItem("vup_projects");
-        if (savedProjects) {
-          const parsed = JSON.parse(savedProjects);
-          if (Array.isArray(parsed) && parsed.length > 0) setProjects(parsed);
-        }
-
-        const savedMetrics = localStorage.getItem("vup_metrics");
-        if (savedMetrics) {
-          const parsed = JSON.parse(savedMetrics);
-          if (parsed && typeof parsed === "object") setMetrics(parsed);
-        }
-
-        const auth = sessionStorage.getItem("vup_admin_auth");
-        if (auth === "true") setIsAuthenticated(true);
-      } catch {
-        // Fallback to initial constants
-      }
+      const auth = sessionStorage.getItem("vup_admin_auth");
+      if (auth === "true") setIsAuthenticated(true);
     }
 
+    loadAdminData();
     loadF230Data();
   }, []);
+
+  const loadAdminData = async () => {
+    try {
+      const res = await fetch("/api/admin/data");
+      const json = await res.json();
+      if (json.success && json.data) {
+        if (json.data.associations?.length > 0) setAssociations(json.data.associations);
+        if (json.data.partners?.length > 0) setPartners(json.data.partners);
+        if (json.data.projects?.length > 0) setProjects(json.data.projects);
+        if (json.data.metrics) setMetrics(json.data.metrics);
+        if (json.data.ongConfig) setOngConfig(json.data.ongConfig);
+      }
+    } catch {
+      // Fallback to local or initial
+    }
+  };
 
   // Formular 230 API Actions
   const loadF230Data = async () => {
@@ -182,17 +171,16 @@ export default function AdminPage() {
     e.preventDefault();
     setIsSavingOngConfig(true);
     try {
-      const res = await fetch("/api/formular-230", {
-        method: "PATCH",
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: ongConfig }),
+        body: JSON.stringify({ action: "save_ong_config", payload: ongConfig }),
       });
       const data = await res.json();
       if (data.success) {
-        if (data.config) setOngConfig(data.config);
-        showToast("Configurația ONG (CIF, IBAN, Denumire) a fost salvată!");
+        showToast("Configurația ONG a fost salvată în Supabase!");
       } else {
-        alert("A apărut o eroare la salvarea setărilor.");
+        alert("A apărut o eroare la salvarea setărilor în baza de date.");
       }
     } catch {
       alert("Eroare de rețea la salvarea configurației.");
@@ -204,19 +192,39 @@ export default function AdminPage() {
   const handleUpdateF230Status = async (id: string, newStatus: Formular230Status) => {
     try {
       const res = await fetch("/api/formular-230", {
-        method: "PATCH",
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formId: id, status: newStatus }),
+        body: JSON.stringify({ action: "update_status", id, status: newStatus }),
       });
       const data = await res.json();
       if (data.success) {
         setF230List((prev) =>
           prev.map((f) => (f.id === id ? { ...f, status: newStatus } : f))
         );
-        showToast(`Statusul formularului a fost actualizat la "${newStatus}"!`);
+        showToast(`Statusul formularului a fost actualizat la "${newStatus}" în Supabase!`);
       }
     } catch {
       alert("Eroare la actualizarea statusului.");
+    }
+  };
+
+  const handleArchiveF230 = async (id: string) => {
+    if (!confirm("Sigur doriți să arhivați acest formular 230? El nu va mai fi vizibil în lista curentă, dar rămâne protejat în baza de date.")) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/formular-230", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "archive", id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setF230List((prev) => prev.filter((f) => f.id !== id));
+        showToast("Formularul 230 a fost arhivat în siguranță!");
+      }
+    } catch {
+      alert("Eroare la arhivarea formularului.");
     }
   };
 
@@ -225,57 +233,133 @@ export default function AdminPage() {
     return `${cnp.substring(0, 3)}******${cnp.substring(9)}`;
   };
 
-  // Save Associations
-  const saveAssociationsState = (updated: AuditRequest[]) => {
-    setAssociations(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("vup_associations", JSON.stringify(updated));
-    }
-    showToast("Registrul asociațiilor a fost actualizat cu succes!");
-  };
-
-  // Save Partners
-  const savePartnersState = (updated: PartnerItem[]) => {
-    setPartners(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("vup_partners", JSON.stringify(updated));
-    }
-    showToast("Partenerii au fost actualizați cu succes!");
-  };
-
-  // Save Projects
-  const saveProjectsState = (updated: ProjectItem[]) => {
-    setProjects(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("vup_projects", JSON.stringify(updated));
-    }
-    showToast("Galeria de proiecte și fotografiile au fost actualizate!");
-  };
-
-  // Save Metrics
-  const saveMetricsState = (updated: GlobalMetrics) => {
-    setMetrics(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("vup_metrics", JSON.stringify(updated));
-    }
-    showToast("Metricile globale și fondul de reparații au fost salvate!");
-  };
-
-  // Reset to Factory Defaults
-  const handleResetDefaults = () => {
-    if (confirm("Sigur doriți să resetați toate datele la valorile inițiale din sistem?")) {
-      setAssociations([...INITIAL_ASSOCIATIONS]);
-      setPartners([...INITIAL_PARTNERS]);
-      setProjects([...INITIAL_PROJECTS]);
-      setMetrics({ ...INITIAL_METRICS });
-
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("vup_associations");
-        localStorage.removeItem("vup_partners");
-        localStorage.removeItem("vup_projects");
-        localStorage.removeItem("vup_metrics");
+  // Save Association (Single or All) to Supabase
+  const saveAssociationToDb = async (assoc: AuditRequest) => {
+    try {
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save_association", payload: assoc }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Asociația "${assoc.building}" a fost salvată în Supabase!`);
+      } else {
+        alert("Eroare la salvare în baza de date.");
       }
-      showToast("Toate datele au fost resetate la valorile implicite.");
+    } catch {
+      alert("Eroare de conexiune la salvare.");
+    }
+  };
+
+  const handleArchiveAssociation = async (assoc: AuditRequest) => {
+    if (confirm(`Sigur doriți să arhivați asociația "${assoc.building}"? Rămâne salvată în siguranță în baza de date (istoric).`)) {
+      try {
+        const res = await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "archive_association", payload: { id: assoc.id } }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setAssociations((prev) => prev.filter((item) => item.id !== assoc.id));
+          showToast(`Asociația "${assoc.building}" a fost arhivată în siguranță!`);
+        } else {
+          alert("Eroare la arhivare.");
+        }
+      } catch {
+        alert("Eroare de conexiune.");
+      }
+    }
+  };
+
+  // Save Partner to Supabase
+  const savePartnerToDb = async (partner: PartnerItem) => {
+    try {
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save_partner", payload: partner }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Partenerul "${partner.name}" a fost salvat în Supabase!`);
+      }
+    } catch {
+      alert("Eroare la salvare partener.");
+    }
+  };
+
+  const handleArchivePartner = async (partner: PartnerItem) => {
+    if (confirm(`Sigur doriți să arhivați partenerul "${partner.name}"?`)) {
+      try {
+        const res = await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "archive_partner", payload: { id: partner.id } }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setPartners((prev) => prev.filter((p) => p.id !== partner.id));
+          showToast(`Partenerul "${partner.name}" a fost arhivat.`);
+        }
+      } catch {
+        alert("Eroare la arhivare.");
+      }
+    }
+  };
+
+  // Save Project to Supabase
+  const saveProjectToDb = async (project: ProjectItem) => {
+    try {
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save_project", payload: project }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`Proiectul "${project.title}" a fost salvat în Supabase!`);
+      }
+    } catch {
+      alert("Eroare la salvare proiect.");
+    }
+  };
+
+  const handleArchiveProject = async (project: ProjectItem) => {
+    if (confirm(`Sigur doriți să arhivați proiectul "${project.title}"?`)) {
+      try {
+        const res = await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "archive_project", payload: { id: project.id } }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setProjects((prev) => prev.filter((p) => p.id !== project.id));
+          showToast(`Proiectul "${project.title}" a fost arhivat.`);
+        }
+      } catch {
+        alert("Eroare la arhivare.");
+      }
+    }
+  };
+
+  // Save Metrics to Supabase
+  const saveMetricsState = async (updated: GlobalMetrics) => {
+    setMetrics(updated);
+    try {
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "save_metrics", payload: updated }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Metricile globale au fost sincronizate în Supabase!");
+      }
+    } catch {
+      alert("Eroare la salvare metrici.");
     }
   };
 
@@ -293,6 +377,13 @@ export default function AdminPage() {
     }
   };
 
+  // Reset / Refresh from Supabase
+  const handleResetDefaults = () => {
+    loadAdminData();
+    loadF230Data();
+    showToast("Datele au fost reîncărcate proaspăt din baza de date!");
+  };
+
   // Logout Handler
   const handleLogout = () => {
     setIsAuthenticated(false);
@@ -302,7 +393,7 @@ export default function AdminPage() {
   };
 
   // Add Association
-  const handleCreateAssociation = (e: React.FormEvent) => {
+  const handleCreateAssociation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAssoc.building || !newAssoc.address) {
       alert("Numele blocului și adresa sunt obligatorii.");
@@ -324,8 +415,8 @@ export default function AdminPage() {
       createdAt: new Date().toISOString(),
     };
 
-    const updated = [created, ...associations];
-    saveAssociationsState(updated);
+    setAssociations([created, ...associations]);
+    await saveAssociationToDb(created);
     setShowAddAssoc(false);
     setNewAssoc({
       name: "",
@@ -342,7 +433,7 @@ export default function AdminPage() {
   };
 
   // Add Partner
-  const handleCreatePartner = (e: React.FormEvent) => {
+  const handleCreatePartner = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPartner.name || !newPartner.role) {
       alert("Numele și rolul partenerului sunt obligatorii.");
@@ -354,7 +445,8 @@ export default function AdminPage() {
       id: `part-${Date.now()}`,
     };
 
-    savePartnersState([...partners, created]);
+    setPartners([...partners, created]);
+    await savePartnerToDb(created);
     setShowAddPartner(false);
     setNewPartner({
       name: "",
@@ -368,7 +460,7 @@ export default function AdminPage() {
   };
 
   // Add Project
-  const handleCreateProject = (e: React.FormEvent) => {
+  const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProject.title || !newProject.description) {
       alert("Titlul și descrierea proiectului sunt obligatorii.");
@@ -380,7 +472,8 @@ export default function AdminPage() {
       id: `proj-${Date.now()}`,
     };
 
-    saveProjectsState([...projects, created]);
+    setProjects([...projects, created]);
+    await saveProjectToDb(created);
     setShowAddProject(false);
     setNewProject({
       title: "",
@@ -834,11 +927,13 @@ export default function AdminPage() {
                       <label className="text-[11px] text-slate-700 font-serif font-bold">Stadiu FSM:</label>
                       <select
                         value={assoc.status}
-                        onChange={(e) => {
-                          const updated = associations.map((item) =>
-                            item.id === assoc.id ? { ...item, status: e.target.value as AuditStatus } : item
+                        onChange={async (e) => {
+                          const newStatus = e.target.value as AuditStatus;
+                          const updatedAssoc = { ...assoc, status: newStatus };
+                          setAssociations((prev) =>
+                            prev.map((item) => (item.id === assoc.id ? updatedAssoc : item))
                           );
-                          saveAssociationsState(updated);
+                          await saveAssociationToDb(updatedAssoc);
                         }}
                         className="px-3 py-1.5 rounded-xl bg-white border border-amber-900/25 text-xs text-amber-900 font-serif font-bold focus:outline-none shadow-sm"
                       >
@@ -947,21 +1042,16 @@ export default function AdminPage() {
                   {/* Actions Bar for Item */}
                   <div className="flex justify-end items-center gap-2.5 pt-2">
                     <button
-                      onClick={() => saveAssociationsState(associations)}
+                      onClick={() => saveAssociationToDb(assoc)}
                       className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-white bg-emerald-700 hover:bg-emerald-600 transition-colors shadow-sm"
                     >
-                      <Save className="w-3.5 h-3.5" /> Salvează Modificările
+                      <Save className="w-3.5 h-3.5" /> Salvează în Baza de Date
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm(`Sigur doriți să ștergeți asociația "${assoc.building}"?`)) {
-                          const updated = associations.filter((item) => item.id !== assoc.id);
-                          saveAssociationsState(updated);
-                        }
-                      }}
+                      onClick={() => handleArchiveAssociation(assoc)}
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif text-rose-700 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 transition-colors border border-rose-200"
                     >
-                      <Trash2 className="w-3.5 h-3.5" /> Șterge
+                      <Trash2 className="w-3.5 h-3.5" /> Șterge / Arhivează
                     </button>
                   </div>
                 </div>
@@ -1090,12 +1180,9 @@ export default function AdminPage() {
                     </div>
 
                     <button
-                      onClick={() => {
-                        if (confirm(`Ștergeți partenerul "${partner.name}"?`)) {
-                          savePartnersState(partners.filter((p) => p.id !== partner.id));
-                        }
-                      }}
-                      className="text-slate-400 hover:text-rose-600 p-1"
+                      onClick={() => handleArchivePartner(partner)}
+                      title="Arhivează partenerul"
+                      className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -1230,12 +1317,9 @@ export default function AdminPage() {
                     </div>
 
                     <button
-                      onClick={() => {
-                        if (confirm(`Ștergeți lucrarea "${proj.title}"?`)) {
-                          saveProjectsState(projects.filter((p) => p.id !== proj.id));
-                        }
-                      }}
-                      className="text-slate-400 hover:text-rose-600 self-start sm:self-center p-1"
+                      onClick={() => handleArchiveProject(proj)}
+                      title="Arhivează proiectul"
+                      className="text-slate-400 hover:text-rose-600 self-start sm:self-center p-1 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -1615,14 +1699,23 @@ export default function AdminPage() {
                             </select>
                           </td>
                           <td className="py-3.5 px-4 text-center">
-                            <button
-                              onClick={() => setSelectedFormForPreview(item)}
-                              title="Previzualizează documentul oficial ANAF semnat"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-950 font-serif font-bold text-xs border border-amber-600/30 transition-colors shadow-sm"
-                            >
-                              <Eye className="w-3.5 h-3.5 text-amber-800" />
-                              <span>Vezi PDF</span>
-                            </button>
+                            <div className="flex items-center justify-center gap-1.5">
+                              <button
+                                onClick={() => setSelectedFormForPreview(item)}
+                                title="Previzualizează documentul oficial ANAF semnat"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-950 font-serif font-bold text-xs border border-amber-600/30 transition-colors shadow-sm"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-amber-800" />
+                                <span>Vezi PDF</span>
+                              </button>
+                              <button
+                                onClick={() => handleArchiveF230(item.id)}
+                                title="Arhivează formularul (rămâne securizat în baza de date)"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}

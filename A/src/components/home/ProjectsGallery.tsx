@@ -13,20 +13,17 @@ export function ProjectsGallery() {
   const [viewMode, setViewMode] = useState<"side-by-side" | "slider">("side-by-side");
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("vup_projects");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setProjects(parsed);
-            setActiveProject(parsed[0]);
-          }
+    fetch("/api/public/data")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data?.projects?.length > 0) {
+          setProjects(res.data.projects);
+          setActiveProject(res.data.projects[0]);
         }
-      } catch {
-        // fallback to initial
-      }
-    }
+      })
+      .catch(() => {
+        // Fallback to initial
+      });
   }, []);
 
   const handlePointerAction = (clientX: number, currentTarget: HTMLElement) => {

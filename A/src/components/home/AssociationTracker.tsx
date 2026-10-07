@@ -13,30 +13,17 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
   const [associations, setAssociations] = useState<PublicAssociationSummary[]>(() => getPublicAssociations());
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("vup_associations");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setAssociations(
-              (parsed as Partial<PublicAssociationSummary>[]).map((r) => ({
-                id: String(r.id || `req-${Math.random()}`),
-                building: String(r.building || ""),
-                address: String(r.address || ""),
-                status: (r.status as PublicAssociationSummary["status"]) || "nou",
-                formsCollected: Number(r.formsCollected || 0),
-                formsTarget: Number(r.formsTarget || 40),
-                fundsCollected: Number(r.fundsCollected || 0),
-                fundsTarget: Number(r.fundsTarget || 12000),
-              }))
-            );
-          }
+    // 1. Fetch live data from Supabase via public API
+    fetch("/api/public/data")
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data?.associations?.length > 0) {
+          setAssociations(res.data.associations);
         }
-      } catch {
-        // fallback
-      }
-    }
+      })
+      .catch(() => {
+        // Fallback gracefully
+      });
   }, []);
 
   return (

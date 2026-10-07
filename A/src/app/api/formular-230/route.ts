@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { addFormular230, getAllFormulare230, getOngConfig, updateOngConfig, updateFormular230Status } from "@/lib/data";
+import { insertFormular230, fetchFormulare230, fetchOngConfig, saveOngConfig, updateFormular230StatusDb, archiveFormular230 } from "@/lib/db";
 
 const Formular230Schema = z.object({
   lastName: z.string().min(2, "Numele de familie este obligatoriu"),
@@ -26,10 +26,16 @@ const ConfigUpdateSchema = z.object({
   distributeYears: z.number().optional(),
 });
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const config = getOngConfig();
-    const forms = getAllFormulare230();
+    const { searchParams } = new URL(req.url);
+    const includeArchived = searchParams.get("includeArchived") === "true";
+
+    const [config, forms] = await Promise.all([
+      fetchOngConfig(),
+      fetchFormulare230(includeArchived),
+    ]);
+
     return NextResponse.json({
       success: true,
       config,
@@ -49,7 +55,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const validatedData = Formular230Schema.parse(body);
 
-    const newForm = addFormular230({
+    const result = await insertFormular230({
       lastName: validatedData.lastName,
       firstName: validatedData.firstName,
       initialaTata: validatedData.initialaTata,
@@ -64,47 +70,67 @@ export async function POST(req: Request) {
       consentBorderou: validatedData.consentBorderou,
     });
 
+    if (!result.success) {
+      return NextResponse.json({ success: false, error: "Eroare la salvare în baza de date" }, { status: 500 });
+    }
+
     return NextResponse.json({
       success: true,
-      id: newForm.id,
-      message: "Formularul 230 a fost înregistrat cu succes!",
-      form: newForm,
+      message: "Formularul 230 a fost înregistrat cu succes în registrul asociației.",
+      id: result.id,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { success: false, errors: error.errors },
+        { success: false, error: error.errors[0]?.message || "Date invalide" },
         { status: 400 }
       );
     }
     return NextResponse.json(
-      { success: false, error: "A apărut o eroare la salvarea formularului" },
+      { success: false, error: "Eroare internă de server la salvarea formularului" },
       { status: 500 }
     );
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PUT(req: Request) {
   try {
     const body = await req.json();
 
-    // Check if updating an entry's status
-    if (body.formId && body.status) {
-      const ok = updateFormular230Status(body.formId, body.status);
-      return NextResponse.json({ success: ok });
+    if (body.action === "update_status") {
+      const { id, status } = body;
+      if (!id || !["inregistrat", "validat", "depus_anaf"].includes(status)) {
+        return NextResponse.json({ success: false, error: "Parametri invalizi" }, { status: 400 });
+      }
+      const updated = await updateFormular230StatusDb(id, status);
+      return NextResponse.json({ success: updated });
     }
 
-    // Check if updating ONG config
-    if (body.config) {
+    if (body.action === "archive") {
+      const { id } = body;
+      if (!id) return NextResponse.json({ success: false, error: "Lipseste ID-ul" }, { status: 400 });
+      const archived = await archiveFormular230(id);
+      return NextResponse.json({ success: archived });
+    }
+
+    if (body.action === "update_config") {
       const validatedConfig = ConfigUpdateSchema.parse(body.config);
-      const updated = updateOngConfig(validatedConfig);
-      return NextResponse.json({ success: true, config: updated });
+      const current = await fetchOngConfig();
+      const updated = await saveOngConfig({
+        name: validatedConfig.name || current.name,
+        cif: validatedConfig.cif || current.cif,
+        iban: validatedConfig.iban || current.iban,
+        bank: validatedConfig.bank || current.bank,
+        percentage: validatedConfig.percentage || current.percentage,
+        distributeYears: validatedConfig.distributeYears ?? current.distributeYears,
+      });
+      return NextResponse.json({ success: updated });
     }
 
-    return NextResponse.json({ success: false, error: "Payload necunoscut" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Acțiune necunoscută" }, { status: 400 });
   } catch (error) {
     return NextResponse.json(
-      { success: false, error: "Eroare la actualizare" },
+      { success: false, error: "Eroare la procesarea cererii administrative" },
       { status: 500 }
     );
   }
