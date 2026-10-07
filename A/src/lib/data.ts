@@ -1,4 +1,5 @@
 import { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary, PartnerItem, GlobalMetrics, Formular230Entry, OngConfig, Formular230Status } from "./types";
+import { detectNeighborhood } from "./neighborhoods";
 
 export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   {
@@ -7,6 +8,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
     phone: "0722123456",
     building: "Asociația de Proprietari Bloc 14A",
     address: "B-dul Republicii nr. 112, Ploiești",
+    neighborhood: "Nord",
     problem: "Coloană colectoare canalizare fisurată în subsol, pierderi constante de apă caldă și miros insuportabil pe casa scării.",
     status: "acceptat",
     formsCollected: 48,
@@ -21,6 +23,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
     phone: "0733987654",
     building: "Asociația Str. Democrației Bloc C3",
     address: "Str. Democrației nr. 24, Ploiești",
+    neighborhood: "Democrației",
     problem: "Țevi de oțel corodate masiv la rețeaua de încălzire, inundație recurentă la fiecare pornire a sezonului rece.",
     status: "acceptat",
     formsCollected: 32,
@@ -35,6 +38,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
     phone: "0744556677",
     building: "Asociația Malu Roșu Bloc 32",
     address: "Str. Malu Roșu nr. 8, Ploiești",
+    neighborhood: "Malu Roșu",
     problem: "Toate conductele de apă rece și canalizare din fontă sunt colmatate și sparte pe tronsonul central.",
     status: "in_evaluare",
     formsCollected: 15,
@@ -42,6 +46,51 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
     fundsCollected: 3000,
     fundsTarget: 13500,
     createdAt: "2026-09-20T09:15:00Z",
+  },
+  {
+    id: "req-4",
+    name: "Cristian Stanciu",
+    phone: "0721445566",
+    building: "Asociația Bloc 7 Vest",
+    address: "Str. Mărășești nr. 14, Ploiești",
+    neighborhood: "Vest",
+    problem: "Infiltrații majore din coloana de recirculare a apei calde, subsol inundat și rugină avansată.",
+    status: "acceptat",
+    formsCollected: 38,
+    formsTarget: 40,
+    fundsCollected: 11000,
+    fundsTarget: 12000,
+    createdAt: "2026-09-25T11:00:00Z",
+  },
+  {
+    id: "req-5",
+    name: "Mariana Voinea",
+    phone: "0732889900",
+    building: "Asociația Independenței Bloc 4",
+    address: "B-dul Independenței nr. 18, Ploiești",
+    neighborhood: "Centru",
+    problem: "Subsol insalubru, robineți blocați de calcar și lipsă totală de izolație termică pe magistrala principală.",
+    status: "in_evaluare",
+    formsCollected: 22,
+    formsTarget: 40,
+    fundsCollected: 5200,
+    fundsTarget: 12000,
+    createdAt: "2026-10-01T15:20:00Z",
+  },
+  {
+    id: "req-6",
+    name: "Gheorghe Marin",
+    phone: "0740112233",
+    building: "Asociația Bariera București Bloc 10B",
+    address: "B-dul București nr. 36, Ploiești",
+    neighborhood: "Sud / Bariera București",
+    problem: "Avarie gravă la conducta de apă rece de branșament, pierderi mari pe factura comună.",
+    status: "nou",
+    formsCollected: 8,
+    formsTarget: 35,
+    fundsCollected: 1500,
+    fundsTarget: 10500,
+    createdAt: "2026-10-05T08:45:00Z",
   },
 ];
 
@@ -163,13 +212,13 @@ export const INITIAL_METRICS: GlobalMetrics = {
   totalFormsTarget: 130,
   totalFundsCollectedRon: 25700,
   totalFundsTargetRon: 40500,
-  activeAssociationsCount: 3,
+  activeAssociationsCount: 6,
 };
 
 let requestsState: AuditRequest[] = [...INITIAL_ASSOCIATIONS];
 let projectsState: ProjectItem[] = [...INITIAL_PROJECTS];
 let partnersState: PartnerItem[] = [...INITIAL_PARTNERS];
-let metricsState: GlobalMetrics = { ...INITIAL_METRICS };
+let metricsState: GlobalMetrics = { ...INITIAL_METRICS, activeAssociationsCount: 6 };
 let donationsState: DonationEntry[] = [];
 
 export function getPublicAssociations(): PublicAssociationSummary[] {
@@ -177,6 +226,7 @@ export function getPublicAssociations(): PublicAssociationSummary[] {
     id: r.id,
     building: r.building,
     address: r.address,
+    neighborhood: r.neighborhood || detectNeighborhood(r.address, r.building),
     status: r.status,
     formsCollected: r.formsCollected,
     formsTarget: r.formsTarget,

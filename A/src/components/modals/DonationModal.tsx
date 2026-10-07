@@ -46,6 +46,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
   const [companyOrName, setCompanyOrName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [hpWebsite, setHpWebsite] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -106,6 +107,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
           companyOrName,
           phone,
           email,
+          hp_website: hpWebsite,
         }),
       });
 
@@ -217,6 +219,19 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
             {/* BRANCH 1: SPONSORIZEAZA PROIECT */}
             {mainTab === "sponsorizeaza" && (
               <form onSubmit={handleSponsorshipSubmit} className="space-y-4">
+                {/* Honeypot invizibil pentru neutralizarea boților automați */}
+                <div style={{ display: "none" }} aria-hidden="true">
+                  <label htmlFor="donation_hp_website">Nu completați acest câmp</label>
+                  <input
+                    id="donation_hp_website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={hpWebsite}
+                    onChange={(e) => setHpWebsite(e.target.value)}
+                  />
+                </div>
+
                 {/* 1. Association Selection */}
                 <div>
                   <label className="block text-xs font-serif font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">

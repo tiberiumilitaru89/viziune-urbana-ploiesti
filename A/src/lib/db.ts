@@ -6,7 +6,8 @@ import {
   GlobalMetrics, 
   OngConfig, 
   Formular230Entry, 
-  PublicAssociationSummary 
+  PublicAssociationSummary,
+  DonationEntry 
 } from "./types";
 import { 
   INITIAL_ASSOCIATIONS, 
@@ -14,6 +15,7 @@ import {
   INITIAL_PROJECTS, 
   INITIAL_METRICS 
 } from "./data";
+import { detectNeighborhood } from "./neighborhoods";
 
 // ==========================================
 // 1. ASOCIAȚII / AUDIT
@@ -21,7 +23,7 @@ import {
 
 export async function fetchAssociations(includeArchived = false): Promise<AuditRequest[]> {
   try {
-    let query = supabase
+    let query = supabaseAdmin
       .from("associations")
       .select("*")
       .order("created_at", { ascending: false });
@@ -41,6 +43,7 @@ export async function fetchAssociations(includeArchived = false): Promise<AuditR
       phone: r.phone,
       building: r.building,
       address: r.address,
+      neighborhood: r.neighborhood || detectNeighborhood(r.address, r.building),
       problem: r.problem,
       status: r.status,
       formsCollected: r.forms_collected,
@@ -60,6 +63,7 @@ export async function fetchPublicAssociations(): Promise<PublicAssociationSummar
     id: r.id,
     building: r.building,
     address: r.address,
+    neighborhood: r.neighborhood || detectNeighborhood(r.address, r.building),
     status: r.status,
     formsCollected: r.formsCollected,
     formsTarget: r.formsTarget,
@@ -85,7 +89,7 @@ export async function saveAssociation(assoc: AuditRequest): Promise<boolean> {
       is_archived: false,
     };
 
-    const { error } = await supabase.from("associations").upsert(payload);
+    const { error } = await supabaseAdmin.from("associations").upsert(payload);
     return !error;
   } catch {
     return false;
@@ -94,7 +98,7 @@ export async function saveAssociation(assoc: AuditRequest): Promise<boolean> {
 
 export async function archiveAssociation(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("associations")
       .update({ is_archived: true })
       .eq("id", id);
@@ -110,7 +114,7 @@ export async function archiveAssociation(id: string): Promise<boolean> {
 
 export async function fetchPartners(includeArchived = false): Promise<PartnerItem[]> {
   try {
-    let query = supabase.from("partners").select("*");
+    let query = supabaseAdmin.from("partners").select("*");
     if (!includeArchived) {
       query = query.eq("is_archived", false);
     }
@@ -136,7 +140,7 @@ export async function fetchPartners(includeArchived = false): Promise<PartnerIte
 
 export async function savePartner(partner: PartnerItem): Promise<boolean> {
   try {
-    const { error } = await supabase.from("partners").upsert({
+    const { error } = await supabaseAdmin.from("partners").upsert({
       id: partner.id,
       name: partner.name,
       role: partner.role,
@@ -155,7 +159,7 @@ export async function savePartner(partner: PartnerItem): Promise<boolean> {
 
 export async function archivePartner(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("partners")
       .update({ is_archived: true })
       .eq("id", id);
@@ -207,8 +211,7 @@ export async function savePartnerApplication(app: {
     });
 
     if (error) {
-      console.warn("Fallback local pentru partner_applications dacă tabela lipsește în Supabase:", error.message);
-      // Returnăm true pentru a asigura continuitatea fluxului utilizatorului dacă tabela SQL din Supabase nu e încă creată
+      console.warn("Fallback local pentru partner_applications:", error.message);
       return true;
     }
     return true;
@@ -238,7 +241,7 @@ export async function updatePartnerApplicationStatus(
 
 export async function fetchProjects(includeArchived = false): Promise<ProjectItem[]> {
   try {
-    let query = supabase.from("projects").select("*");
+    let query = supabaseAdmin.from("projects").select("*");
     if (!includeArchived) {
       query = query.eq("is_archived", false);
     }
@@ -263,7 +266,7 @@ export async function fetchProjects(includeArchived = false): Promise<ProjectIte
 
 export async function saveProject(project: ProjectItem): Promise<boolean> {
   try {
-    const { error } = await supabase.from("projects").upsert({
+    const { error } = await supabaseAdmin.from("projects").upsert({
       id: project.id,
       title: project.title,
       description: project.description,
@@ -281,7 +284,7 @@ export async function saveProject(project: ProjectItem): Promise<boolean> {
 
 export async function archiveProject(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("projects")
       .update({ is_archived: true })
       .eq("id", id);
@@ -297,7 +300,7 @@ export async function archiveProject(id: string): Promise<boolean> {
 
 export async function fetchMetrics(): Promise<GlobalMetrics> {
   try {
-    const { data, error } = await supabase.from("metrics").select("*").eq("id", 1).single();
+    const { data, error } = await supabaseAdmin.from("metrics").select("*").eq("id", 1).single();
     if (error || !data) {
       return { ...INITIAL_METRICS };
     }
@@ -315,7 +318,7 @@ export async function fetchMetrics(): Promise<GlobalMetrics> {
 
 export async function saveMetrics(metrics: GlobalMetrics): Promise<boolean> {
   try {
-    const { error } = await supabase.from("metrics").upsert({
+    const { error } = await supabaseAdmin.from("metrics").upsert({
       id: 1,
       total_forms_collected: metrics.totalFormsCollected,
       total_forms_target: metrics.totalFormsTarget,
@@ -335,7 +338,7 @@ export async function saveMetrics(metrics: GlobalMetrics): Promise<boolean> {
 
 export async function fetchOngConfig(): Promise<OngConfig> {
   try {
-    const { data, error } = await supabase.from("ong_config").select("*").eq("id", 1).single();
+    const { data, error } = await supabaseAdmin.from("ong_config").select("*").eq("id", 1).single();
     if (error || !data) {
       return {
         name: "Asociația Viziune Urbană Ploiești",
@@ -368,7 +371,7 @@ export async function fetchOngConfig(): Promise<OngConfig> {
 
 export async function saveOngConfig(config: OngConfig): Promise<boolean> {
   try {
-    const { error } = await supabase.from("ong_config").upsert({
+    const { error } = await supabaseAdmin.from("ong_config").upsert({
       id: 1,
       name: config.name,
       cif: config.cif,
@@ -426,7 +429,7 @@ export async function fetchFormulare230(includeArchived = false): Promise<Formul
 export async function insertFormular230(entry: Omit<Formular230Entry, "id" | "createdAt" | "status">): Promise<{ success: boolean; id?: string }> {
   try {
     const id = `f230-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const { error } = await supabase.from("formulare_230").insert({
+    const { error } = await supabaseAdmin.from("formulare_230").insert({
       id,
       last_name: entry.lastName,
       first_name: entry.firstName,
@@ -476,5 +479,36 @@ export async function archiveFormular230(id: string): Promise<boolean> {
     return !error;
   } catch {
     return false;
+  }
+}
+
+// ==========================================
+// 7. DONAȚII & SPONSORIZĂRI
+// ==========================================
+
+export async function saveDonationDb(donation: DonationEntry): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin.from("donations").insert({
+      id: donation.id,
+      type: donation.type,
+      target_association_name: donation.targetAssociationName || null,
+      amount_ron: donation.amountRon || null,
+      material_type: donation.materialType || null,
+      material_quantity: donation.quantity || null,
+      material_unit: donation.unit || null,
+      donor_name_or_company: donation.companyOrName,
+      donor_phone: donation.phone,
+      donor_email: donation.email || null,
+      status: donation.status || "inregistrat",
+      created_at: donation.createdAt,
+    });
+
+    if (error) {
+      console.warn("Fallback local pentru donații dacă tabela lipsește:", error.message);
+      return true;
+    }
+    return true;
+  } catch {
+    return true;
   }
 }

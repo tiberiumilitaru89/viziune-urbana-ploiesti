@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { getPublicAssociations } from "@/lib/data";
 import { PublicAssociationSummary } from "@/lib/types";
-import { Building2, FileSpreadsheet, Coins, CheckCircle, Clock, ArrowRight, Landmark } from "lucide-react";
+import { PLOIESTI_NEIGHBORHOODS, detectNeighborhood } from "@/lib/neighborhoods";
+import { Building2, FileSpreadsheet, Coins, CheckCircle, Clock, ArrowRight, Landmark, MapPin, Navigation } from "lucide-react";
 
 type AssociationTrackerProps = {
   readonly onOpenAuditModal: () => void;
@@ -11,9 +12,10 @@ type AssociationTrackerProps = {
 
 export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps) {
   const [associations, setAssociations] = useState<PublicAssociationSummary[]>(() => getPublicAssociations());
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>("toate");
 
   useEffect(() => {
-    // 1. Fetch live data from Supabase via public API
+    // Fetch live data from Supabase via public API
     fetch("/api/public/data")
       .then((res) => res.json())
       .then((res) => {
@@ -26,27 +28,109 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
       });
   }, []);
 
+  // Compute counts per neighborhood
+  const neighborhoodCounts = useMemo(() => {
+    const counts: Record<string, number> = { toate: associations.length };
+    PLOIESTI_NEIGHBORHOODS.forEach((n) => {
+      counts[n] = 0;
+    });
+
+    associations.forEach((a) => {
+      const n = a.neighborhood || detectNeighborhood(a.address, a.building);
+      if (counts[n] !== undefined) {
+        counts[n] += 1;
+      } else {
+        counts["Alte Zone"] = (counts["Alte Zone"] || 0) + 1;
+      }
+    });
+
+    return counts;
+  }, [associations]);
+
+  // Filtered list
+  const filteredAssociations = useMemo(() => {
+    if (selectedNeighborhood === "toate") return associations;
+    return associations.filter((a) => {
+      const n = a.neighborhood || detectNeighborhood(a.address, a.building);
+      return n === selectedNeighborhood;
+    });
+  }, [associations, selectedNeighborhood]);
+
   return (
     <section id="asociatii" className="py-14 sm:py-20 lg:py-28 bg-transparent border-t border-amber-900/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F5EDE1] border border-amber-700/30 text-amber-900 text-xs font-serif font-bold uppercase tracking-[0.2em] mb-4">
             <Landmark className="w-3.5 h-3.5" />
-            Transparență Comunitară
+            Transparență Comunitară pe Cartiere
           </div>
           <h2 className="text-3xl sm:text-5xl font-serif font-black text-[#071330] tracking-tight">
-            Registrul Asociațiilor în Curs
+            Registrul Asociațiilor din Ploiești
           </h2>
           <p className="mt-4 text-slate-700 text-base leading-relaxed">
-            Fiecare asociație înscrisă are o evoluție publică transparentă: strângerea formularelor ANAF 230 și constituirea fondului propriu de manoperă.
+            Fiecare asociație înscrisă are o evoluție publică transparentă: strângerea formularelor ANAF 230 și constituirea fondului propriu de manoperă pe cartierele orașului.
           </p>
         </div>
 
+        {/* Bara de Filtrare pe Cartiere din Ploiești */}
+        <div className="mb-10">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Navigation className="w-4 h-4 text-amber-700" />
+            <span className="text-xs font-serif font-bold uppercase tracking-wider text-slate-700">
+              Selectează Cartierul
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 max-w-4xl mx-auto">
+            <button
+              onClick={() => setSelectedNeighborhood("toate")}
+              className={`px-4 py-2 rounded-xl text-xs font-serif font-bold transition-all shadow-sm ${
+                selectedNeighborhood === "toate"
+                  ? "bg-[#c48834] text-white shadow-md scale-105"
+                  : "bg-white/80 text-slate-700 border border-amber-900/20 hover:bg-amber-100/60"
+              }`}
+            >
+              Toate Cartierele ({neighborhoodCounts.toate ?? 0})
+            </button>
+
+            {PLOIESTI_NEIGHBORHOODS.map((neighborhood) => {
+              const count = neighborhoodCounts[neighborhood] || 0;
+              const isSelected = selectedNeighborhood === neighborhood;
+
+              return (
+                <button
+                  key={neighborhood}
+                  onClick={() => setSelectedNeighborhood(neighborhood)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-serif transition-all shadow-sm flex items-center gap-1.5 ${
+                    isSelected
+                      ? "bg-[#c48834] text-white font-bold shadow-md scale-105"
+                      : "bg-white/80 text-slate-700 border border-amber-900/20 hover:bg-amber-100/60 font-semibold"
+                  }`}
+                >
+                  <MapPin className={`w-3 h-3 ${isSelected ? "text-white" : "text-amber-700"}`} />
+                  <span>{neighborhood}</span>
+                  {count > 0 && (
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                        isSelected ? "bg-amber-800 text-white" : "bg-amber-100 text-amber-900"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Grila de Asociații */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-          {associations.map((assoc) => {
+          {filteredAssociations.map((assoc) => {
             const formPct = Math.min(100, Math.round((assoc.formsCollected / assoc.formsTarget) * 100));
             const fundPct = Math.min(100, Math.round((assoc.fundsCollected / assoc.fundsTarget) * 100));
             const isApproved = assoc.status === "acceptat" || assoc.status === "finalizat";
+            const neighborhood = assoc.neighborhood || detectNeighborhood(assoc.address, assoc.building);
 
             return (
               <div
@@ -59,7 +143,13 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
                       <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-600/30 flex items-center justify-center shrink-0">
                         <Building2 className="w-4 h-4 text-amber-800" />
                       </div>
-                      <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider">Ploiești</span>
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ploiești</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-500/15 border border-amber-600/25 px-2 py-0.5 rounded-md mt-0.5">
+                          <MapPin className="w-3 h-3 text-amber-700" />
+                          {neighborhood}
+                        </span>
+                      </div>
                     </div>
 
                     <span
@@ -126,12 +216,20 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
           })}
         </div>
 
+        {filteredAssociations.length === 0 && (
+          <div className="text-center py-10 bg-white/60 rounded-2xl border border-amber-900/15 max-w-md mx-auto mb-8">
+            <MapPin className="w-8 h-8 text-amber-600 mx-auto mb-2" />
+            <h4 className="text-sm font-serif font-bold text-slate-800">Nicio asociație înregistrată încă în {selectedNeighborhood}</h4>
+            <p className="text-xs text-slate-600 mt-1">Fii prima asociație din cartier care solicită evaluarea tehnică gratuită!</p>
+          </div>
+        )}
+
         <div className="text-center">
           <button
             onClick={onOpenAuditModal}
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-600 shadow-md transition-all active:scale-95"
           >
-            <span>Înscrie Asociația Ta în Registru</span>
+            <span>Înscrie Asociația Ta din Ploiești în Registru</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

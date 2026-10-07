@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { SignatureCanvas } from "./SignatureCanvas";
 import { Formular230OfficialDoc } from "./Formular230OfficialDoc";
 import { OngConfig } from "@/lib/types";
+import { validateRomanianCnp } from "@/lib/cnp";
 import { Shield, CheckCircle2, ArrowRight, ArrowLeft, Send, Download, FileText, AlertCircle } from "lucide-react";
 
 type Formular230WizardProps = {
@@ -35,20 +36,21 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular23
   const [signatureDataUrl, setSignatureDataUrl] = useState("");
   const [distributeFor2Years, setDistributeFor2Years] = useState(true);
   const [consentBorderou, setConsentBorderou] = useState(true);
+  const [hpWebsite, setHpWebsite] = useState("");
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Fetch actual config from server API
+  // Fetch actual config from safe public endpoint
   useEffect(() => {
     async function loadConfig() {
       try {
-        const res = await fetch("/api/formular-230");
-        const data = await res.json();
-        if (data.success && data.config) {
-          setOngConfig(data.config);
+        const res = await fetch("/api/public/data");
+        const json = await res.json();
+        if (json.success && json.data && json.data.ongConfig) {
+          setOngConfig(json.data.ongConfig);
         }
       } catch (err) {
         console.error("Eroare încărcare configurație ONG:", err);
@@ -64,8 +66,9 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular23
       return false;
     }
     const cleanCnp = cnp.trim();
-    if (!/^[1-8]\d{12}$/.test(cleanCnp)) {
-      setErrorMessage("CNP-ul introdus este invalid (trebuie să conțină exact 13 cifre).");
+    const cnpCheck = validateRomanianCnp(cleanCnp);
+    if (!cnpCheck.isValid) {
+      setErrorMessage(cnpCheck.error || "CNP-ul introdus este invalid.");
       return false;
     }
     if (!phone.trim() || phone.trim().length < 10) {
@@ -108,15 +111,16 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular23
         lastName,
         firstName,
         initialaTata: initialaTata.toUpperCase(),
-        cnp,
-        phone,
-        email,
-        address,
+        cnp: cnp.trim(),
+        phone: phone.trim(),
+        email: email.trim(),
+        address: address.trim(),
         city,
         county,
         signatureDataUrl,
         distributeFor2Years,
         consentBorderou,
+        hp_website: hpWebsite,
       };
 
       const res = await fetch("/api/formular-230", {
@@ -200,6 +204,19 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular23
       {/* STEP 1: Date de identificare */}
       {step === 1 && (
         <form onSubmit={handleNextToStep2} className="space-y-4">
+          {/* Honeypot invizibil pentru neutralizarea boților automați */}
+          <div style={{ display: "none" }} aria-hidden="true">
+            <label htmlFor="f230_hp_website">Nu completați acest câmp</label>
+            <input
+              id="f230_hp_website"
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={hpWebsite}
+              onChange={(e) => setHpWebsite(e.target.value)}
+            />
+          </div>
+
           <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-600/25 text-xs text-amber-950 flex items-start gap-2.5">
             <Shield className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <div>

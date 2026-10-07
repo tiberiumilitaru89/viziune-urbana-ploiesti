@@ -20,9 +20,11 @@ import {
   MapPin,
   AlertCircle,
   FileText,
+  FileSpreadsheet,
   Eye,
   Download,
   X,
+  Loader2,
 } from "lucide-react";
 import {
   AuditRequest,
@@ -47,6 +49,8 @@ type AdminTab = "associations" | "partners" | "projects" | "metrics" | "form230"
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [password, setPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [activeTab, setActiveTab] = useState<AdminTab>("associations");
@@ -125,20 +129,37 @@ export default function AdminPage() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Load from Supabase on mount
+  // Verificare sesiune admin pe server la mount
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const auth = sessionStorage.getItem("vup_admin_auth");
-      if (auth === "true") setIsAuthenticated(true);
-    }
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/admin/auth");
+        const json = await res.json();
+        if (json.success && json.authenticated) {
+          setIsAuthenticated(true);
+          loadAdminData();
+          loadF230Data();
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch {
+        setIsAuthenticated(false);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
 
-    loadAdminData();
-    loadF230Data();
+    checkAuth();
   }, []);
 
   const loadAdminData = async () => {
     try {
       const res = await fetch("/api/admin/data");
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        showToast("Sesiune expirată. Vă rugăm să vă reautentificați.");
+        return;
+      }
       const json = await res.json();
       if (json.success && json.data) {
         if (json.data.associations?.length > 0) setAssociations(json.data.associations);
@@ -158,6 +179,10 @@ export default function AdminPage() {
     setIsLoadingF230(true);
     try {
       const res = await fetch("/api/formular-230");
+      if (res.status === 401) {
+        setIsAuthenticated(false);
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         if (data.config) setOngConfig(data.config);
@@ -234,6 +259,71 @@ export default function AdminPage() {
   const maskCnp = (cnp: string) => {
     if (!cnp || cnp.length < 13) return cnp || "—";
     return `${cnp.substring(0, 3)}******${cnp.substring(9)}`;
+  };
+
+  // Export Borderou Centralizator Formular 230 ANAF (CSV cu UTF-8 BOM pentru Excel)
+  const handleExportAnafBorderou = () => {
+    if (f230List.length === 0) {
+      alert("Nu există formulare 230 înregistrate pentru a genera borderoul.");
+      return;
+    }
+
+    const headers = [
+      "Nr. Crt.",
+      "Nume",
+      "Initiala Tata",
+      "Prenume",
+      "CNP",
+      "Adresa Domiciliu",
+      "Localitate",
+      "Judet",
+      "Telefon",
+      "Email",
+      "Optiune 2 Ani",
+      "Status",
+      "Data Inregistrarii",
+    ];
+
+    const escapeCsv = (val: string | number | undefined | null) => {
+      const str = String(val ?? "");
+      if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = f230List.map((item, index) => [
+      index + 1,
+      escapeCsv(item.lastName),
+      escapeCsv(item.initialaTata || ""),
+      escapeCsv(item.firstName),
+      escapeCsv(item.cnp),
+      escapeCsv(item.address),
+      escapeCsv(item.city),
+      escapeCsv(item.county),
+      escapeCsv(item.phone),
+      escapeCsv(item.email || ""),
+      item.distributeFor2Years ? "DA" : "NU",
+      escapeCsv(item.status),
+      new Date(item.createdAt).toLocaleDateString("ro-RO"),
+    ]);
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date().toISOString().split("T")[0];
+    link.setAttribute("href", url);
+    link.setAttribute("download", `Borderou_ANAF_Formulare230_VUP_${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    showToast("Borderoul oficial ANAF (CSV/Excel) a fost generat și descărcat!");
   };
 
   // Save Association (Single or All) to Supabase
@@ -388,17 +478,38 @@ export default function AdminPage() {
     }
   };
 
-  // Login Handler (Password: vup2026 strictly)
-  const handleLogin = (e: React.FormEvent) => {
+  // Login Handler Securizat pe Server (HMAC-SHA256 Token Session)
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.trim() === "vup2026") {
-      setIsAuthenticated(true);
-      setAuthError("");
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("vup_admin_auth", "true");
+    if (!password.trim()) {
+      setAuthError("Introduceți parola autorizată.");
+      return;
+    }
+    setIsLoggingIn(true);
+    setAuthError("");
+
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "login", password: password.trim() }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setIsAuthenticated(true);
+        setPassword("");
+        setAuthError("");
+        showToast("Autentificare reușită!");
+        loadAdminData();
+        loadF230Data();
+      } else {
+        setAuthError(data.error || "Parolă autorizată incorectă. Încercați din nou.");
       }
-    } else {
-      setAuthError("Parolă autorizată incorectă. Încercați din nou.");
+    } catch {
+      setAuthError("Eroare de conexiune la server. Vă rugăm să reîncercați.");
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -409,11 +520,20 @@ export default function AdminPage() {
     showToast("Datele au fost reîncărcate proaspăt din baza de date!");
   };
 
-  // Logout Handler
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem("vup_admin_auth");
+  // Logout Handler Securizat
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch {
+      // ignore
+    } finally {
+      setIsAuthenticated(false);
+      setPassword("");
+      showToast("Ați fost deconectat în siguranță.");
     }
   };
 
@@ -526,6 +646,17 @@ export default function AdminPage() {
   // ==============================================================
   // RENDER: SECURED LOGIN SCREEN (Civic Glassmorphism with Background)
   // ==============================================================
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3 bg-white/90 backdrop-blur-md p-8 rounded-3xl border border-amber-900/20 shadow-xl">
+          <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+          <span className="text-xs font-serif font-bold text-slate-700">Se verifică sesiunea securizată...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-transparent text-slate-900 flex items-center justify-center p-4 selection:bg-amber-500 selection:text-white">
@@ -598,9 +729,17 @@ export default function AdminPage() {
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 shadow-md transition-all active:scale-[0.99]"
+              disabled={isLoggingIn}
+              className="w-full py-3.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 disabled:opacity-50 shadow-md transition-all active:scale-[0.99] flex items-center justify-center gap-2"
             >
-              Autentificare în Panou
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Se verifică autorizarea...</span>
+                </>
+              ) : (
+                "Autentificare în Panou"
+              )}
             </button>
           </form>
 
@@ -1709,20 +1848,31 @@ export default function AdminPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-1.5 p-1 bg-white border border-amber-900/20 rounded-xl text-xs font-serif shadow-sm">
-                  {(["all", "inregistrat", "validat", "depus_anaf"] as const).map((st) => (
-                    <button
-                      key={st}
-                      onClick={() => setF230StatusFilter(st)}
-                      className={`px-3 py-1.5 rounded-lg capitalize transition-colors ${
-                        f230StatusFilter === st
-                          ? "bg-[#c48834] text-white font-bold shadow-sm"
-                          : "text-slate-600 hover:text-slate-950"
-                      }`}
-                    >
-                      {st === "all" ? "Toate" : st === "depus_anaf" ? "Depus ANAF" : st}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <div className="flex items-center gap-1.5 p-1 bg-white border border-amber-900/20 rounded-xl text-xs font-serif shadow-sm">
+                    {(["all", "inregistrat", "validat", "depus_anaf"] as const).map((st) => (
+                      <button
+                        key={st}
+                        onClick={() => setF230StatusFilter(st)}
+                        className={`px-3 py-1.5 rounded-lg capitalize transition-colors ${
+                          f230StatusFilter === st
+                            ? "bg-[#c48834] text-white font-bold shadow-sm"
+                            : "text-slate-600 hover:text-slate-950"
+                        }`}
+                      >
+                        {st === "all" ? "Toate" : st === "depus_anaf" ? "Depus ANAF" : st}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={handleExportAnafBorderou}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-serif font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-md transition-all active:scale-[0.98]"
+                    title="Descarcă borderoul în format CSV compatibil Excel pentru depunere la ANAF"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    <span>Exportă Borderou ANAF (Excel / CSV)</span>
+                  </button>
                 </div>
               </div>
 

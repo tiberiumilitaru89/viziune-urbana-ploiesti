@@ -6,6 +6,7 @@ export type AuditRequest = {
   readonly phone: string;
   readonly building: string;
   readonly address: string;
+  readonly neighborhood?: string;
   readonly problem: string;
   readonly status: AuditStatus;
   readonly formsCollected: number;
@@ -19,6 +20,7 @@ export type PublicAssociationSummary = {
   readonly id: string;
   readonly building: string;
   readonly address: string;
+  readonly neighborhood?: string;
   readonly status: AuditStatus;
   readonly formsCollected: number;
   readonly formsTarget: number;

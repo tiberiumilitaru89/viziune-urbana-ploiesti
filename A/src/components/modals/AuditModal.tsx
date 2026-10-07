@@ -7,6 +7,7 @@ import { z } from "zod";
 const auditFormSchema = z.object({
   name: z.string().min(3, "Numele trebuie să aibă minim 3 caractere"),
   phone: z.string().regex(/^(\+4|)?(07[0-9]{8}|0244[0-9]{6})$/, "Introduceți un număr de telefon valid (ex: 0722123456 sau 0244456789)"),
+  email: z.string().email("Introduceți o adresă de email validă").optional().or(z.literal("")),
   building: z.string().min(3, "Introduceți denumirea asociației sau a blocului"),
   address: z.string().min(5, "Introduceți adresa completă din Ploiești"),
   problem: z.string().min(10, "Descrieți pe scurt problemele (minim 10 caractere)"),
@@ -23,6 +24,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
   const [formData, setFormData] = useState<AuditFormData>({
     name: "",
     phone: "",
+    email: "",
     building: "",
     address: "",
     problem: "",
@@ -32,6 +34,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [hpWebsite, setHpWebsite] = useState("");
 
   if (!isOpen) return null;
 
@@ -64,7 +67,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
       const res = await fetch("/api/audit-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(result.data),
+        body: JSON.stringify({ ...result.data, hp_website: hpWebsite }),
       });
 
       if (!res.ok) {
@@ -135,6 +138,19 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Honeypot invizibil pentru neutralizarea boților automați */}
+              <div style={{ display: "none" }} aria-hidden="true">
+                <label htmlFor="audit_hp_website">Nu completați acest câmp</label>
+                <input
+                  id="audit_hp_website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={hpWebsite}
+                  onChange={(e) => setHpWebsite(e.target.value)}
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
                   Nume Persoană Contact *
@@ -168,18 +184,33 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
 
                 <div>
                   <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
-                    Asociație / Bloc *
+                    Email (pentru confirmare & deviz)
                   </label>
                   <input
-                    type="text"
-                    name="building"
-                    value={formData.building}
+                    type="email"
+                    name="email"
+                    value={formData.email || ""}
                     onChange={handleChange}
-                    placeholder="Ex: Bloc 14A, Sc. B"
+                    placeholder="contact@asociatie.ro"
                     className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors"
                   />
-                  {errors.building && <p className="text-[11px] text-rose-600 mt-1">{errors.building}</p>}
+                  {errors.email && <p className="text-[11px] text-rose-600 mt-1">{errors.email}</p>}
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-serif font-bold text-slate-700 mb-1">
+                  Asociație / Bloc *
+                </label>
+                <input
+                  type="text"
+                  name="building"
+                  value={formData.building}
+                  onChange={handleChange}
+                  placeholder="Ex: Bloc 14A, Sc. B"
+                  className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors"
+                />
+                {errors.building && <p className="text-[11px] text-rose-600 mt-1">{errors.building}</p>}
               </div>
 
               <div>
