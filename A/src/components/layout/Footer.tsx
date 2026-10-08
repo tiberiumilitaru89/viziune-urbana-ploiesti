@@ -36,7 +36,9 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-amber-800 shrink-0" />
-                <span>Secretariat: 0244 456 789</span>
+                <a href="tel:0720015592" className="hover:text-amber-900 transition-colors font-medium">
+                  Telefon: 0720 015 592
+                </a>
               </div>
             </div>
           </div>
