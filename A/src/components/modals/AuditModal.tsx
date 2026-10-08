@@ -259,6 +259,21 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   </>
                 )}
               </button>
+
+              <div className="flex items-start gap-2 pt-1 text-[11px] text-slate-500 leading-relaxed">
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                <span>
+                  Datele sunt prelucrate exclusiv pentru planificarea evaluării tehnice a subsolului și transmiterea devizului, conform{" "}
+                  <a
+                    href="/confidentialitate"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-amber-800 underline hover:text-amber-950 font-medium"
+                  >
+                    Politicii de Confidențialitate (GDPR)
+                  </a>. Nu transmitem datele tale terților.
+                </span>
+              </div>
             </form>
           </div>
         )}

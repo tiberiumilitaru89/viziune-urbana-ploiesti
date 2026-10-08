@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Heart, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check, Award, Landmark } from "lucide-react";
+import { X, Heart, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check, Award, Landmark, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { INITIAL_ASSOCIATIONS } from "@/lib/data";
 
@@ -431,6 +431,21 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
                     </>
                   )}
                 </button>
+
+                <div className="flex items-start gap-2 pt-1 text-[11px] text-slate-500 leading-relaxed">
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                  <span>
+                    Datele furnizate sunt prelucrate conform{" "}
+                    <Link
+                      href="/confidentialitate"
+                      target="_blank"
+                      className="text-amber-800 underline hover:text-amber-950 font-medium"
+                    >
+                      Politicii de Confidențialitate
+                    </Link>{" "}
+                    în vederea întocmirii contractului de sponsorizare (Legea 32/1994).
+                  </span>
+                </div>
               </form>
             )}
 

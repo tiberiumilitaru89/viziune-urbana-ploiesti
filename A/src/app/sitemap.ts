@@ -53,5 +53,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/formular-230`,
+      lastModified: currentDate,
+      changeFrequency: "daily",
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/confidentialitate`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/termeni`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/cookies`,
+      lastModified: currentDate,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
   ];
 }

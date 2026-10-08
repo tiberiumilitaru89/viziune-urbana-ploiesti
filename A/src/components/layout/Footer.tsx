@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Phone, Mail, ShieldCheck, ArrowUpRight, Scale, FileText } from "lucide-react";
+import { MapPin, Phone, Mail, ShieldCheck, ArrowUpRight, Scale, FileText, Cookie } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -147,6 +147,38 @@ export function Footer() {
                 </Link>
               </div>
             </div>
+
+            {/* Link-uri de Conformitate Legală & GDPR */}
+            <div className="pt-3 border-t border-amber-900/15 space-y-1.5 text-[11px]">
+              <div>
+                <Link
+                  href="/confidentialitate"
+                  className="text-slate-700 hover:text-amber-950 font-medium transition-colors flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                  <span>Protecția Datelor (GDPR)</span>
+                </Link>
+              </div>
+              <div>
+                <Link
+                  href="/termeni"
+                  className="text-slate-700 hover:text-amber-950 font-medium transition-colors flex items-center gap-1.5"
+                >
+                  <Scale className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                  <span>Termeni & Sponsorizare</span>
+                </Link>
+              </div>
+              <div>
+                <Link
+                  href="/cookies"
+                  className="text-slate-700 hover:text-amber-950 font-medium transition-colors flex items-center gap-1.5"
+                >
+                  <Cookie className="w-3.5 h-3.5 text-amber-800 shrink-0" />
+                  <span>Module Cookie (Zero Tracking)</span>
+                </Link>
+              </div>
+            </div>
+
             <div className="mt-3">
               <Link
                 href="/admin"
@@ -160,12 +192,25 @@ export function Footer() {
 
         {/* Bottom banner & T.M. Solutions Signature */}
         <div className="pt-8 border-t border-amber-900/15 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-600">
-          <div className="space-y-1.5 text-center md:text-left">
+          <div className="space-y-2 text-center md:text-left">
             <div>
               &copy; {currentYear} Asociația Viziune Urbană Ploiești. Înregistrată în Registrul Asociațiilor și Fundațiilor.
             </div>
             <div className="font-serif italic text-amber-900">
               Fundația unui bloc sănătos începe de jos.
+            </div>
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-3 gap-y-1 text-[11px] pt-1">
+              <Link href="/confidentialitate" className="text-slate-600 hover:text-amber-950 underline underline-offset-2 transition-colors">
+                Politică de Confidențialitate
+              </Link>
+              <span className="text-amber-900/30">•</span>
+              <Link href="/termeni" className="text-slate-600 hover:text-amber-950 underline underline-offset-2 transition-colors">
+                Termeni & Condiții
+              </Link>
+              <span className="text-amber-900/30">•</span>
+              <Link href="/cookies" className="text-slate-600 hover:text-amber-950 underline underline-offset-2 transition-colors">
+                Politica privind Cookie-urile
+              </Link>
             </div>
           </div>
 

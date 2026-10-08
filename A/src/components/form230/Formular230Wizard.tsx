@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { SignatureCanvas } from "./SignatureCanvas";
 import { Formular230OfficialDoc } from "./Formular230OfficialDoc";
 import { OngConfig } from "@/lib/types";
@@ -36,6 +37,7 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular23
   const [signatureDataUrl, setSignatureDataUrl] = useState("");
   const [distributeFor2Years, setDistributeFor2Years] = useState(true);
   const [consentBorderou, setConsentBorderou] = useState(true);
+  const [consentGdpr, setConsentGdpr] = useState(true);
   const [hpWebsite, setHpWebsite] = useState("");
 
   // Submission state
@@ -97,6 +99,10 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular23
     setErrorMessage(null);
     if (!signatureDataUrl) {
       setErrorMessage("Vă rugăm să semnați formularul în căsuța de mai jos înainte de a continua.");
+      return;
+    }
+    if (!consentGdpr) {
+      setErrorMessage("Pentru a continua este necesar acordul dumneavoastră privind prelucrarea datelor cu caracter personal conform Politicii de Confidențialitate.");
       return;
     }
     setStep(3);
@@ -420,6 +426,25 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular23
               />
               <span className="text-slate-700 text-[11px] leading-relaxed">
                 Opțiune de redirecționare valabilă pentru o perioadă de <strong>2 ani fiscali</strong> (art. 79 alin. (3) Codul Fiscal).
+              </span>
+            </label>
+
+            <label className="flex items-start gap-2.5 cursor-pointer pt-2 border-t border-amber-900/10">
+              <input
+                type="checkbox"
+                checked={consentGdpr}
+                onChange={(e) => setConsentGdpr(e.target.checked)}
+                className="mt-0.5 rounded text-amber-600 focus:ring-amber-500"
+              />
+              <span className="text-slate-700 text-[11px] leading-relaxed">
+                Sunt de acord cu prelucrarea datelor mele cu caracter personal (inclusiv CNP și semnătură) exclusiv în scopul depunerii Formularului 230 la ANAF, conform{" "}
+                <Link
+                  href="/confidentialitate"
+                  target="_blank"
+                  className="text-amber-800 underline hover:text-amber-950 font-bold"
+                >
+                  Politicii de Confidențialitate (GDPR)
+                </Link>.
               </span>
             </label>
           </div>
