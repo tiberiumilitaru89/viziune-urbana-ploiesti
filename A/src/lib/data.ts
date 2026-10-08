@@ -163,7 +163,7 @@ export const FAQS = [
   },
   {
     q: "Cât durează procesul de la înscriere la începerea lucrărilor?",
-    a: "În medie 2-3 săptămâni. În această perioadă se face evaluarea tehnică, se semnează acordul asociației (conform Legii 196/2018) și se livrează materialele necesare.",
+    a: "Nu există un termen standard prestabilit, calendarul fiind stabilit individual pentru fiecare imobil în funcție de îndeplinirea câtorva condiții cheie: timpul necesar asociației pentru a convoca adunarea și a valida decizia de manoperă (conform Legii 196/2018), starea inițială a subsolului (dacă necesită igienizare sau vidanjare prealabilă), complexitatea tehnică a instalației și graficul comun de execuție. Data efectivă de începere se agreează împreună cu conducerea asociației imediat după finalizarea constatării tehnice gratuite.",
   },
   {
     q: "Cine poate aplica pentru program?",
