@@ -16,6 +16,9 @@ import {
   Hammer,
   HelpCircle,
   AlertCircle,
+  ExternalLink,
+  Globe,
+  Landmark,
 } from "lucide-react";
 
 export default function TermeniPage() {
@@ -161,17 +164,102 @@ export default function TermeniPage() {
             </p>
           </section>
 
-          {/* Articolul 7: Contact & Litigii */}
+          {/* Articolul 7: Soluționarea Litigiilor - SAL & SOL (Ordin ANPC 449/2022) */}
+          <section className="space-y-4 pt-4 border-t border-amber-900/15">
+            <div className="flex items-center gap-2.5 text-[#071330] font-serif font-bold text-lg border-b border-amber-900/15 pb-2">
+              <Scale className="w-5 h-5 text-amber-700 shrink-0" />
+              <h2>7. Soluționarea Alternativă a Litigiilor (SAL & SOL)</h2>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-700">
+              În conformitate cu dispozițiile <em>Ordinului ANPC nr. 449/2022</em> și ale <em>Regulamentului (UE) nr. 524/2013</em>, Asociația Viziune Urbană Ploiești informează consumatorii și reprezentanții asociațiilor de proprietari cu privire la mecanismele extrajudiciare de mediere și soluționare a eventualelor diferende:
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+              <a
+                href="https://anpc.ro/ce-este-sal/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group p-4 rounded-2xl bg-[#FAF7F2] border border-amber-900/20 hover:border-amber-700/60 shadow-sm transition-all flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between text-xs font-serif font-bold text-[#071330]">
+                    <span className="flex items-center gap-1.5">
+                      <Scale className="w-4 h-4 text-amber-800" />
+                      ANPC – SAL (Alternativ)
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 text-amber-700 opacity-70 group-hover:opacity-100" />
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                    Direcția de Soluționare Alternativă a Litigiilor din cadrul ANPC oferă consiliere și mediere independentă gratuită sau cu cost redus.
+                  </p>
+                </div>
+                <div className="text-[10px] font-mono text-amber-900 underline font-semibold">
+                  anpc.ro/ce-este-sal
+                </div>
+              </a>
+
+              <a
+                href="https://ec.europa.eu/consumers/odr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group p-4 rounded-2xl bg-[#FAF7F2] border border-amber-900/20 hover:border-amber-700/60 shadow-sm transition-all flex flex-col justify-between space-y-2"
+              >
+                <div>
+                  <div className="flex items-center justify-between text-xs font-serif font-bold text-[#071330]">
+                    <span className="flex items-center gap-1.5">
+                      <Globe className="w-4 h-4 text-blue-800" />
+                      Comisia Europeană – SOL
+                    </span>
+                    <ExternalLink className="w-3.5 h-3.5 text-amber-700 opacity-70 group-hover:opacity-100" />
+                  </div>
+                  <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                    Platforma oficială europeană ODR (Online Dispute Resolution) pentru înregistrarea sesizărilor și transmiterea lor către organismele naționale.
+                  </p>
+                </div>
+                <div className="text-[10px] font-mono text-blue-900 underline font-semibold">
+                  ec.europa.eu/consumers/odr
+                </div>
+              </a>
+            </div>
+          </section>
+
+          {/* Articolul 8: Transparență și Registre Publice */}
+          <section className="space-y-3 pt-2">
+            <div className="flex items-center gap-2.5 text-[#071330] font-serif font-bold text-lg border-b border-amber-900/15 pb-2">
+              <Landmark className="w-5 h-5 text-amber-700 shrink-0" />
+              <h2>8. Verificare Publică & Registre Oficiale</h2>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-700">
+              Pentru garantarea integrității noastre civice și a securității contractuale, recomandăm verificarea informațiilor noastre în registrele publice de stat:
+            </p>
+            <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
+              <li>
+                <strong>ANAF Registru Entități Fiscale (3,5%):</strong> Asociația Viziune Urbană Ploiești este înscrisă cu CIF <code>48923410</code> în registrul oficial pentru deduceri fiscale (<a href="https://www.anaf.ro/anaf/internet/ANAF/servicii_online/registre/entitati_cult" target="_blank" rel="noopener noreferrer" className="text-amber-900 underline font-semibold">portal ANAF</a>).
+              </li>
+              <li>
+                <strong>ANPC (Autoritatea Națională pentru Protecția Consumatorilor):</strong> <a href="https://anpc.ro/" target="_blank" rel="noopener noreferrer" className="text-amber-900 underline font-semibold">anpc.ro</a>.
+              </li>
+              <li>
+                <strong>ANSPDCP:</strong> Autoritatea de supraveghere a datelor cu caracter personal (<a href="https://www.dataprotection.ro/" target="_blank" rel="noopener noreferrer" className="text-amber-900 underline font-semibold">dataprotection.ro</a>).
+              </li>
+              <li>
+                <strong>Primăria Municipiului Ploiești:</strong> Serviciul Specializat de Îndrumare a Asociațiilor de Proprietari, conform Legii 196/2018 (<a href="https://www.ploiesti.ro/" target="_blank" rel="noopener noreferrer" className="text-amber-900 underline font-semibold">ploiesti.ro</a>).
+              </li>
+            </ul>
+          </section>
+
+          {/* Articolul 9: Contact */}
           <section className="pt-4 border-t border-amber-900/15 space-y-2">
             <h3 className="font-serif font-bold text-[#071330] text-base flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-amber-700" />
-              7. Legea Aplicabilă și Soluționarea Litigiilor
+              9. Contact Direct și Asistență Civic-Juridică
             </h3>
             <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-              Prezenții termeni sunt guvernați de legislația română în vigoare. Orice eventual diferend decurgând din colaborare va fi soluționat pe cale amiabilă prin mediere civică directă. Pentru orice sesizări sau clarificări procedurale, ne puteți contacta la{" "}
+              Pentru orice sesizări, propuneri de parteneriat sau întrebări referitoare la protocolul de sponsorizare, ne puteți contacta la{" "}
               <a href="mailto:viziuneurbanaploiesti@yahoo.com" className="text-amber-900 font-bold underline hover:text-amber-950">
                 viziuneurbanaploiesti@yahoo.com
-              </a>.
+              </a>{" "}
+              sau la numărul de dispecerat civic <strong>0720 015 592</strong>.
             </p>
           </section>
         </div>

@@ -200,7 +200,7 @@ export default function ConfidentialitatePage() {
               <li><strong>Dreptul la restricționarea prelucrării:</strong> în cazurile prevăzute de art. 18 GDPR.</li>
               <li><strong>Dreptul de a vă retrage consimțământul:</strong> în orice moment, fără a afecta legalitatea prelucrării anterioare retragerii.</li>
               <li>
-                <strong>Dreptul de a depune o plângere:</strong> la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP) — <em>B-dul G-ral. Gheorghe Magheru 28-30, Sector 1, București, www.dataprotection.ro, e-mail: anspdcp@dataprotection.ro</em>.
+                <strong>Dreptul de a depune o plângere:</strong> la Autoritatea Națională de Supraveghere a Prelucrării Datelor cu Caracter Personal (ANSPDCP) — <em>B-dul G-ral. Gheorghe Magheru 28-30, Sector 1, București, <a href="https://www.dataprotection.ro/" target="_blank" rel="noopener noreferrer" className="text-amber-900 underline font-semibold">www.dataprotection.ro</a>, e-mail: anspdcp@dataprotection.ro</em>.
               </li>
             </ul>
           </section>
