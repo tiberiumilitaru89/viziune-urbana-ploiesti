@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Phone, ShieldCheck, ArrowUpRight, Scale, FileText } from "lucide-react";
+import { MapPin, Phone, Mail, ShieldCheck, ArrowUpRight, Scale, FileText } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -38,6 +38,12 @@ export function Footer() {
                 <Phone className="w-4 h-4 text-amber-800 shrink-0" />
                 <a href="tel:0720015592" className="hover:text-amber-900 transition-colors font-medium">
                   Telefon: 0720 015 592
+                </a>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-amber-800 shrink-0" />
+                <a href="mailto:viziuneurbanaploiesti@yahoo.com" className="hover:text-amber-900 transition-colors font-medium">
+                  viziuneurbanaploiesti@yahoo.com
                 </a>
               </div>
             </div>

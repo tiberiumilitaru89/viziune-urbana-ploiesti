@@ -5,11 +5,11 @@
  */
 
 export const ADMIN_NOTIFICATION_EMAIL =
-  process.env.ADMIN_NOTIFICATION_EMAIL || "george.becheanu11@yahoo.com";
+  process.env.ADMIN_NOTIFICATION_EMAIL || "viziuneurbanaploiesti@yahoo.com";
 
 export const OFFICIAL_COORDINATOR_NAME = "George Becheanu";
 export const OFFICIAL_COORDINATOR_PHONE = "0720 015 592";
-export const OFFICIAL_COORDINATOR_EMAIL = "george.becheanu11@yahoo.com";
+export const OFFICIAL_COORDINATOR_EMAIL = "viziuneurbanaploiesti@yahoo.com";
 export const OFFICIAL_DOMAIN = "viziuneurbanaploiesti.ro";
 
 export type EmailNotificationPayload = {
@@ -25,7 +25,7 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
   const fromEmail =
     process.env.NOTIFICATION_FROM_EMAIL ||
     "George Becheanu | Viziune Urbană Ploiești <notificari@viziuneurbanaploiesti.ro>";
-  const adminRecipient = process.env.ADMIN_NOTIFICATION_EMAIL || "george.becheanu11@yahoo.com";
+  const adminRecipient = process.env.ADMIN_NOTIFICATION_EMAIL || "viziuneurbanaploiesti@yahoo.com";
 
   // Căutăm dacă solicitantul a lăsat un email valid pentru a permite reply direct din căsuța lui George
   const applicantEmailField = payload.fields.find(

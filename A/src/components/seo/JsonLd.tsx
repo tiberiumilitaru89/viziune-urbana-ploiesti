@@ -23,6 +23,8 @@ export function JsonLd() {
       "@type": "City",
       "name": "Ploiești"
     },
+    "email": "viziuneurbanaploiesti@yahoo.com",
+    "telephone": "+40720015592",
     "sameAs": [
       "https://viziune-urbana-ploiesti.vercel.app"
     ]
