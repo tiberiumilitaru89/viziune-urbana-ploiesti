@@ -93,7 +93,18 @@ export async function saveAssociation(assoc: AuditRequest): Promise<boolean> {
       is_archived: false,
     };
 
-    const { error } = await supabaseAdmin.from("associations").upsert(payload);
+    // Încercăm salvarea cu dosar_number dacă coloana există în Supabase
+    const { error } = await supabaseAdmin.from("associations").upsert({
+      ...payload,
+      dosar_number: assoc.dosarNumber || null,
+    });
+
+    if (error && (error.message.includes("dosar_number") || error.code === "PGRST204")) {
+      // Fallback fără coloana dosar_number dacă utilizatorul nu a adăugat încă coloana în SQL
+      const { error: fallbackError } = await supabaseAdmin.from("associations").upsert(payload);
+      return !fallbackError;
+    }
+
     return !error;
   } catch {
     return false;
