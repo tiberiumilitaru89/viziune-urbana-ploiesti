@@ -96,8 +96,14 @@ export async function POST(req: Request) {
       email: validated.email,
     });
 
-    // Persistare asincronă în baza de date Supabase
-    saveDonationDb(saved).catch((err) => console.warn("Eroare salvare donatie in Supabase:", err));
+    // Persistare garantată în baza de date Supabase
+    const savedInDb = await saveDonationDb(saved);
+    if (!savedInDb) {
+      return NextResponse.json(
+        { success: false, message: "Eroare la înregistrarea sponsorizării în baza de date." },
+        { status: 500 }
+      );
+    }
 
     // Notificare pe email către administrator
     const { sendAdminNotification } = await import("@/lib/email");

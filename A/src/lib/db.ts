@@ -226,12 +226,13 @@ export async function savePartnerApplication(app: {
     });
 
     if (error) {
-      console.warn("Fallback local pentru partner_applications:", error.message);
-      return true;
+      console.warn("Eroare la salvarea partner_applications în Supabase:", error.message);
+      return false;
     }
     return true;
-  } catch {
-    return true;
+  } catch (err) {
+    console.error("Excepție la salvarea partner_applications:", err);
+    return false;
   }
 }
 
@@ -254,15 +255,21 @@ export async function updatePartnerApplicationStatus(
 // 3. PROIECTE (INAINTE / DUPA)
 // ==========================================
 
-export async function fetchProjects(includeArchived = false): Promise<ProjectItem[]> {
+export async function fetchProjects(includeArchived = false, onlyFinalized = false): Promise<ProjectItem[]> {
   try {
     let query = supabaseAdmin.from("projects").select("*");
     if (!includeArchived) {
       query = query.eq("is_archived", false);
     }
+    if (onlyFinalized) {
+      query = query.eq("status", "finalizat");
+    }
     const { data, error } = await query;
     if (error || !data || data.length === 0) {
-      return [...INITIAL_PROJECTS];
+      const initial = onlyFinalized
+        ? INITIAL_PROJECTS.filter((p) => p.status === "finalizat")
+        : INITIAL_PROJECTS;
+      return [...initial];
     }
 
     return data.map((p) => ({
@@ -277,7 +284,10 @@ export async function fetchProjects(includeArchived = false): Promise<ProjectIte
       gallery: Array.isArray(p.gallery) ? p.gallery : [],
     }));
   } catch {
-    return [...INITIAL_PROJECTS];
+    const initial = onlyFinalized
+      ? INITIAL_PROJECTS.filter((p) => p.status === "finalizat")
+      : INITIAL_PROJECTS;
+    return [...initial];
   }
 }
 
@@ -575,12 +585,13 @@ export async function saveDonationDb(donation: DonationEntry): Promise<boolean> 
     });
 
     if (error) {
-      console.warn("Fallback local pentru donații dacă tabela lipsește:", error.message);
-      return true;
+      console.warn("Eroare la salvarea donației în Supabase:", error.message);
+      return false;
     }
     return true;
-  } catch {
-    return true;
+  } catch (err) {
+    console.error("Excepție la salvarea donației în Supabase:", err);
+    return false;
   }
 }
 

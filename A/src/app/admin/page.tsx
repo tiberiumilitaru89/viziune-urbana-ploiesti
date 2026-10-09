@@ -189,6 +189,7 @@ export default function AdminPage() {
 
   // Photo & Gallery Management State (pe etape & dropdown lucrari)
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [projectStatusFilter, setProjectStatusFilter] = useState<"all" | "finalizat" | "in_curs">("all");
   const [photoStageFilter, setPhotoStageFilter] = useState<"all" | PhotoStage>("all");
   const [newPhoto, setNewPhoto] = useState<{
     url: string;
@@ -300,6 +301,23 @@ export default function AdminPage() {
       type === "before"
         ? "Fotografia a fost setată ca reprezentativă «Înainte»!"
         : "Fotografia a fost setată ca reprezentativă «După»!"
+    );
+  };
+
+  const handleToggleProjectStatus = async (targetProject: ProjectItem) => {
+    const nextStatus: "finalizat" | "in_curs" = targetProject.status === "finalizat" ? "in_curs" : "finalizat";
+    const updatedProject: ProjectItem = {
+      ...targetProject,
+      status: nextStatus,
+    };
+
+    const updatedProjects = projects.map((p) => (p.id === updatedProject.id ? updatedProject : p));
+    setProjects(updatedProjects);
+    await saveProjectToDb(updatedProject);
+    showToast(
+      `Statusul lucrării «${targetProject.title}» a fost actualizat la: ${
+        nextStatus === "finalizat" ? "FINALIZAT (vizibil pe site)" : "ÎN CURS (ascuns de pe site)"
+      }`
     );
   };
 
@@ -970,6 +988,7 @@ export default function AdminPage() {
       beforeImage: "/ref-assets/before-DmrOVzle.png",
       afterImage: "/ref-assets/after-C5YhGlz_.png",
       completionDate: "Octombrie 2026",
+      neighborhood: "",
     });
   };
 
@@ -1850,7 +1869,11 @@ export default function AdminPage() {
         {/* TAB 3: POZE & GALERIE PROIECTE PE ETAPE (ÎNAINTE / ÎN LUCRU / DUPĂ) */}
         {/* ============================================================== */}
         {activeTab === "projects" && (() => {
-          const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+          const filteredProjects = projects.filter((p) => {
+            if (projectStatusFilter === "all") return true;
+            return p.status === projectStatusFilter;
+          });
+          const currentProject = projects.find((p) => p.id === selectedProjectId) || filteredProjects[0] || projects[0];
           const projectGallery = currentProject?.gallery || [];
           
           const beforePhotos = projectGallery.filter((p) => p.stage === "inainte");
@@ -2014,6 +2037,29 @@ export default function AdminPage() {
                         className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
                       />
                     </div>
+
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-bold">Cartier (Opțional)</label>
+                      <input
+                        type="text"
+                        value={newProject.neighborhood || ""}
+                        onChange={(e) => setNewProject({ ...newProject, neighborhood: e.target.value })}
+                        placeholder="Ex: Nord, Vest, Centru"
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-bold">Status Lucrare *</label>
+                      <select
+                        value={newProject.status}
+                        onChange={(e) => setNewProject({ ...newProject, status: e.target.value as "in_curs" | "finalizat" })}
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm font-sans font-semibold text-xs"
+                      >
+                        <option value="finalizat">Finalizat (Publicat pe site în Galerie & Arhivă)</option>
+                        <option value="in_curs">În Curs (Șantier în derulare — Ascuns de pe site)</option>
+                      </select>
+                    </div>
                   </div>
 
                   <div className="flex justify-end gap-3 pt-2">
@@ -2034,23 +2080,58 @@ export default function AdminPage() {
                 </form>
               )}
 
-              {/* SELECTOR DROPDOWN PROIECT (CERINȚA 2) */}
+              {/* SELECTOR DROPDOWN PROIECT (CERINȚA 2: Dropdown inteligent + Filtru Status) */}
               <div className="bg-white/90 backdrop-blur-md border border-amber-900/15 rounded-3xl p-5 sm:p-6 shadow-md space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex-1">
-                    <label className="block text-xs font-serif font-bold text-[#071330] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-amber-700" />
-                      <span>Selectează Lucrarea / Proiectul de Administrat (Dropdown):</span>
-                    </label>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                      <label htmlFor="admin-project-select" className="text-xs font-serif font-bold text-[#071330] uppercase tracking-wider flex items-center gap-1.5">
+                        <Layers className="w-4 h-4 text-amber-700" />
+                        <span>Selectează Lucrarea de Administrat ({filteredProjects.length}):</span>
+                      </label>
+
+                      {/* Filtru Status Lucrări */}
+                      <div className="flex items-center gap-1 bg-amber-50/70 p-1 rounded-xl border border-amber-900/15 text-xs font-serif">
+                        <button
+                          type="button"
+                          onClick={() => setProjectStatusFilter("all")}
+                          className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                            projectStatusFilter === "all" ? "bg-[#c48834] text-white shadow-xs" : "text-slate-700 hover:text-slate-950"
+                          }`}
+                        >
+                          Toate ({projects.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProjectStatusFilter("finalizat")}
+                          className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                            projectStatusFilter === "finalizat" ? "bg-emerald-600 text-white shadow-xs" : "text-slate-700 hover:text-slate-950"
+                          }`}
+                        >
+                          Doar Finalizate ({projects.filter((p) => p.status === "finalizat").length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setProjectStatusFilter("in_curs")}
+                          className={`px-2.5 py-1 rounded-lg font-bold transition-all ${
+                            projectStatusFilter === "in_curs" ? "bg-amber-600 text-white shadow-xs" : "text-slate-700 hover:text-slate-950"
+                          }`}
+                        >
+                          În Curs ({projects.filter((p) => p.status === "in_curs").length})
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="relative">
                       <select
+                        id="admin-project-select"
                         value={currentProject?.id || ""}
                         onChange={(e) => setSelectedProjectId(e.target.value)}
                         className="w-full px-4 py-3 rounded-2xl bg-[#FAF7F2] border-2 border-amber-900/20 text-slate-900 font-serif font-bold text-sm shadow-sm focus:border-amber-600 focus:outline-none transition-colors"
                       >
-                        {projects.map((proj) => (
+                        {filteredProjects.map((proj) => (
                           <option key={proj.id} value={proj.id}>
-                            {proj.title} — ({proj.gallery?.length || 0} poze în galerie) • {proj.completionDate}
+                            [{proj.status === "finalizat" ? "FINALIZAT" : "ÎN CURS"}] {proj.title} {proj.neighborhood ? `(${proj.neighborhood})` : ""} — ({proj.gallery?.length || 0} poze) • {proj.completionDate}
                           </option>
                         ))}
                       </select>
@@ -2072,12 +2153,28 @@ export default function AdminPage() {
                 {/* Rezumat Proiect Selectat */}
                 {currentProject && (
                   <div className="pt-3 border-t border-amber-900/10 flex flex-wrap items-center justify-between gap-3 text-xs font-serif">
-                    <div className="space-y-0.5">
-                      <div className="text-[#071330] font-black text-sm">{currentProject.title}</div>
+                    <div className="space-y-1">
+                      <div className="text-[#071330] font-black text-sm flex items-center gap-2 flex-wrap">
+                        <span>{currentProject.title}</span>
+                        <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                          currentProject.status === "finalizat"
+                            ? "bg-emerald-100 text-emerald-900 border border-emerald-300"
+                            : "bg-amber-100 text-amber-900 border border-amber-300"
+                        }`}>
+                          {currentProject.status === "finalizat" ? "FINALIZAT (Public pe Site)" : "ÎN CURS (Ascuns pe Site)"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleProjectStatus(currentProject)}
+                          className="text-[11px] font-sans font-semibold px-2.5 py-0.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 transition-colors shadow-2xs"
+                        >
+                          {currentProject.status === "finalizat" ? "Treci în «În Curs» (Ascunde de pe site)" : "Treci în «Finalizat» (Publică pe site)"}
+                        </button>
+                      </div>
                       <p className="text-slate-600 max-w-2xl line-clamp-2">{currentProject.description}</p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-2.5 py-1 bg-amber-100 text-amber-900 rounded-lg font-bold">
                         Total Galerie: {projectGallery.length} poze
                       </span>

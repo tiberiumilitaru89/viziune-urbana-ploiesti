@@ -5,11 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { INITIAL_PROJECTS } from "@/lib/data";
 import { ProjectItem } from "@/lib/types";
-import { CheckCircle2, AlertTriangle, ArrowRight, Sliders, Columns, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertTriangle, ArrowRight, Sliders, Columns, Sparkles, Building2, ChevronDown } from "lucide-react";
 
 export function ProjectsGallery() {
-  const [projects, setProjects] = useState<ProjectItem[]>([...INITIAL_PROJECTS]);
-  const [activeProject, setActiveProject] = useState<ProjectItem>(INITIAL_PROJECTS[0]);
+  const [projects, setProjects] = useState<ProjectItem[]>(() =>
+    INITIAL_PROJECTS.filter((p) => p.status === "finalizat" && !p.isArchived)
+  );
+  const [activeProject, setActiveProject] = useState<ProjectItem>(() => {
+    const finalizate = INITIAL_PROJECTS.filter((p) => p.status === "finalizat" && !p.isArchived);
+    return finalizate[0] || INITIAL_PROJECTS[0];
+  });
   const [sliderPos, setSliderPos] = useState(50);
   const [viewMode, setViewMode] = useState<"side-by-side" | "slider">("side-by-side");
 
@@ -18,8 +23,16 @@ export function ProjectsGallery() {
       .then((res) => res.json())
       .then((res) => {
         if (res.success && res.data?.projects?.length > 0) {
-          setProjects(res.data.projects);
-          setActiveProject(res.data.projects[0]);
+          const finalizateOnly = res.data.projects.filter(
+            (p: ProjectItem) => p.status === "finalizat" && !p.isArchived
+          );
+          if (finalizateOnly.length > 0) {
+            setProjects(finalizateOnly);
+            setActiveProject((prev) => {
+              const stillExists = finalizateOnly.find((p: ProjectItem) => p.id === prev.id);
+              return stillExists || finalizateOnly[0];
+            });
+          }
         }
       })
       .catch(() => {
@@ -74,32 +87,41 @@ export function ProjectsGallery() {
           </div>
         </div>
 
-        {/* Project Selector Tabs */}
-        <div className="flex flex-wrap items-center justify-start gap-2.5 sm:gap-3.5 mb-8 sm:mb-10">
-          {projects.map((proj) => {
-            const isActive = activeProject.id === proj.id;
-            return (
-              <button
-                key={proj.id}
-                onClick={() => setActiveProject(proj)}
-                className={`inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-serif font-bold transition-all shadow-sm ${
-                  isActive
-                    ? "bg-[#c48834] text-white shadow-md shadow-amber-900/20 scale-[1.01]"
-                    : "bg-[#fdfaf5] text-slate-800 hover:text-slate-950 border border-amber-900/20 hover:border-amber-600/40"
-                }`}
+        {/* Project Selector: Dropdown inteligent + Comutator Mod Vizualizare */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="w-full md:max-w-md">
+            <label htmlFor="project-select-home" className="block text-[11px] font-serif font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center gap-1.5">
+              <Building2 className="w-3.5 h-3.5 text-amber-700" />
+              <span>Alegeți Lucrarea din Listă ({projects.length} finalizate):</span>
+            </label>
+            <div className="relative">
+              <select
+                id="project-select-home"
+                value={activeProject.id}
+                onChange={(e) => {
+                  const selected = projects.find((p) => p.id === e.target.value);
+                  if (selected) setActiveProject(selected);
+                }}
+                className="w-full pl-3.5 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-white/95 border-2 border-amber-900/20 text-[#071330] font-serif font-bold text-xs sm:text-sm shadow-sm focus:border-amber-600 focus:outline-none appearance-none cursor-pointer transition-colors"
               >
-                <span>{proj.title}</span>
-                <ArrowRight className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-amber-800"}`} />
-              </button>
-            );
-          })}
+                {projects.map((proj) => (
+                  <option key={proj.id} value={proj.id}>
+                    {proj.title} {proj.neighborhood ? `— Cartier ${proj.neighborhood}` : ""} ({proj.completionDate})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-800">
+                <ChevronDown className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
 
           {/* View Mode Toggle */}
-          <div className="ml-auto hidden sm:flex items-center gap-1 p-1 bg-white/80 rounded-xl border border-amber-900/20 text-xs font-serif">
+          <div className="hidden sm:flex items-center gap-1 p-1 bg-white/90 rounded-xl border border-amber-900/20 text-xs font-serif shrink-0 self-end md:self-auto shadow-xs">
             <button
               onClick={() => setViewMode("side-by-side")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-                viewMode === "side-by-side" ? "bg-[#c48834] text-white font-bold" : "text-slate-700 hover:text-slate-950"
+                viewMode === "side-by-side" ? "bg-[#c48834] text-white font-bold shadow-xs" : "text-slate-700 hover:text-slate-950"
               }`}
             >
               <Columns className="w-3.5 h-3.5" /> Față în Față
@@ -107,12 +129,33 @@ export function ProjectsGallery() {
             <button
               onClick={() => setViewMode("slider")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-                viewMode === "slider" ? "bg-[#c48834] text-white font-bold" : "text-slate-700 hover:text-slate-950"
+                viewMode === "slider" ? "bg-[#c48834] text-white font-bold shadow-xs" : "text-slate-700 hover:text-slate-950"
               }`}
             >
               <Sliders className="w-3.5 h-3.5" /> Glisor Interactiv
             </button>
           </div>
+        </div>
+
+        {/* Butoane Rapide (Tabs orizontale fluide) */}
+        <div className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-8 no-scrollbar">
+          {projects.map((proj) => {
+            const isActive = activeProject.id === proj.id;
+            return (
+              <button
+                key={proj.id}
+                onClick={() => setActiveProject(proj)}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-serif font-bold whitespace-nowrap transition-all shadow-xs shrink-0 ${
+                  isActive
+                    ? "bg-[#c48834] text-white shadow-md shadow-amber-900/20 scale-[1.01]"
+                    : "bg-white/80 text-slate-800 hover:text-slate-950 border border-amber-900/20 hover:border-amber-600/40"
+                }`}
+              >
+                <span>{proj.title}</span>
+                <ArrowRight className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-amber-800"}`} />
+              </button>
+            );
+          })}
         </div>
 
         {/* Comparison Showcase Container */}

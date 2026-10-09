@@ -15,7 +15,7 @@ export async function GET() {
     const [associations, partners, projects, metrics, ongConfig] = await Promise.all([
       fetchPublicAssociations(),
       fetchPartners(false),
-      fetchProjects(false),
+      fetchProjects(false, true), // Doar proiectele finalizate și ne-arhivate sunt expuse public pe site
       fetchMetrics(),
       fetchOngConfig(),
     ]);

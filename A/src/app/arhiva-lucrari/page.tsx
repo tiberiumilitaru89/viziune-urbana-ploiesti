@@ -28,14 +28,20 @@ import {
   Wrench,
   Check,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 
 function ArhivaLucrariContent() {
   const searchParams = useSearchParams();
   const urlProjectId = searchParams.get("proiect");
 
-  const [projects, setProjects] = useState<ProjectItem[]>([...INITIAL_PROJECTS]);
-  const [activeProjectId, setActiveProjectId] = useState<string>(urlProjectId || INITIAL_PROJECTS[0]?.id || "");
+  const [projects, setProjects] = useState<ProjectItem[]>(() =>
+    INITIAL_PROJECTS.filter((p) => p.status === "finalizat" && !p.isArchived)
+  );
+  const [activeProjectId, setActiveProjectId] = useState<string>(() => {
+    const finalizate = INITIAL_PROJECTS.filter((p) => p.status === "finalizat" && !p.isArchived);
+    return urlProjectId || finalizate[0]?.id || "";
+  });
   const [viewMode, setViewMode] = useState<"side-by-side" | "slider">("side-by-side");
   const [sliderPos, setSliderPos] = useState(50);
   const [stageFilter, setStageFilter] = useState<"all" | PhotoStage>("all");
@@ -54,15 +60,20 @@ function ArhivaLucrariContent() {
     }
   }, [urlProjectId]);
 
-  // Încărcare proiecte publice
+  // Încărcare proiecte publice (strict finalizate)
   useEffect(() => {
     fetch("/api/public/data")
       .then((res) => res.json())
       .then((res) => {
         if (res.success && res.data?.projects?.length > 0) {
-          setProjects(res.data.projects);
-          if (!urlProjectId && !activeProjectId) {
-            setActiveProjectId(res.data.projects[0].id);
+          const finalizateOnly = res.data.projects.filter(
+            (p: ProjectItem) => p.status === "finalizat" && !p.isArchived
+          );
+          if (finalizateOnly.length > 0) {
+            setProjects(finalizateOnly);
+            if (!urlProjectId && !activeProjectId) {
+              setActiveProjectId(finalizateOnly[0].id);
+            }
           }
         }
       })
@@ -179,14 +190,39 @@ function ArhivaLucrariContent() {
             </div>
           </div>
 
-          {/* Selector Proiecte / Lucrări (Pills orizontale) */}
-          <div className="mb-8">
-            <div className="text-xs font-serif font-bold uppercase tracking-wider text-slate-600 mb-3 flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-amber-700" />
-              <span>Alegeți Lucrarea din Arhivă:</span>
+          {/* Selector Proiecte / Lucrări (Dropdown inteligent + Pills orizontale) */}
+          <div className="mb-8 bg-white/70 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-amber-900/15 shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3.5">
+              <label htmlFor="arhiva-project-select" className="text-xs font-serif font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-amber-700" />
+                <span>Alegeți Lucrarea din Arhivă ({projects.length} finalizate):</span>
+              </label>
+
+              {/* Dropdown Selector pentru selecție instantă */}
+              <div className="relative w-full md:max-w-md">
+                <select
+                  id="arhiva-project-select"
+                  value={activeProjectId}
+                  onChange={(e) => {
+                    setActiveProjectId(e.target.value);
+                    setStageFilter("all");
+                  }}
+                  className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-white border-2 border-amber-900/20 text-[#071330] font-serif font-bold text-xs sm:text-sm shadow-xs focus:border-amber-600 focus:outline-none appearance-none cursor-pointer transition-colors"
+                >
+                  {projects.map((proj) => (
+                    <option key={proj.id} value={proj.id}>
+                      {proj.title} • {proj.neighborhood ? `Cartier ${proj.neighborhood}` : "Ploiești"} ({proj.gallery?.length || 0} poze)
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-800">
+                  <ChevronDown className="w-4 h-4" />
+                </div>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5">
+            {/* Butoane Rapide (Tabs cu scroll orizontal) */}
+            <div className="flex items-center gap-2.5 overflow-x-auto pt-1 no-scrollbar">
               {projects.map((proj) => {
                 const isActive = activeProject.id === proj.id;
                 const totalPhotos = proj.gallery?.length || 0;
@@ -197,10 +233,10 @@ function ArhivaLucrariContent() {
                       setActiveProjectId(proj.id);
                       setStageFilter("all");
                     }}
-                    className={`inline-flex items-center gap-2.5 px-4 sm:px-6 py-3 rounded-2xl text-xs sm:text-sm font-serif font-bold transition-all shadow-sm ${
+                    className={`inline-flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-serif font-bold whitespace-nowrap transition-all shadow-xs shrink-0 ${
                       isActive
                         ? "bg-[#c48834] text-white shadow-md shadow-amber-900/20 scale-[1.01]"
-                        : "bg-white/90 backdrop-blur-md text-slate-800 hover:text-slate-950 border border-amber-900/20 hover:border-amber-600/40"
+                        : "bg-white text-slate-800 hover:text-slate-950 border border-amber-900/20 hover:border-amber-600/40"
                     }`}
                   >
                     <span>{proj.title}</span>
@@ -212,7 +248,7 @@ function ArhivaLucrariContent() {
                       {totalPhotos} poze
                     </span>
                     <ArrowRight
-                      className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-amber-800"}`}
+                      className={`w-3 h-3 ${isActive ? "text-white" : "text-amber-800"}`}
                     />
                   </button>
                 );
