@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Building2, Heart, ArrowRight } from "lucide-react";
 
 type DonorsSectionProps = {
@@ -82,13 +83,13 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
               </div>
             </div>
 
-            <button
-              onClick={onOpenDonationModal}
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 shadow-md transition-all active:scale-95"
+            <Link
+              href="/formular-230"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300 shadow-md transition-all active:scale-95 text-center"
             >
               <span>Completează Formularul 230 Online</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </Link>
           </div>
         </div>
       </div>
