@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuditModal } from "@/components/modals/AuditModal";
@@ -29,9 +30,12 @@ import {
   Sparkles,
 } from "lucide-react";
 
-export default function ArhivaLucrariPage() {
+function ArhivaLucrariContent() {
+  const searchParams = useSearchParams();
+  const urlProjectId = searchParams.get("proiect");
+
   const [projects, setProjects] = useState<ProjectItem[]>([...INITIAL_PROJECTS]);
-  const [activeProjectId, setActiveProjectId] = useState<string>(INITIAL_PROJECTS[0]?.id || "");
+  const [activeProjectId, setActiveProjectId] = useState<string>(urlProjectId || INITIAL_PROJECTS[0]?.id || "");
   const [viewMode, setViewMode] = useState<"side-by-side" | "slider">("side-by-side");
   const [sliderPos, setSliderPos] = useState(50);
   const [stageFilter, setStageFilter] = useState<"all" | PhotoStage>("all");
@@ -43,6 +47,13 @@ export default function ArhivaLucrariPage() {
   // Lightbox State
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
+  // Sincronizare la schimbarea parametrului ?proiect=...
+  useEffect(() => {
+    if (urlProjectId) {
+      setActiveProjectId(urlProjectId);
+    }
+  }, [urlProjectId]);
+
   // Încărcare proiecte publice
   useEffect(() => {
     fetch("/api/public/data")
@@ -50,7 +61,7 @@ export default function ArhivaLucrariPage() {
       .then((res) => {
         if (res.success && res.data?.projects?.length > 0) {
           setProjects(res.data.projects);
-          if (!activeProjectId) {
+          if (!urlProjectId && !activeProjectId) {
             setActiveProjectId(res.data.projects[0].id);
           }
         }
@@ -58,7 +69,7 @@ export default function ArhivaLucrariPage() {
       .catch(() => {
         // Fallback la INITIAL_PROJECTS
       });
-  }, [activeProjectId]);
+  }, [urlProjectId, activeProjectId]);
 
   const activeProject =
     projects.find((p) => p.id === activeProjectId) || projects[0] || INITIAL_PROJECTS[0];
@@ -368,47 +379,50 @@ export default function ArhivaLucrariPage() {
                 </h3>
               </div>
 
-              {/* Filtru Etape */}
+              {/* Filtru Etape - Selector Clar Înainte / După / În Lucru */}
               <div className="flex flex-wrap items-center gap-2 text-xs font-serif">
                 <button
                   onClick={() => setStageFilter("all")}
                   className={`px-3.5 py-2 rounded-xl font-bold transition-all ${
                     stageFilter === "all"
-                      ? "bg-[#071330] text-white shadow-sm"
+                      ? "bg-[#071330] text-white shadow-md ring-2 ring-[#c48834]/40"
                       : "bg-[#FAF7F2] text-slate-700 hover:bg-amber-100/60 border border-slate-200"
                   }`}
                 >
-                  Toate Etapele ({projectGallery.length})
+                  Toate Cadrele ({projectGallery.length})
                 </button>
                 <button
                   onClick={() => setStageFilter("inainte")}
-                  className={`px-3.5 py-2 rounded-xl font-bold transition-all ${
+                  className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
                     stageFilter === "inainte"
-                      ? "bg-rose-700 text-white shadow-sm"
+                      ? "bg-rose-700 text-white shadow-md ring-2 ring-rose-400"
                       : "bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200"
                   }`}
                 >
-                  Înainte ({beforePhotos.length})
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Doar Înainte ({beforePhotos.length})</span>
                 </button>
                 <button
                   onClick={() => setStageFilter("in_lucru")}
-                  className={`px-3.5 py-2 rounded-xl font-bold transition-all ${
+                  className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
                     stageFilter === "in_lucru"
-                      ? "bg-amber-600 text-white shadow-sm"
+                      ? "bg-amber-600 text-white shadow-md ring-2 ring-amber-400"
                       : "bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200"
                   }`}
                 >
-                  În execuție ({inProgressPhotos.length})
+                  <Wrench className="w-3.5 h-3.5" />
+                  <span>În execuție ({inProgressPhotos.length})</span>
                 </button>
                 <button
                   onClick={() => setStageFilter("dupa")}
-                  className={`px-3.5 py-2 rounded-xl font-bold transition-all ${
+                  className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 ${
                     stageFilter === "dupa"
-                      ? "bg-emerald-700 text-white shadow-sm"
+                      ? "bg-emerald-700 text-white shadow-md ring-2 ring-emerald-400"
                       : "bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-200"
                   }`}
                 >
-                  După recepție ({afterPhotos.length})
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Doar După recepție ({afterPhotos.length})</span>
                 </button>
               </div>
             </div>
@@ -623,5 +637,22 @@ export default function ArhivaLucrariPage() {
       <AuditModal isOpen={auditModalOpen} onClose={() => setAuditModalOpen(false)} />
       <DonationModal isOpen={donationModalOpen} onClose={() => setDonationModalOpen(false)} />
     </div>
+  );
+}
+
+export default function ArhivaLucrariPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center font-serif text-slate-700">
+          <div className="text-center p-8">
+            <div className="w-10 h-10 border-4 border-[#c48834] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="font-bold text-sm">Se încarcă arhiva tehnică a lucrărilor...</p>
+          </div>
+        </div>
+      }
+    >
+      <ArhivaLucrariContent />
+    </Suspense>
   );
 }

@@ -2319,11 +2319,25 @@ export default function AdminPage() {
 
                               {/* Indicator dacă este poza reprezentativă principală */}
                               {(isCurrentBefore || isCurrentAfter) && (
-                                <div className="absolute top-2 right-2 bg-[#071330] text-amber-300 text-[10px] font-serif font-black px-2 py-0.5 rounded-lg shadow-md flex items-center gap-1">
+                                <div className="absolute top-2 right-10 bg-[#071330] text-amber-300 text-[10px] font-serif font-black px-2 py-0.5 rounded-lg shadow-md flex items-center gap-1">
                                   <Check className="w-3 h-3 text-amber-400" />
                                   <span>{isCurrentBefore ? "Copertă Înainte" : "Copertă După"}</span>
                                 </div>
                               )}
+
+                              {/* Buton Rapid de Ștergere / Eliminare Foto (plutitor pe colț) */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeletePhotoFromProject(currentProject.id, photo.id);
+                                }}
+                                title="Elimină definitiv această fotografie din proiect"
+                                aria-label="Șterge fotografia"
+                                className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-700 text-white shadow-md hover:scale-110 transition-all z-10"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
 
                             {/* Caption & Metadata */}
@@ -2337,7 +2351,7 @@ export default function AdminPage() {
                             </div>
 
                             {/* Acțiuni Rapide */}
-                            <div className="pt-2 border-t border-amber-900/10 flex items-center justify-between text-xs font-serif">
+                            <div className="pt-2 border-t border-amber-900/10 flex items-center justify-between text-xs font-serif gap-2">
                               <div className="flex items-center gap-1.5">
                                 <button
                                   type="button"
@@ -2365,13 +2379,15 @@ export default function AdminPage() {
                                 </button>
                               </div>
 
+                              {/* Buton Text Clar de Eliminare / Ștergere */}
                               <button
                                 type="button"
                                 onClick={() => handleDeletePhotoFromProject(currentProject.id, photo.id)}
-                                title="Șterge fotografia din galerie"
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Elimină definitiv fotografia din galerie"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-lg transition-all shadow-xs"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
+                                <span>Elimină</span>
                               </button>
                             </div>
                           </div>

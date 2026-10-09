@@ -117,13 +117,29 @@ export function ProjectsGallery() {
 
         {/* Comparison Showcase Container */}
         <div className="bg-white/85 backdrop-blur-md border border-amber-900/15 rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-xl shadow-amber-950/5">
-          <div className="mb-5 sm:mb-7">
-            <h3 className="font-serif text-lg sm:text-2xl font-black text-[#071330] mb-1.5">
-              {activeProject.title}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed max-w-4xl">
-              {activeProject.description}
-            </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 sm:mb-7">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-serif text-amber-800 font-bold mb-1">
+                <span>Recepție: {activeProject.completionDate}</span>
+                {activeProject.neighborhood && <span>• Cartier {activeProject.neighborhood}</span>}
+              </div>
+              <h3 className="font-serif text-lg sm:text-2xl font-black text-[#071330] mb-1.5">
+                {activeProject.title}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed max-w-3xl">
+                {activeProject.description}
+              </p>
+            </div>
+
+            {/* Buton proeminent direct la cele două poze */}
+            <Link
+              href={`/arhiva-lucrari?proiect=${activeProject.id}`}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#c48834] hover:bg-amber-600 text-white font-serif font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all shrink-0 self-start sm:self-center"
+            >
+              <Sparkles className="w-4 h-4 text-amber-200" />
+              <span>Vezi Galeria Foto ({activeProject.gallery?.length || 0} imagini)</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
           {viewMode === "side-by-side" ? (
@@ -234,10 +250,10 @@ export function ProjectsGallery() {
             </div>
 
             <Link
-              href="/arhiva-lucrari"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-[#7c4d12] hover:text-[#071330] font-bold border border-amber-600/30 transition-all shadow-xs"
+              href={`/arhiva-lucrari?proiect=${activeProject.id}`}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-[#7c4d12] hover:text-[#071330] font-bold border border-amber-600/30 transition-all shadow-xs"
             >
-              <span>Explorează Toată Arhiva & Galeria pe Etape</span>
+              <span>Explorează Galeria Completă a Lucrării pe Etape ({activeProject.gallery?.length || 0} poze)</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
