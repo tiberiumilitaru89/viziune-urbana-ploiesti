@@ -32,6 +32,16 @@ export type PublicAssociationSummary = {
   readonly createdAt?: string;
 };
 
+export type PhotoStage = "inainte" | "in_lucru" | "dupa";
+
+export type ProjectPhoto = {
+  readonly id: string;
+  readonly url: string;
+  readonly caption?: string;
+  readonly stage: PhotoStage;
+  readonly createdAt?: string;
+};
+
 export type ProjectItem = {
   readonly id: string;
   readonly title: string;
@@ -40,6 +50,8 @@ export type ProjectItem = {
   readonly beforeImage: string;
   readonly afterImage: string;
   readonly completionDate: string;
+  readonly neighborhood?: string;
+  readonly gallery?: readonly ProjectPhoto[];
 };
 
 export type SpecItem = {

@@ -29,12 +29,19 @@ import {
   Coins,
   Mail,
   Upload,
+  Filter,
+  Layers,
+  ExternalLink,
+  Sparkles,
+  Check,
 } from "lucide-react";
 import {
   AuditRequest,
   AuditStatus,
   PartnerItem,
   ProjectItem,
+  ProjectPhoto,
+  PhotoStage,
   GlobalMetrics,
   Formular230Entry,
   Formular230Status,
@@ -178,6 +185,122 @@ export default function AdminPage() {
     } finally {
       setUploadingImage(null);
     }
+  };
+
+  // Photo & Gallery Management State (pe etape & dropdown lucrari)
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [photoStageFilter, setPhotoStageFilter] = useState<"all" | PhotoStage>("all");
+  const [newPhoto, setNewPhoto] = useState<{
+    url: string;
+    caption: string;
+    stage: PhotoStage;
+  }>({
+    url: "",
+    caption: "",
+    stage: "in_lucru",
+  });
+  const [uploadingGalleryPhoto, setUploadingGalleryPhoto] = useState<boolean>(false);
+
+  const handleUploadGalleryPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingGalleryPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        setNewPhoto((prev) => ({ ...prev, url: data.url }));
+        showToast("Fotografia a fost încărcată în Supabase Storage!");
+      } else {
+        alert(data.error || "Eroare la încărcarea fotografiei.");
+      }
+    } catch {
+      alert("A apărut o eroare la încărcarea fotografiei.");
+    } finally {
+      setUploadingGalleryPhoto(false);
+    }
+  };
+
+  const handleAddPhotoToProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+    if (!targetProject) {
+      alert("Vă rugăm să selectați un proiect din listă.");
+      return;
+    }
+    if (!newPhoto.url.trim()) {
+      alert("Introduceți un link sau încărcați o fotografie.");
+      return;
+    }
+
+    const photoToAdd: ProjectPhoto = {
+      id: `photo-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      url: newPhoto.url.trim(),
+      caption: newPhoto.caption.trim() || undefined,
+      stage: newPhoto.stage,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedGallery = [...(targetProject.gallery || []), photoToAdd];
+    const updatedProject: ProjectItem = {
+      ...targetProject,
+      gallery: updatedGallery,
+    };
+
+    const updatedProjects = projects.map((p) => (p.id === updatedProject.id ? updatedProject : p));
+    setProjects(updatedProjects);
+    await saveProjectToDb(updatedProject);
+
+    setNewPhoto({
+      url: "",
+      caption: "",
+      stage: newPhoto.stage,
+    });
+    showToast("Fotografia a fost adăugată în galeria lucrării!");
+  };
+
+  const handleDeletePhotoFromProject = async (projectId: string, photoId: string) => {
+    const targetProject = projects.find((p) => p.id === projectId);
+    if (!targetProject) return;
+    if (!confirm("Sigur doriți să eliminați această fotografie din galerie?")) return;
+
+    const updatedGallery = (targetProject.gallery || []).filter((p) => p.id !== photoId);
+    const updatedProject: ProjectItem = {
+      ...targetProject,
+      gallery: updatedGallery,
+    };
+
+    const updatedProjects = projects.map((p) => (p.id === updatedProject.id ? updatedProject : p));
+    setProjects(updatedProjects);
+    await saveProjectToDb(updatedProject);
+    showToast("Fotografia a fost ștearsă din galerie.");
+  };
+
+  const handleSetPhotoAsCover = async (projectId: string, photoUrl: string, type: "before" | "after") => {
+    const targetProject = projects.find((p) => p.id === projectId);
+    if (!targetProject) return;
+
+    const updatedProject: ProjectItem = {
+      ...targetProject,
+      ...(type === "before" ? { beforeImage: photoUrl } : { afterImage: photoUrl }),
+    };
+
+    const updatedProjects = projects.map((p) => (p.id === updatedProject.id ? updatedProject : p));
+    setProjects(updatedProjects);
+    await saveProjectToDb(updatedProject);
+    showToast(
+      type === "before"
+        ? "Fotografia a fost setată ca reprezentativă «Înainte»!"
+        : "Fotografia a fost setată ca reprezentativă «După»!"
+    );
   };
 
   // Verificare sesiune admin pe server la mount
@@ -1724,200 +1847,577 @@ export default function AdminPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 3: POZE & GALERIE PROIECTE (ÎNAINTE / DUPĂ)                */}
+        {/* TAB 3: POZE & GALERIE PROIECTE PE ETAPE (ÎNAINTE / ÎN LUCRU / DUPĂ) */}
         {/* ============================================================== */}
-        {activeTab === "projects" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-serif font-bold text-[#071330]">Galerie Lucrări & Comparații Foto</h3>
-                <p className="text-xs text-slate-600">
-                  Adăugați proiecte finalizate, actualizați titlul și pozele Înainte de intervenție / După recepție
-                </p>
+        {activeTab === "projects" && (() => {
+          const currentProject = projects.find((p) => p.id === selectedProjectId) || projects[0];
+          const projectGallery = currentProject?.gallery || [];
+          
+          const beforePhotos = projectGallery.filter((p) => p.stage === "inainte");
+          const inProgressPhotos = projectGallery.filter((p) => p.stage === "in_lucru");
+          const afterPhotos = projectGallery.filter((p) => p.stage === "dupa");
+
+          const filteredPhotos = projectGallery.filter((p) => {
+            if (photoStageFilter === "all") return true;
+            return p.stage === photoStageFilter;
+          });
+
+          return (
+            <div className="space-y-6">
+              {/* Header Tab cu Acțiuni */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-serif font-bold text-[#071330] flex items-center gap-2">
+                    <ImageIcon className="w-5 h-5 text-amber-600" />
+                    <span>Galerie Lucrări & Management Foto pe Etape</span>
+                  </h3>
+                  <p className="text-xs text-slate-600">
+                    Organizați fotografiile de șantier pe etape clare (Înainte, În execuție, După recepție) și actualizați comparatoarele oficiale.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <Link
+                    href="/arhiva-lucrari"
+                    target="_blank"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-serif font-bold text-slate-700 bg-white hover:bg-amber-50 border border-amber-900/20 transition-all shadow-xs"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Vezi Arhiva Live</span>
+                  </Link>
+                  <button
+                    onClick={() => setShowAddProject(!showAddProject)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 transition-colors shadow-md"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{showAddProject ? "Închide Formular" : "Adaugă Lucrare Nouă"}</span>
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={() => setShowAddProject(!showAddProject)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 transition-colors shadow-md"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{showAddProject ? "Anulează" : "Adaugă Lucrare / Poze"}</span>
-              </button>
-            </div>
-
-            {/* Expandable Add Project Form */}
-            {showAddProject && (
-              <form
-                onSubmit={handleCreateProject}
-                className="bg-white/90 backdrop-blur-md border border-amber-900/20 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl"
-              >
-                <h4 className="font-serif text-base font-bold text-[#071330]">Adăugare Lucrare & Set Fotografic</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-serif">
-                  <div className="sm:col-span-2">
-                    <label className="block text-slate-700 mb-1 font-bold">Titlu Proiect *</label>
-                    <input
-                      type="text"
-                      required
-                      value={newProject.title}
-                      onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
-                      placeholder="Ex: Reabilitare completă subsol Bloc 8B — Cartier Nord"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-slate-700 mb-1 font-bold">Descriere Tehnică *</label>
-                    <textarea
-                      rows={2}
-                      required
-                      value={newProject.description}
-                      onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                      placeholder="Ex: Înlocuire integrală 180 metri liniari trasee PPR fibră compozită, izolație Armaflex 19mm."
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-700 mb-1 font-bold">Poză: Înainte de intervenție *</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        required
-                        value={newProject.beforeImage}
-                        onChange={(e) => setNewProject({ ...newProject, beforeImage: e.target.value })}
-                        placeholder="/ref-assets/before-DmrOVzle.png sau link"
-                        className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs font-mono"
-                      />
-                      <label className="cursor-pointer px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 shrink-0 border border-amber-300 transition-colors shadow-xs">
-                        {uploadingImage === "before" ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
-                            <span>Se încarcă...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-3.5 h-3.5 text-amber-800" />
-                            <span>Încarcă Poză</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          className="hidden"
-                          disabled={uploadingImage !== null}
-                          onChange={(e) => handleUploadProjectImage(e, "before")}
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-700 mb-1 font-bold">Poză: După recepție *</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        required
-                        value={newProject.afterImage}
-                        onChange={(e) => setNewProject({ ...newProject, afterImage: e.target.value })}
-                        placeholder="/ref-assets/after-C5YhGlz_.png sau link"
-                        className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs font-mono"
-                      />
-                      <label className="cursor-pointer px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 shrink-0 border border-amber-300 transition-colors shadow-xs">
-                        {uploadingImage === "after" ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
-                            <span>Se încarcă...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="w-3.5 h-3.5 text-amber-800" />
-                            <span>Încarcă Poză</span>
-                          </>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          className="hidden"
-                          disabled={uploadingImage !== null}
-                          onChange={(e) => handleUploadProjectImage(e, "after")}
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-slate-700 mb-1 font-bold">Data Finalizării / Recepției</label>
-                    <input
-                      type="text"
-                      value={newProject.completionDate}
-                      onChange={(e) => setNewProject({ ...newProject, completionDate: e.target.value })}
-                      placeholder="Ex: Octombrie 2026"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddProject(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-serif text-slate-600 hover:text-slate-900 font-semibold"
-                  >
-                    Renunță
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 shadow-md"
-                  >
-                    Salvează Lucrarea
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* List of Projects */}
-            <div className="space-y-4">
-              {projects.map((proj) => (
-                <div
-                  key={proj.id}
-                  className="bg-white/85 backdrop-blur-md border border-amber-900/15 rounded-2xl p-5 space-y-4 shadow-md text-slate-900"
+              {/* Formular Adăugare Lucrare Nouă (Expandabil) */}
+              {showAddProject && (
+                <form
+                  onSubmit={handleCreateProject}
+                  className="bg-white/95 backdrop-blur-md border-2 border-amber-500/40 rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h4 className="font-serif text-base font-bold text-[#071330]">{proj.title}</h4>
-                      <p className="text-xs text-slate-600 mt-0.5">{proj.description}</p>
+                  <div className="flex items-center justify-between border-b border-amber-900/10 pb-3">
+                    <h4 className="font-serif text-base font-bold text-[#071330] flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-600" />
+                      <span>Înregistrare Lucrare Nouă în Sistem</span>
+                    </h4>
+                    <span className="text-[11px] font-mono font-bold text-slate-500 bg-amber-100/60 px-2 py-0.5 rounded-md">
+                      Pasul 1: Date generale
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-serif">
+                    <div className="sm:col-span-2">
+                      <label className="block text-slate-700 mb-1 font-bold">Titlu Proiect / Bloc *</label>
+                      <input
+                        type="text"
+                        required
+                        value={newProject.title}
+                        onChange={(e) => setNewProject({ ...newProject, title: e.target.value })}
+                        placeholder="Ex: Reabilitare completă subsol Bloc 8B — Cartier Nord"
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
+                      />
                     </div>
 
+                    <div className="sm:col-span-2">
+                      <label className="block text-slate-700 mb-1 font-bold">Descriere Tehnică & Lucrări Executate *</label>
+                      <textarea
+                        rows={2}
+                        required
+                        value={newProject.description}
+                        onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                        placeholder="Ex: Înlocuire integrală 180 metri liniari trasee PPR fibră compozită, izolație Armaflex 19mm, evacuare 4 tone deșeuri."
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-bold">Poză Principală: Înainte de intervenție *</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={newProject.beforeImage}
+                          onChange={(e) => setNewProject({ ...newProject, beforeImage: e.target.value })}
+                          placeholder="/ref-assets/before-DmrOVzle.png sau link"
+                          className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs font-mono"
+                        />
+                        <label className="cursor-pointer px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 shrink-0 border border-amber-300 transition-colors shadow-xs">
+                          {uploadingImage === "before" ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                              <span>Se încarcă...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3.5 h-3.5 text-amber-800" />
+                              <span>Încarcă</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            disabled={uploadingImage !== null}
+                            onChange={(e) => handleUploadProjectImage(e, "before")}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-bold">Poză Principală: După recepție *</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={newProject.afterImage}
+                          onChange={(e) => setNewProject({ ...newProject, afterImage: e.target.value })}
+                          placeholder="/ref-assets/after-C5YhGlz_.png sau link"
+                          className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs font-mono"
+                        />
+                        <label className="cursor-pointer px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 shrink-0 border border-amber-300 transition-colors shadow-xs">
+                          {uploadingImage === "after" ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                              <span>Se încarcă...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3.5 h-3.5 text-amber-800" />
+                              <span>Încarcă</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            disabled={uploadingImage !== null}
+                            onChange={(e) => handleUploadProjectImage(e, "after")}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-700 mb-1 font-bold">Data Finalizării / Recepției</label>
+                      <input
+                        type="text"
+                        value={newProject.completionDate}
+                        onChange={(e) => setNewProject({ ...newProject, completionDate: e.target.value })}
+                        placeholder="Ex: Octombrie 2026"
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-2">
                     <button
-                      onClick={() => handleArchiveProject(proj)}
-                      title="Arhivează proiectul"
-                      className="text-slate-400 hover:text-rose-600 self-start sm:self-center p-1 transition-colors"
+                      type="button"
+                      onClick={() => setShowAddProject(false)}
+                      className="px-4 py-2 rounded-xl text-xs font-serif text-slate-600 hover:text-slate-900 font-semibold"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      Renunță
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-6 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 shadow-md"
+                    >
+                      Salvează Lucrarea
                     </button>
                   </div>
+                </form>
+              )}
 
-                  {/* Photo Thumbnails */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 bg-[#FAF7F2] rounded-xl border border-amber-900/15">
-                      <div className="font-serif font-bold text-rose-700 mb-1 flex items-center gap-1.5">
-                        <AlertCircle className="w-3.5 h-3.5" /> Înainte:
-                      </div>
-                      <p className="font-mono text-[10px] text-slate-600 truncate">{proj.beforeImage}</p>
+              {/* SELECTOR DROPDOWN PROIECT (CERINȚA 2) */}
+              <div className="bg-white/90 backdrop-blur-md border border-amber-900/15 rounded-3xl p-5 sm:p-6 shadow-md space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs font-serif font-bold text-[#071330] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-amber-700" />
+                      <span>Selectează Lucrarea / Proiectul de Administrat (Dropdown):</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={currentProject?.id || ""}
+                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl bg-[#FAF7F2] border-2 border-amber-900/20 text-slate-900 font-serif font-bold text-sm shadow-sm focus:border-amber-600 focus:outline-none transition-colors"
+                      >
+                        {projects.map((proj) => (
+                          <option key={proj.id} value={proj.id}>
+                            {proj.title} — ({proj.gallery?.length || 0} poze în galerie) • {proj.completionDate}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {currentProject && (
+                    <button
+                      onClick={() => handleArchiveProject(currentProject)}
+                      title="Arhivează această lucrare"
+                      className="self-end sm:self-center flex items-center gap-1.5 px-3 py-2 text-xs font-serif font-bold text-rose-700 hover:text-white hover:bg-rose-600 rounded-xl border border-rose-300 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Arhivează Lucrarea</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Rezumat Proiect Selectat */}
+                {currentProject && (
+                  <div className="pt-3 border-t border-amber-900/10 flex flex-wrap items-center justify-between gap-3 text-xs font-serif">
+                    <div className="space-y-0.5">
+                      <div className="text-[#071330] font-black text-sm">{currentProject.title}</div>
+                      <p className="text-slate-600 max-w-2xl line-clamp-2">{currentProject.description}</p>
                     </div>
 
-                    <div className="p-3 bg-[#FAF7F2] rounded-xl border border-amber-900/15">
-                      <div className="font-serif font-bold text-emerald-700 mb-1 flex items-center gap-1.5">
-                        <CheckCircle className="w-3.5 h-3.5" /> După:
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 bg-amber-100 text-amber-900 rounded-lg font-bold">
+                        Total Galerie: {projectGallery.length} poze
+                      </span>
+                      <span className="px-2.5 py-1 bg-rose-100 text-rose-900 rounded-lg font-semibold">
+                        Înainte: {beforePhotos.length}
+                      </span>
+                      <span className="px-2.5 py-1 bg-amber-100/70 text-amber-900 rounded-lg font-semibold">
+                        În execuție: {inProgressPhotos.length}
+                      </span>
+                      <span className="px-2.5 py-1 bg-emerald-100 text-emerald-900 rounded-lg font-semibold">
+                        După: {afterPhotos.length}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* FORMULAR ADĂUGARE POZĂ ÎN GALERIA PROIECTULUI SELECTAT (CERINȚA 1: PE ETAPE) */}
+              {currentProject && (
+                <form
+                  onSubmit={handleAddPhotoToProject}
+                  className="bg-white/90 backdrop-blur-md border border-amber-900/20 rounded-3xl p-5 sm:p-6 shadow-md space-y-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-serif text-sm font-bold text-[#071330] flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-amber-600" />
+                      <span>Adaugă Fotografie în Galeria: <span className="text-amber-800">{currentProject.title}</span></span>
+                    </h4>
+                    <span className="text-[11px] font-mono text-slate-500">Stocare Supabase Storage</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-3 text-xs font-serif">
+                    {/* Selector Etapă */}
+                    <div className="md:col-span-4">
+                      <label className="block text-slate-700 font-bold mb-1">1. Etapa Lucrării *</label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setNewPhoto({ ...newPhoto, stage: "inainte" })}
+                          className={`px-2 py-2 rounded-xl text-center font-bold text-[11px] transition-all border ${
+                            newPhoto.stage === "inainte"
+                              ? "bg-rose-600 text-white border-rose-700 shadow-sm"
+                              : "bg-white text-slate-700 border-slate-200 hover:bg-rose-50"
+                          }`}
+                        >
+                          Înainte
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewPhoto({ ...newPhoto, stage: "in_lucru" })}
+                          className={`px-2 py-2 rounded-xl text-center font-bold text-[11px] transition-all border ${
+                            newPhoto.stage === "in_lucru"
+                              ? "bg-amber-600 text-white border-amber-700 shadow-sm"
+                              : "bg-white text-slate-700 border-slate-200 hover:bg-amber-50"
+                          }`}
+                        >
+                          În execuție
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setNewPhoto({ ...newPhoto, stage: "dupa" })}
+                          className={`px-2 py-2 rounded-xl text-center font-bold text-[11px] transition-all border ${
+                            newPhoto.stage === "dupa"
+                              ? "bg-emerald-600 text-white border-emerald-700 shadow-sm"
+                              : "bg-white text-slate-700 border-slate-200 hover:bg-emerald-50"
+                          }`}
+                        >
+                          După recepție
+                        </button>
                       </div>
-                      <p className="font-mono text-[10px] text-slate-600 truncate">{proj.afterImage}</p>
+                    </div>
+
+                    {/* Încărcare Poză */}
+                    <div className="md:col-span-5">
+                      <label className="block text-slate-700 font-bold mb-1">2. Fotografie (Upload sau Link) *</label>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="text"
+                          required
+                          value={newPhoto.url}
+                          onChange={(e) => setNewPhoto({ ...newPhoto, url: e.target.value })}
+                          placeholder="/ref-assets/... sau link public"
+                          className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs font-mono"
+                        />
+                        <label className="cursor-pointer px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl font-serif font-bold text-xs flex items-center gap-1 shrink-0 border border-amber-300 transition-colors shadow-xs">
+                          {uploadingGalleryPhoto ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                              <span>Încarcă...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-3.5 h-3.5 text-amber-800" />
+                              <span>Alege Fișier</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            disabled={uploadingGalleryPhoto}
+                            onChange={handleUploadGalleryPhoto}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Legendă / Caption */}
+                    <div className="md:col-span-3">
+                      <label className="block text-slate-700 font-bold mb-1">3. Legendă / Descriere (Opțional)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newPhoto.caption}
+                          onChange={(e) => setNewPhoto({ ...newPhoto, caption: e.target.value })}
+                          placeholder="Ex: Montaj robineți sferici"
+                          className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs"
+                        />
+                        <button
+                          type="submit"
+                          className="px-4 py-2 rounded-xl bg-[#c48834] hover:bg-amber-600 text-white font-bold text-xs shrink-0 shadow-sm"
+                        >
+                          Adaugă
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* FILTRU ETAPE ȘI GRILĂ POZE PROIECT CURENT */}
+              {currentProject && (
+                <div className="bg-white/85 backdrop-blur-md border border-amber-900/15 rounded-3xl p-5 sm:p-6 shadow-md space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-900/10 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-4 h-4 text-amber-700" />
+                      <span className="text-xs font-serif font-bold text-[#071330] uppercase tracking-wider">
+                        Filtrează Galeria pe Etape:
+                      </span>
+                    </div>
+
+                    {/* Butoane Filtru Etape */}
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs font-serif">
+                      <button
+                        onClick={() => setPhotoStageFilter("all")}
+                        className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                          photoStageFilter === "all"
+                            ? "bg-[#071330] text-white shadow-sm"
+                            : "bg-[#FAF7F2] text-slate-700 hover:bg-amber-100/50 border border-slate-200"
+                        }`}
+                      >
+                        Toate Etapele ({projectGallery.length})
+                      </button>
+                      <button
+                        onClick={() => setPhotoStageFilter("inainte")}
+                        className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                          photoStageFilter === "inainte"
+                            ? "bg-rose-700 text-white shadow-sm"
+                            : "bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200"
+                        }`}
+                      >
+                        Înainte ({beforePhotos.length})
+                      </button>
+                      <button
+                        onClick={() => setPhotoStageFilter("in_lucru")}
+                        className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                          photoStageFilter === "in_lucru"
+                            ? "bg-amber-600 text-white shadow-sm"
+                            : "bg-amber-50 text-amber-900 hover:bg-amber-100 border border-amber-200"
+                        }`}
+                      >
+                        În execuție ({inProgressPhotos.length})
+                      </button>
+                      <button
+                        onClick={() => setPhotoStageFilter("dupa")}
+                        className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                          photoStageFilter === "dupa"
+                            ? "bg-emerald-700 text-white shadow-sm"
+                            : "bg-emerald-50 text-emerald-900 hover:bg-emerald-100 border border-emerald-200"
+                        }`}
+                      >
+                        După recepție ({afterPhotos.length})
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Grilă de Poze */}
+                  {filteredPhotos.length === 0 ? (
+                    <div className="py-12 text-center bg-[#FAF7F2]/60 rounded-2xl border border-dashed border-amber-900/20">
+                      <ImageIcon className="w-10 h-10 text-amber-700/40 mx-auto mb-2" />
+                      <p className="text-xs font-serif font-bold text-slate-700">
+                        Nu există fotografii înregistrate pentru etapa selectată ({photoStageFilter === "all" ? "toate" : photoStageFilter}).
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-1">
+                        Folosiți formularul de mai sus pentru a încărca primele cadre.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {filteredPhotos.map((photo) => {
+                        const stageBadge = {
+                          inainte: {
+                            text: "Înainte de intervenție",
+                            cls: "bg-rose-100 text-rose-800 border-rose-300",
+                          },
+                          in_lucru: {
+                            text: "În execuție / Progres",
+                            cls: "bg-amber-100 text-amber-900 border-amber-300",
+                          },
+                          dupa: {
+                            text: "După recepție",
+                            cls: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                          },
+                        }[photo.stage];
+
+                        const isCurrentBefore = currentProject.beforeImage === photo.url;
+                        const isCurrentAfter = currentProject.afterImage === photo.url;
+
+                        return (
+                          <div
+                            key={photo.id}
+                            className="bg-[#FAF7F2] border border-amber-900/15 rounded-2xl p-3 flex flex-col justify-between space-y-2.5 shadow-sm hover:shadow-md transition-shadow group"
+                          >
+                            <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                              <Image
+                                src={photo.url}
+                                alt={photo.caption || "Fotografie galerie"}
+                                fill
+                                sizes="(max-width: 768px) 100vw, 33vw"
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+
+                              {/* Stage Pill */}
+                              <div className="absolute top-2 left-2">
+                                <span className={`text-[10px] font-serif font-bold px-2 py-0.5 rounded-lg border shadow-xs ${stageBadge.cls}`}>
+                                  {stageBadge.text}
+                                </span>
+                              </div>
+
+                              {/* Indicator dacă este poza reprezentativă principală */}
+                              {(isCurrentBefore || isCurrentAfter) && (
+                                <div className="absolute top-2 right-2 bg-[#071330] text-amber-300 text-[10px] font-serif font-black px-2 py-0.5 rounded-lg shadow-md flex items-center gap-1">
+                                  <Check className="w-3 h-3 text-amber-400" />
+                                  <span>{isCurrentBefore ? "Copertă Înainte" : "Copertă După"}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Caption & Metadata */}
+                            <div className="space-y-1">
+                              <p className="text-xs font-serif font-semibold text-slate-800 line-clamp-2">
+                                {photo.caption || "Fără descriere adăugată"}
+                              </p>
+                              <p className="text-[10px] font-mono text-slate-500 truncate" title={photo.url}>
+                                {photo.url}
+                              </p>
+                            </div>
+
+                            {/* Acțiuni Rapide */}
+                            <div className="pt-2 border-t border-amber-900/10 flex items-center justify-between text-xs font-serif">
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetPhotoAsCover(currentProject.id, photo.url, "before")}
+                                  title="Setează această fotografie ca reprezentativă «Înainte» în comparația principală"
+                                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
+                                    isCurrentBefore
+                                      ? "bg-rose-700 text-white"
+                                      : "bg-white text-rose-800 hover:bg-rose-50 border border-rose-200"
+                                  }`}
+                                >
+                                  Copertă Înainte
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSetPhotoAsCover(currentProject.id, photo.url, "after")}
+                                  title="Setează această fotografie ca reprezentativă «După» în comparația principală"
+                                  className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-colors ${
+                                    isCurrentAfter
+                                      ? "bg-emerald-700 text-white"
+                                      : "bg-white text-emerald-800 hover:bg-emerald-50 border border-emerald-200"
+                                  }`}
+                                >
+                                  Copertă După
+                                </button>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePhotoFromProject(currentProject.id, photo.id)}
+                                title="Șterge fotografia din galerie"
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* REZUMAT COMPARATOR PRINCIPAL PROIECT */}
+              {currentProject && (
+                <div className="bg-white/85 backdrop-blur-md border border-amber-900/15 rounded-3xl p-5 space-y-3 shadow-md text-slate-900">
+                  <h4 className="font-serif text-xs font-bold text-[#071330] uppercase tracking-wider">
+                    Fotografiile Principale de Comparație (Afișate pe Homepage & Cardul Lucrării):
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div className="p-3 bg-[#FAF7F2] rounded-xl border border-amber-900/15 flex items-center gap-3">
+                      <div className="w-14 h-14 relative rounded-lg overflow-hidden shrink-0 border border-slate-300">
+                        <Image src={currentProject.beforeImage} alt="Înainte" fill className="object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-serif font-bold text-rose-700 flex items-center gap-1.5">
+                          <AlertCircle className="w-3.5 h-3.5" /> Înainte de intervenție:
+                        </div>
+                        <p className="font-mono text-[10px] text-slate-600 truncate">{currentProject.beforeImage}</p>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-[#FAF7F2] rounded-xl border border-amber-900/15 flex items-center gap-3">
+                      <div className="w-14 h-14 relative rounded-lg overflow-hidden shrink-0 border border-slate-300">
+                        <Image src={currentProject.afterImage} alt="După" fill className="object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-serif font-bold text-emerald-700 flex items-center gap-1.5">
+                          <CheckCircle className="w-3.5 h-3.5" /> După recepție:
+                        </div>
+                        <p className="font-mono text-[10px] text-slate-600 truncate">{currentProject.afterImage}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ============================================================== */}
         {/* TAB 4: METRICI GLOBALE & FOND REPARAȚII                        */}

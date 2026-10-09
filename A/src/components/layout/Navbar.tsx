@@ -25,7 +25,7 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
   const navLinks = [
     { href: "/#misiune", label: "Misiune & Manifest" },
     { href: "/#cum-functioneaza", label: "Protocol de Lucru" },
-    { href: "/#proiecte", label: "Arhivă Lucrări" },
+    { href: "/arhiva-lucrari", label: "Arhivă Lucrări" },
     { href: "/#asociatii", label: "Registru Asociații" },
     { href: "/status", label: "Urmărește Dosar" },
     { href: "/formular-230", label: "Formular 230 (3,5%)" },

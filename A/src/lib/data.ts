@@ -109,6 +109,45 @@ export const INITIAL_PROJECTS: readonly ProjectItem[] = [
     beforeImage: "/ref-assets/before-DmrOVzle.png",
     afterImage: "/ref-assets/after-C5YhGlz_.png",
     completionDate: "Iulie 2026",
+    neighborhood: "Nord",
+    gallery: [
+      {
+        id: "p1-img-1",
+        url: "/ref-assets/before-DmrOVzle.png",
+        stage: "inainte",
+        caption: "Subsol inundat cu pierderi masive pe coloana de canalizare veche din fontă",
+      },
+      {
+        id: "p1-img-2",
+        url: "/ref-assets/sanitation-DG9U3mKz.png",
+        stage: "in_lucru",
+        caption: "Evacuare deșeuri, decolmatare cămine și igienizare sanitară mecanică",
+      },
+      {
+        id: "p1-img-3",
+        url: "/ref-assets/pipes-DC20llBH.png",
+        stage: "in_lucru",
+        caption: "Montaj coliere antivibrante și pozare magistrală nouă PPR compozit",
+      },
+      {
+        id: "p1-img-4",
+        url: "/tehnician-tevi-cupru.jpg",
+        stage: "in_lucru",
+        caption: "Echipa tehnică Instal Serv Becheanu executând probele de presiune la 10 bari",
+      },
+      {
+        id: "p1-img-5",
+        url: "/ref-assets/after-C5YhGlz_.png",
+        stage: "dupa",
+        caption: "Trasee complet izolate termic cu Armaflex 19mm și iluminat LED ermetic IP65",
+      },
+      {
+        id: "p1-img-6",
+        url: "/subsol-reabilitat.jpg",
+        stage: "dupa",
+        caption: "Vopsire hidro-rezistentă airless și recepție tehnică cu garanție 5 ani",
+      },
+    ],
   },
   {
     id: "proj-2",
@@ -118,6 +157,33 @@ export const INITIAL_PROJECTS: readonly ProjectItem[] = [
     beforeImage: "/subsol-reabilitat.jpg",
     afterImage: "/tehnician-tevi-cupru.jpg",
     completionDate: "August 2026",
+    neighborhood: "Centru",
+    gallery: [
+      {
+        id: "p2-img-1",
+        url: "/ref-assets/before-DmrOVzle.png",
+        stage: "inainte",
+        caption: "Conducte din oțel corodate avansat cu pierderi continue de debit și căldură",
+      },
+      {
+        id: "p2-img-2",
+        url: "/ref-assets/pipes-DC20llBH.png",
+        stage: "in_lucru",
+        caption: "Secționare trasee vechi și configurare distribuitor primar cu robineți sferici",
+      },
+      {
+        id: "p2-img-3",
+        url: "/tehnician-tevi-cupru.jpg",
+        stage: "in_lucru",
+        caption: "Termo-fuziune magistrală și echilibrare hidraulică pe fiecare coloană",
+      },
+      {
+        id: "p2-img-4",
+        url: "/subsol-reabilitat.jpg",
+        stage: "dupa",
+        caption: "Subsol uscat, ventilat și igienizat conform standardelor europene",
+      },
+    ],
   },
 ];
 

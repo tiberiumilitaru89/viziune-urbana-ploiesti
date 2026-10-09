@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { INITIAL_PROJECTS } from "@/lib/data";
 import { ProjectItem } from "@/lib/types";
-import { CheckCircle2, AlertTriangle, ArrowRight, Sliders, Columns } from "lucide-react";
+import { CheckCircle2, AlertTriangle, ArrowRight, Sliders, Columns, Sparkles } from "lucide-react";
 
 export function ProjectsGallery() {
   const [projects, setProjects] = useState<ProjectItem[]>([...INITIAL_PROJECTS]);
@@ -53,12 +54,23 @@ export function ProjectsGallery() {
             </p>
           </div>
 
-          {/* Right vertical civic pillars (as in original reference) */}
-          <div className="hidden lg:flex flex-col items-end gap-1.5 text-[10px] font-mono font-bold tracking-[0.25em] text-slate-600 uppercase pr-2 pt-2">
-            <span>Comunitate</span>
-            <span>Transparență</span>
-            <span>Infrastructură</span>
-            <span>Viitor</span>
+          {/* Right vertical civic pillars + CTA catre Arhiva */}
+          <div className="flex flex-col items-start lg:items-end gap-3 pt-2">
+            <div className="hidden lg:flex flex-col items-end gap-1.5 text-[10px] font-mono font-bold tracking-[0.25em] text-slate-600 uppercase pr-2">
+              <span>Comunitate</span>
+              <span>Transparență</span>
+              <span>Infrastructură</span>
+              <span>Viitor</span>
+            </div>
+
+            <Link
+              href="/arhiva-lucrari"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/90 hover:bg-amber-50 text-[#071330] hover:text-amber-900 font-serif font-bold text-xs border border-amber-900/20 shadow-sm transition-all"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+              <span>Arhivă Lucrări & Galerie pe Etape</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
 
@@ -213,9 +225,21 @@ export function ProjectsGallery() {
             </div>
           )}
 
-          <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs text-slate-500 font-serif">
-            <span>Lucrări executate în parteneriat cu Instal Serv Becheanu</span>
-            <span className="text-[#a16922] font-bold">Data recepției: {activeProject.completionDate}</span>
+          <div className="mt-6 pt-5 border-t border-amber-900/10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs text-slate-600 font-serif">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-slate-800">Partener tehnic oficial:</span>
+              <span>Instal Serv Becheanu</span>
+              <span>•</span>
+              <span className="text-[#a16922] font-bold">Data recepției: {activeProject.completionDate}</span>
+            </div>
+
+            <Link
+              href="/arhiva-lucrari"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-[#7c4d12] hover:text-[#071330] font-bold border border-amber-600/30 transition-all shadow-xs"
+            >
+              <span>Explorează Toată Arhiva & Galeria pe Etape</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
       </div>

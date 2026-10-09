@@ -273,6 +273,8 @@ export async function fetchProjects(includeArchived = false): Promise<ProjectIte
       beforeImage: p.before_image,
       afterImage: p.after_image,
       completionDate: p.completion_date,
+      neighborhood: p.neighborhood || undefined,
+      gallery: Array.isArray(p.gallery) ? p.gallery : [],
     }));
   } catch {
     return [...INITIAL_PROJECTS];
@@ -281,7 +283,7 @@ export async function fetchProjects(includeArchived = false): Promise<ProjectIte
 
 export async function saveProject(project: ProjectItem): Promise<boolean> {
   try {
-    const { error } = await supabaseAdmin.from("projects").upsert({
+    const payload = {
       id: project.id,
       title: project.title,
       description: project.description,
@@ -289,8 +291,19 @@ export async function saveProject(project: ProjectItem): Promise<boolean> {
       before_image: project.beforeImage,
       after_image: project.afterImage,
       completion_date: project.completionDate,
+      neighborhood: project.neighborhood || null,
+      gallery: project.gallery || [],
       is_archived: false,
-    });
+    };
+
+    // Încercăm salvarea cu coloana gallery (jsonb)
+    const { error } = await supabaseAdmin.from("projects").upsert(payload);
+    if (error && (error.message.includes("gallery") || error.code === "PGRST204")) {
+      // Fallback fără coloana gallery dacă nu a fost adăugată încă în Supabase SQL
+      const { gallery: _, ...fallbackPayload } = payload;
+      const { error: fallbackError } = await supabaseAdmin.from("projects").upsert(fallbackPayload);
+      return !fallbackError;
+    }
     return !error;
   } catch {
     return false;

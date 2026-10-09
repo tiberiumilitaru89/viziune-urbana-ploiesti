@@ -72,8 +72,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#proiecte" className="text-slate-700 hover:text-amber-800 transition-colors">
-                  Proiecte finalizate
+                <Link href="/arhiva-lucrari" className="text-slate-700 hover:text-amber-800 transition-colors">
+                  Arhivă Lucrări & Galerie Foto
                 </Link>
               </li>
               <li>

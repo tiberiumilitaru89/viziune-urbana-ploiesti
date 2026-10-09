@@ -98,6 +98,14 @@ const savePartnerSchema = z.object({
   badgeText: z.string().trim().max(100).optional().or(z.literal("")),
 });
 
+const projectPhotoSchema = z.object({
+  id: z.string().trim().min(1).max(100),
+  url: z.string().trim().min(1).max(1000),
+  caption: z.string().trim().max(500).optional(),
+  stage: z.enum(["inainte", "in_lucru", "dupa"]),
+  createdAt: z.string().optional(),
+});
+
 const saveProjectSchema = z.object({
   id: z.string().trim().min(1).max(100),
   title: z.string().trim().min(1).max(250),
@@ -106,6 +114,8 @@ const saveProjectSchema = z.object({
   beforeImage: z.string().trim().min(1).max(500),
   afterImage: z.string().trim().min(1).max(500),
   completionDate: z.string().trim().min(1).max(100),
+  neighborhood: z.string().trim().max(100).optional(),
+  gallery: z.array(projectPhotoSchema).optional().default([]),
 });
 
 const saveMetricsSchema = z.object({
