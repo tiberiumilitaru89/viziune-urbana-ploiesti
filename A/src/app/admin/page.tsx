@@ -354,6 +354,7 @@ export default function AdminPage() {
 
     const headers = [
       "Nr. Crt.",
+      "Nr. Dosar",
       "ID Cerere",
       "Nume Solicitant",
       "Telefon Contact",
@@ -376,6 +377,7 @@ export default function AdminPage() {
       const fundPct = assoc.fundsTarget > 0 ? Math.round((assoc.fundsCollected / assoc.fundsTarget) * 100) : 0;
       return [
         idx + 1,
+        escapeCsv(assoc.dosarNumber || `DOSAR-PH-${assoc.id}`),
         escapeCsv(assoc.id),
         escapeCsv(assoc.name),
         escapeCsv(assoc.phone),
@@ -722,8 +724,10 @@ export default function AdminPage() {
       return;
     }
 
+    const nextNum = 101 + associations.length;
     const created: AuditRequest = {
       id: `req-${Date.now()}`,
+      dosarNumber: `DOSAR-PH-${nextNum}`,
       name: newAssoc.name || "Reprezentant Asociație",
       phone: newAssoc.phone || "0720000000",
       building: newAssoc.building,
@@ -1274,9 +1278,18 @@ export default function AdminPage() {
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-amber-900/10">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <h4 className="font-serif text-lg font-bold text-[#071330]">{assoc.building}</h4>
-                        <span className="font-mono text-[10px] text-slate-500">ID: {assoc.id}</span>
+                        <span className="font-mono text-xs font-bold text-amber-900 bg-amber-500/15 border border-amber-600/30 px-2.5 py-0.5 rounded-lg shadow-xs">
+                          {assoc.dosarNumber || `DOSAR-PH-${assoc.id}`}
+                        </span>
+                        <Link
+                          href="/status"
+                          target="_blank"
+                          className="text-[11px] text-amber-800 hover:text-amber-950 underline font-serif font-bold ml-1"
+                        >
+                          (Verifică în Portalul Public ↗)
+                        </Link>
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 mt-1">
                         <span className="flex items-center gap-1">

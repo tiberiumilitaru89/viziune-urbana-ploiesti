@@ -109,8 +109,16 @@ export function NoticeBoardModal({ association, isOpen, onClose }: NoticeBoardMo
               </div>
             </div>
 
-            {/* 2. TITLU MARE PENTRU AVIZIER */}
+            {/* 2. TITLU MARE PENTRU AVIZIER & NUMĂR DOSAR REGISTRU */}
             <div className="text-center my-4 py-3 px-4 bg-amber-50 border-2 border-amber-500/40 rounded-xl">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5 text-[11px] font-mono font-bold text-amber-950">
+                <span className="bg-amber-500/25 px-2.5 py-0.5 rounded border border-amber-600/30">
+                  Nr. Dosar Registru: {association.dosarNumber || `DOSAR-PH-${association.id}`}
+                </span>
+                <span className="text-slate-600 font-sans font-bold text-[10px]">
+                  Urmărire stadiu lucrări: <span className="text-amber-900 underline font-mono">viziuneurbanaploiesti.ro/status</span>
+                </span>
+              </div>
               <div className="text-xs font-bold uppercase tracking-widest text-amber-900 font-serif mb-1">
                 În atenția tuturor proprietarilor și locatarilor din:
               </div>
@@ -253,6 +261,20 @@ export function NoticeBoardModal({ association, isOpen, onClose }: NoticeBoardMo
                     </strong>
                     <span className="text-slate-600 text-[11px]">
                       Solicitați formularul fizic de la administratorul sau președintele blocului.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-emerald-700 text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                    C
+                  </span>
+                  <div>
+                    <strong className="text-slate-950 font-bold block">
+                      Opțiunea 3: Urmărește Dosarul Blocului în Timp Real
+                    </strong>
+                    <span className="text-slate-600 text-[11px]">
+                      Intră pe portalul civic <span className="font-mono font-bold text-amber-900">viziuneurbanaploiesti.ro/status</span> și caută <strong className="font-mono text-slate-950">{association.dosarNumber || `DOSAR-PH-${association.id}`}</strong>.
                     </span>
                   </div>
                 </div>

@@ -4,18 +4,62 @@ import { addDonation } from "@/lib/data";
 import { saveDonationDb } from "@/lib/db";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
-const donationSchema = z.object({
-  type: z.enum(["bani", "materiale"]),
-  targetAssociationName: z.string().optional(),
-  amountRon: z.number().optional(),
-  materialType: z.string().optional(),
-  quantity: z.number().optional(),
-  unit: z.string().optional(),
-  companyOrName: z.string().trim().min(3, "Numele sau compania este obligatorie"),
-  phone: z.string().trim().min(10, "Numărul de telefon este obligatoriu"),
-  email: z.string().trim().email("Email invalid").optional().or(z.literal("")),
-  hp_website: z.string().optional(), // Honeypot
-});
+const donationSchema = z
+  .object({
+    type: z.enum(["bani", "materiale"]),
+    targetAssociationName: z.string().trim().max(200).optional(),
+    amountRon: z
+      .number()
+      .int("Suma trebuie să fie un număr întreg (RON)")
+      .positive("Suma oferită trebuie să fie strict pozitivă")
+      .max(10_000_000, "Suma depășește limita permisă")
+      .optional(),
+    materialType: z.string().trim().max(200).optional(),
+    quantity: z
+      .number()
+      .int("Cantitatea trebuie să fie un număr întreg")
+      .positive("Cantitatea trebuie să fie strict pozitivă")
+      .max(1_000_000, "Cantitatea depășește limita permisă")
+      .optional(),
+    unit: z.string().trim().max(50).optional(),
+    companyOrName: z.string().trim().min(3, "Numele sau compania este obligatorie").max(200),
+    phone: z.string().trim().min(10, "Numărul de telefon este obligatoriu").max(20),
+    email: z.string().trim().email("Email invalid").max(150).optional().or(z.literal("")),
+    hp_website: z.string().optional(), // Honeypot
+  })
+  .superRefine((data, ctx) => {
+    if (data.type === "bani") {
+      if (typeof data.amountRon !== "number" || Number.isNaN(data.amountRon) || data.amountRon <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["amountRon"],
+          message: "Pentru sponsorizări financiare, suma în RON este obligatorie și trebuie să fie mai mare ca 0.",
+        });
+      }
+    } else if (data.type === "materiale") {
+      if (!data.materialType || data.materialType.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["materialType"],
+          message: "Tipul materialelor donate este obligatoriu (ex: țeavă PPR, coturi, robineți, izolație).",
+        });
+      }
+      if (typeof data.quantity !== "number" || Number.isNaN(data.quantity) || data.quantity <= 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["quantity"],
+          message: "Cantitatea de materiale trebuie să fie un număr pozitiv mai mare ca 0.",
+        });
+      }
+      if (!data.unit || data.unit.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["unit"],
+          message: "Unitatea de măsură (ex: metri, bucăți, cutii) este obligatorie.",
+        });
+      }
+    }
+  });
 
 export async function POST(req: Request) {
   try {

@@ -2,6 +2,7 @@ export type AuditStatus = "nou" | "in_evaluare" | "acceptat" | "respins" | "fina
 
 export type AuditRequest = {
   readonly id: string;
+  readonly dosarNumber?: string;
   readonly name: string;
   readonly phone: string;
   readonly building: string;
@@ -18,14 +19,17 @@ export type AuditRequest = {
 
 export type PublicAssociationSummary = {
   readonly id: string;
+  readonly dosarNumber?: string;
   readonly building: string;
   readonly address: string;
   readonly neighborhood?: string;
+  readonly problem?: string;
   readonly status: AuditStatus;
   readonly formsCollected: number;
   readonly formsTarget: number;
   readonly fundsCollected: number;
   readonly fundsTarget: number;
+  readonly createdAt?: string;
 };
 
 export type ProjectItem = {

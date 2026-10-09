@@ -1,14 +1,19 @@
 import crypto from "crypto";
 
 export const SESSION_COOKIE_NAME = "vup_admin_session";
-const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 ore
+export const SESSION_DURATION_SECONDS = 8 * 60 * 60; // 8 ore
+export const SESSION_DURATION_MS = SESSION_DURATION_SECONDS * 1000;
 
 function getSecretKey(): string {
-  return (
-    process.env.ADMIN_SECRET ||
-    process.env.ADMIN_PASSWORD ||
-    "vup-canonical-cryptographic-secret-2026-key"
-  );
+  const secret = process.env.ADMIN_SECRET || process.env.ADMIN_PASSWORD;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("EROARE CRITICĂ DE SECURITATE: Variabila ADMIN_PASSWORD lipsește din mediu.");
+    }
+    // Fail-safe determinist doar în modul local de test
+    return "local-dev-ephemeral-key-" + (process.env.COMPUTERNAME || "dev");
+  }
+  return secret;
 }
 
 type SessionPayload = {
@@ -100,26 +105,25 @@ export function isRequestAuthenticated(req: Request): boolean {
 }
 
 /**
- * Verifică parola transmisă împotriva secretelor de server
+ * Verifică parola transmisă împotriva variabilei de mediu ADMIN_PASSWORD
+ * Fail-Fast: Respinge orice autentificare dacă ADMIN_PASSWORD nu este configurat.
+ * Comparare în timp constant (SHA-256 digest) pentru a preveni atacurile timing-attack.
  */
 export function verifyAdminPassword(input: string): boolean {
   if (!input || typeof input !== "string") return false;
-  const cleanInput = input.trim();
+  const configuredPassword = process.env.ADMIN_PASSWORD;
 
-  const validPasswords = [
-    process.env.ADMIN_PASSWORD,
-    process.env.ADMIN_SECRET,
-    "vup2026",
-    "adminvup2026!",
-  ].filter((p): p is string => Boolean(p && p.trim().length > 0));
-
-  for (const valid of validPasswords) {
-    const bufA = Buffer.from(cleanInput);
-    const bufB = Buffer.from(valid);
-    if (bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB)) {
-      return true;
-    }
+  // Zero-Tolerance: Fără parolă în env, accesul este matematic imposibil
+  if (!configuredPassword || configuredPassword.trim().length === 0) {
+    console.error("[CRITICAL SECURITY ALERT] Autentificare respinsă: ADMIN_PASSWORD nu este setată în environment.");
+    return false;
   }
 
-  return false;
+  const cleanInput = input.trim();
+
+  // Hash-uim ambele valori pentru a garanta buffere de lungime identică (32 bytes) pentru timingSafeEqual
+  const hashInput = crypto.createHash("sha256").update(cleanInput).digest();
+  const hashExpected = crypto.createHash("sha256").update(configuredPassword.trim()).digest();
+
+  return crypto.timingSafeEqual(hashInput, hashExpected);
 }

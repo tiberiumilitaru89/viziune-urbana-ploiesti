@@ -27,8 +27,7 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
     { href: "/#cum-functioneaza", label: "Protocol de Lucru" },
     { href: "/#proiecte", label: "Arhivă Lucrări" },
     { href: "/#asociatii", label: "Registru Asociații" },
-    { href: "/#caiet-sarcini", label: "Etape Execuție" },
-    { href: "/#faq", label: "Clarificări" },
+    { href: "/status", label: "Urmărește Dosar" },
     { href: "/formular-230", label: "Formular 230 (3,5%)" },
   ];
 

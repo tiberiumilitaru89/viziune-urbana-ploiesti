@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { 
   SESSION_COOKIE_NAME, 
+  SESSION_DURATION_SECONDS,
   createSessionToken, 
   isRequestAuthenticated, 
   verifyAdminPassword 
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: 24 * 60 * 60, // 24 ore
+        maxAge: SESSION_DURATION_SECONDS, // 8 ore conforme politicilor de securitate
       });
 
       return response;

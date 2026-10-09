@@ -37,8 +37,9 @@ export async function fetchAssociations(includeArchived = false): Promise<AuditR
       return [...INITIAL_ASSOCIATIONS];
     }
 
-    return data.map((r) => ({
+    return data.map((r, index) => ({
       id: r.id,
+      dosarNumber: r.dosar_number || `DOSAR-PH-${101 + index}`,
       name: r.name,
       phone: r.phone,
       building: r.building,
@@ -61,14 +62,17 @@ export async function fetchPublicAssociations(): Promise<PublicAssociationSummar
   const all = await fetchAssociations(false);
   return all.map((r) => ({
     id: r.id,
+    dosarNumber: r.dosarNumber,
     building: r.building,
     address: r.address,
     neighborhood: r.neighborhood || detectNeighborhood(r.address, r.building),
+    problem: r.problem,
     status: r.status,
     formsCollected: r.formsCollected,
     formsTarget: r.formsTarget,
     fundsCollected: r.fundsCollected,
     fundsTarget: r.fundsTarget,
+    createdAt: r.createdAt,
   }));
 }
 

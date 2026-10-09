@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { getPublicAssociations } from "@/lib/data";
 import { PublicAssociationSummary } from "@/lib/types";
 import { PLOIESTI_NEIGHBORHOODS, detectNeighborhood } from "@/lib/neighborhoods";
@@ -144,8 +145,10 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
                         <Building2 className="w-4 h-4 text-amber-800" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Ploiești</span>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-500/15 border border-amber-600/25 px-2 py-0.5 rounded-md mt-0.5">
+                        <span className="text-[10px] font-mono font-bold text-amber-900 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-300/40 inline-block">
+                          {assoc.dosarNumber || `DOSAR-PH-${assoc.id}`}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-500/15 border border-amber-600/25 px-2 py-0.5 rounded-md ml-1.5">
                           <MapPin className="w-3 h-3 text-amber-700" />
                           {neighborhood}
                         </span>
@@ -209,6 +212,17 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
                         style={{ width: `${fundPct}%` }}
                       />
                     </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-amber-900/10 flex items-center justify-between text-xs font-serif">
+                    <span className="text-slate-500 text-[11px]">Transparență civică</span>
+                    <Link
+                      href="/status"
+                      className="inline-flex items-center gap-1 font-bold text-amber-900 hover:text-amber-950 hover:underline text-[11px]"
+                    >
+                      <span>Urmărește stadiul dosarului</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
                   </div>
                 </div>
               </div>

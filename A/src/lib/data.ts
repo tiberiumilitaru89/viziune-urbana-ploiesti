@@ -4,6 +4,7 @@ import { detectNeighborhood } from "./neighborhoods";
 export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   {
     id: "req-1",
+    dosarNumber: "DOSAR-PH-101",
     name: "Mihai Ionescu",
     phone: "0722123456",
     building: "Asociația de Proprietari Bloc 14A",
@@ -19,6 +20,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   },
   {
     id: "req-2",
+    dosarNumber: "DOSAR-PH-102",
     name: "Elena Dumitrescu",
     phone: "0733987654",
     building: "Asociația Str. Democrației Bloc C3",
@@ -34,6 +36,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   },
   {
     id: "req-3",
+    dosarNumber: "DOSAR-PH-103",
     name: "Radu Popa",
     phone: "0744556677",
     building: "Asociația Malu Roșu Bloc 32",
@@ -49,6 +52,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   },
   {
     id: "req-4",
+    dosarNumber: "DOSAR-PH-104",
     name: "Cristian Stanciu",
     phone: "0721445566",
     building: "Asociația Bloc 7 Vest",
@@ -64,6 +68,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   },
   {
     id: "req-5",
+    dosarNumber: "DOSAR-PH-105",
     name: "Mariana Voinea",
     phone: "0732889900",
     building: "Asociația Independenței Bloc 4",
@@ -79,6 +84,7 @@ export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   },
   {
     id: "req-6",
+    dosarNumber: "DOSAR-PH-106",
     name: "Gheorghe Marin",
     phone: "0740112233",
     building: "Asociația Bariera București Bloc 10B",
@@ -222,16 +228,19 @@ let metricsState: GlobalMetrics = { ...INITIAL_METRICS, activeAssociationsCount:
 let donationsState: DonationEntry[] = [];
 
 export function getPublicAssociations(): PublicAssociationSummary[] {
-  return requestsState.map((r) => ({
+  return requestsState.map((r, index) => ({
     id: r.id,
+    dosarNumber: r.dosarNumber || `DOSAR-PH-${101 + index}`,
     building: r.building,
     address: r.address,
     neighborhood: r.neighborhood || detectNeighborhood(r.address, r.building),
+    problem: r.problem,
     status: r.status,
     formsCollected: r.formsCollected,
     formsTarget: r.formsTarget,
     fundsCollected: r.fundsCollected,
     fundsTarget: r.fundsTarget,
+    createdAt: r.createdAt,
   }));
 }
 
@@ -246,9 +255,11 @@ export function addAuditRequest(data: Omit<AuditRequest, "id" | "status" | "form
   fundsTarget?: number;
   status?: AuditRequest["status"];
 }): AuditRequest {
+  const nextNum = 101 + requestsState.length;
   const newReq: AuditRequest = {
     ...data,
     id: `req-${Date.now()}`,
+    dosarNumber: data.dosarNumber || `DOSAR-PH-${nextNum}`,
     status: data.status ?? "nou",
     formsCollected: data.formsCollected ?? 0,
     formsTarget: data.formsTarget ?? 40,
