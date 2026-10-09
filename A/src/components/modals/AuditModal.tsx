@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, ShieldCheck, CheckCircle2, ArrowRight, Loader2, Award } from "lucide-react";
+import Link from "next/link";
+import { X, ShieldCheck, CheckCircle2, ArrowRight, Loader2, Award, ExternalLink } from "lucide-react";
 import { z } from "zod";
 
 const auditFormSchema = z.object({
@@ -33,6 +34,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
   const [errors, setErrors] = useState<Partial<Record<keyof AuditFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [registeredDosar, setRegisteredDosar] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [hpWebsite, setHpWebsite] = useState("");
 
@@ -70,11 +72,12 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
         body: JSON.stringify({ ...result.data, hp_website: hpWebsite }),
       });
 
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         throw new Error(data.message || "A apărut o eroare la trimiterea formularului.");
       }
 
+      setRegisteredDosar(data.dosarNumber || null);
       setIsSuccess(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Eroare necunoscută de conexiune.";
@@ -96,37 +99,61 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
         </button>
 
         {isSuccess ? (
-          <div className="text-center py-8 space-y-4">
+          <div className="text-center py-6 space-y-4">
             <div className="w-16 h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-600">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h3 className="font-serif text-2xl font-bold text-[#071330]">
-              Cerere Înregistrată în Registru!
-            </h3>
-            <p className="text-sm text-slate-700 max-w-sm mx-auto leading-relaxed font-serif">
-              Vă mulțumim. Un inginer evaluator din cadrul Asociației Viziune Urbană Ploiești și al Instal Serv Becheanu vă va contacta în termen de 24-48 de ore pentru stabilirea vizitei gratuite în teren.
-            </p>
-            <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-2.5">
-              <a
-                href={`https://wa.me/40720015592?text=${encodeURIComponent(
-                  `Bună ziua! Tocmai am înregistrat cererea de evaluare pe site pentru ${formData.building || "asociația noastră"} (${formData.name || "locatar"}) și vă transmit imagini cu subsolul.`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#25D366] hover:bg-[#20ba59] transition-colors shadow-md inline-flex items-center justify-center gap-2"
-              >
-                <span>Trimite Poze pe WhatsApp</span>
-              </a>
+            
+            <div>
+              <h3 className="font-serif text-2xl font-bold text-[#071330]">
+                Cerere Înregistrată în Registru!
+              </h3>
+              {registeredDosar && (
+                <div className="inline-flex items-center gap-2 mt-2 bg-amber-500/15 border border-amber-600/30 px-3.5 py-1.5 rounded-xl shadow-xs">
+                  <span className="text-xs text-slate-600 font-serif">Număr Dosar Civic:</span>
+                  <span className="font-mono text-sm font-bold text-amber-950">{registeredDosar}</span>
+                </div>
+              )}
+            </div>
 
-              <button
-                onClick={() => {
-                  setIsSuccess(false);
-                  onClose();
-                }}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-serif font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition-colors shadow-sm"
-              >
-                Închide fereastra
-              </button>
+            <p className="text-xs sm:text-sm text-slate-700 max-w-sm mx-auto leading-relaxed font-serif">
+              Vă mulțumim. Un inginer evaluator din cadrul Asociației Viziune Urbană Ploiești și al Instal Serv Becheanu vă va contacta în 24-48 de ore pentru vizita gratuită în teren.
+            </p>
+
+            <div className="pt-2 flex flex-col gap-2.5">
+              {registeredDosar && (
+                <Link
+                  href={`/status?q=${registeredDosar}`}
+                  onClick={onClose}
+                  className="w-full px-5 py-3 rounded-xl text-xs font-serif font-bold text-white bg-[#071330] hover:bg-slate-800 transition-colors shadow-md inline-flex items-center justify-center gap-2"
+                >
+                  <ExternalLink className="w-4 h-4 text-amber-400" />
+                  <span>Urmărește Stadiul Dosarului în Portalul Public Live</span>
+                </Link>
+              )}
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5">
+                <a
+                  href={`https://wa.me/40720015592?text=${encodeURIComponent(
+                    `Bună ziua! Tocmai am înregistrat cererea cu dosarul ${registeredDosar || ""} pe site pentru ${formData.building || "asociația noastră"} (${formData.name || "locatar"}) și vă transmit imagini cu subsolul.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full sm:w-auto flex-1 px-4 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#25D366] hover:bg-[#20ba59] transition-colors shadow-md inline-flex items-center justify-center gap-2"
+                >
+                  <span>Trimite Poze pe WhatsApp</span>
+                </a>
+
+                <button
+                  onClick={() => {
+                    setIsSuccess(false);
+                    onClose();
+                  }}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-serif font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition-colors shadow-sm"
+                >
+                  Închide
+                </button>
+              </div>
             </div>
           </div>
         ) : (

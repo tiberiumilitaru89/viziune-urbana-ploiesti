@@ -36,9 +36,11 @@ export async function POST(req: Request) {
 
     const validated = requestSchema.parse(body);
     const id = `req-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const dosarNumber = `DOSAR-PH-${100 + (Math.floor(Date.now() / 1000) % 900)}`;
 
     const saved = await saveAssociation({
       id,
+      dosarNumber,
       name: validated.name,
       phone: validated.phone,
       building: validated.building,
@@ -60,9 +62,10 @@ export async function POST(req: Request) {
     const { sendAdminNotification, sendCitizenConfirmation } = await import("@/lib/email");
     sendAdminNotification({
       type: "audit_request",
-      subject: `Cerere Nouă de Înscriere Asociație: ${validated.building}`,
-      title: "Cerere Nouă de Evaluare Tehnică / Înscriere Asociație",
+      subject: `[${dosarNumber}] Cerere Nouă de Înscriere Asociație: ${validated.building}`,
+      title: `Cerere Nouă de Evaluare Tehnică — ${dosarNumber}`,
       fields: [
+        { label: "Număr Dosar Registru", value: dosarNumber },
         { label: "Nume Contact", value: validated.name },
         { label: "Telefon", value: validated.phone },
         { label: "Email", value: validated.email || "Nespecificat" },
@@ -73,23 +76,23 @@ export async function POST(req: Request) {
     }).catch((err) => console.error("Eroare trimitere notificare email admin:", err));
 
     if (validated.email) {
-      const regNumber = `VUP-EVAL-${Date.now().toString().slice(-6)}`;
       sendCitizenConfirmation({
         toEmail: validated.email,
         recipientName: validated.name,
-        registrationNumber: regNumber,
+        registrationNumber: dosarNumber,
         type: "audit_request",
         details: [
+          { label: "Număr Dosar Alocat", value: dosarNumber },
           { label: "Reprezentant Asociație", value: validated.name },
           { label: "Imobil / Bloc", value: validated.building },
           { label: "Adresă Înregistrată", value: validated.address },
-          { label: "Număr Telefon Contact", value: validated.phone },
+          { label: "Link Urmărire Live", value: `https://viziuneurbanaploiesti.ro/status?q=${dosarNumber}` },
           { label: "Data Înregistrării", value: new Date().toLocaleDateString("ro-RO") },
         ],
       }).catch((err) => console.warn("Eroare trimitere confirmare cetățean:", err));
     }
 
-    return NextResponse.json({ success: true, id }, { status: 201 });
+    return NextResponse.json({ success: true, id, dosarNumber }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, message: error.errors[0]?.message || "Date invalide transmise." }, { status: 400 });

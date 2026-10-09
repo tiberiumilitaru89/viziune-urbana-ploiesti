@@ -55,17 +55,22 @@ export default function StatusTrackerPage() {
 
   useEffect(() => {
     async function loadData() {
+      const urlParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+      const queryParam = urlParams?.get("q") || urlParams?.get("dosar") || urlParams?.get("search");
+      if (queryParam) {
+        setSearchTerm(queryParam);
+      }
+
       try {
         const res = await fetch("/api/public/data");
         const json = await res.json();
+        let loadedList: PublicAssociationSummary[] = [];
+
         if (json.success && json.data?.associations) {
-          setAssociations(json.data.associations);
-          if (json.data.associations.length > 0) {
-            setSelectedAssoc(json.data.associations[0]);
-          }
+          loadedList = json.data.associations;
         } else {
           // Fallback din date locale
-          const fallback = INITIAL_ASSOCIATIONS.map((r, idx) => ({
+          loadedList = INITIAL_ASSOCIATIONS.map((r, idx) => ({
             id: r.id,
             dosarNumber: r.dosarNumber || `DOSAR-PH-${101 + idx}`,
             building: r.building,
@@ -79,9 +84,19 @@ export default function StatusTrackerPage() {
             fundsTarget: r.fundsTarget,
             createdAt: r.createdAt,
           }));
-          setAssociations(fallback);
-          if (fallback.length > 0) {
-            setSelectedAssoc(fallback[0]);
+        }
+
+        setAssociations(loadedList);
+        if (loadedList.length > 0) {
+          if (queryParam) {
+            const matched = loadedList.find(
+              (a) =>
+                (a.dosarNumber && a.dosarNumber.toLowerCase() === queryParam.toLowerCase()) ||
+                a.building.toLowerCase().includes(queryParam.toLowerCase())
+            );
+            setSelectedAssoc(matched || loadedList[0]);
+          } else {
+            setSelectedAssoc(loadedList[0]);
           }
         }
       } catch {
