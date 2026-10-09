@@ -48,6 +48,7 @@ import {
   INITIAL_METRICS,
 } from "@/lib/data";
 import { Formular230OfficialDoc } from "@/components/form230/Formular230OfficialDoc";
+import { NoticeBoardModal } from "@/components/admin/NoticeBoardModal";
 
 type AdminTab = "associations" | "partners" | "projects" | "metrics" | "form230" | "donations";
 
@@ -96,6 +97,8 @@ export default function AdminPage() {
   const [showAddAssoc, setShowAddAssoc] = useState(false);
   const [showAddPartner, setShowAddPartner] = useState(false);
   const [showAddProject, setShowAddProject] = useState(false);
+  const [selectedAssocForNoticeBoard, setSelectedAssocForNoticeBoard] = useState<AuditRequest | null>(null);
+  const [isNoticeBoardOpen, setIsNoticeBoardOpen] = useState(false);
 
   // New Association Form State
   const [newAssoc, setNewAssoc] = useState({
@@ -1403,7 +1406,20 @@ export default function AdminPage() {
                   </div>
 
                   {/* Actions Bar for Item */}
-                  <div className="flex justify-end items-center gap-2.5 pt-2">
+                  <div className="flex flex-wrap justify-between items-center gap-2.5 pt-3 border-t border-amber-900/10">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedAssocForNoticeBoard(assoc);
+                        setIsNoticeBoardOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-amber-950 bg-amber-100 hover:bg-amber-200 border border-amber-300 transition-colors shadow-xs cursor-pointer"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-amber-800" />
+                      <span>Generează Fișă Avizier (PDF / Print)</span>
+                    </button>
+
+                    <div className="flex items-center gap-2">
                     <button
                       onClick={() => saveAssociationToDb(assoc)}
                       className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-white bg-emerald-700 hover:bg-emerald-600 transition-colors shadow-sm"
@@ -1416,6 +1432,7 @@ export default function AdminPage() {
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Șterge / Arhivează
                     </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -2468,6 +2485,16 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* Modal Previzualizare & Tipărire Fișă de Avizier (Format A4) */}
+        <NoticeBoardModal
+          isOpen={isNoticeBoardOpen}
+          association={selectedAssocForNoticeBoard}
+          onClose={() => {
+            setIsNoticeBoardOpen(false);
+            setSelectedAssocForNoticeBoard(null);
+          }}
+        />
       </div>
     </div>
   );

@@ -106,13 +106,24 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
             <p className="text-sm text-slate-700 max-w-sm mx-auto leading-relaxed font-serif">
               Vă mulțumim. Un inginer evaluator din cadrul Asociației Viziune Urbană Ploiești și al Instal Serv Becheanu vă va contacta în termen de 24-48 de ore pentru stabilirea vizitei gratuite în teren.
             </p>
-            <div className="pt-4">
+            <div className="pt-3 flex flex-col sm:flex-row items-center justify-center gap-2.5">
+              <a
+                href={`https://wa.me/40720015592?text=${encodeURIComponent(
+                  `Bună ziua! Tocmai am înregistrat cererea de evaluare pe site pentru ${formData.building || "asociația noastră"} (${formData.name || "locatar"}) și vă transmit imagini cu subsolul.`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#25D366] hover:bg-[#20ba59] transition-colors shadow-md inline-flex items-center justify-center gap-2"
+              >
+                <span>Trimite Poze pe WhatsApp</span>
+              </a>
+
               <button
                 onClick={() => {
                   setIsSuccess(false);
                   onClose();
                 }}
-                className="px-6 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 transition-colors shadow-md"
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-serif font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 transition-colors shadow-sm"
               >
                 Închide fereastra
               </button>
@@ -241,6 +252,26 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
                   className="w-full px-4 py-3 sm:py-2.5 rounded-xl bg-white border border-amber-900/25 text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm transition-colors resize-none"
                 />
                 {errors.problem && <p className="text-[11px] text-rose-600 mt-1">{errors.problem}</p>}
+              </div>
+
+              {/* Opțiune Rapidă: Transmitere Poze pe WhatsApp */}
+              <div className="p-3 bg-emerald-50/90 border border-emerald-300/70 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                  <span className="text-slate-800 font-serif">
+                    Ai deja poze sau filmulețe din subsol?
+                  </span>
+                </div>
+                <a
+                  href={`https://wa.me/40720015592?text=${encodeURIComponent(
+                    `Bună ziua! Sunt ${formData.name || "un locatar"} de la ${formData.building || "asociația de bloc"} și vă trimit imagini cu subsolul pentru evaluare tehnică.`
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#20ba59] text-white font-serif font-bold text-[11px] shadow-sm transition-all shrink-0"
+                >
+                  <span>Trimite pe WhatsApp (0720 015 592)</span>
+                </a>
               </div>
 
               <button

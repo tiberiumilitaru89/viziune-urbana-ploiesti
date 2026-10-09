@@ -15,6 +15,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 import { JsonLd } from "@/components/seo/JsonLd";
+import { FloatingWhatsApp } from "@/components/common/FloatingWhatsApp";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -159,6 +160,9 @@ export default function RootLayout({
         <div className="relative z-10 min-h-screen flex flex-col">
           {children}
         </div>
+
+        {/* Floating WhatsApp Contact Button */}
+        <FloatingWhatsApp />
       </body>
     </html>
   );
