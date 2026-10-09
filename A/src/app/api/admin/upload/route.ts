@@ -64,19 +64,35 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // 6. Încărcare în Supabase Storage (Bucket "proiecte")
-    const bucketName = "proiecte";
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from(bucketName)
+    // 6. Încărcare în Supabase Storage (Bucket "proiecte" sau "Proiecte")
+    let targetBucket = "proiecte";
+    let { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+      .from(targetBucket)
       .upload(sanitizedFileName, buffer, {
         contentType: file.type,
         upsert: false,
       });
 
-    if (uploadError) {
+    // Dacă utilizatorul a creat bucket-ul cu majusculă "Proiecte", încercăm automat și această variantă
+    if (uploadError && (uploadError.message.toLowerCase().includes("not found") || (uploadError as { statusCode?: string }).statusCode === "404")) {
+      const altResult = await supabaseAdmin.storage
+        .from("Proiecte")
+        .upload(sanitizedFileName, buffer, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (!altResult.error && altResult.data) {
+        uploadError = null;
+        uploadData = altResult.data;
+        targetBucket = "Proiecte";
+      }
+    }
+
+    if (uploadError || !uploadData) {
       // Dacă bucket-ul nu există sau returnează eroare de configurare storage,
       // oferim fallback pe data URL optimizat pentru a nu bloca administratorul
-      console.warn("Supabase Storage bucket upload notice:", uploadError.message);
+      console.warn("Supabase Storage bucket upload notice:", uploadError?.message || "Lipsă date răspuns storage");
       
       const base64Data = buffer.toString("base64");
       const dataUrl = `data:${file.type};base64,${base64Data}`;
@@ -92,7 +108,7 @@ export async function POST(req: NextRequest) {
 
     // Obținere URL public din Supabase Storage
     const { data: publicUrlData } = supabaseAdmin.storage
-      .from(bucketName)
+      .from(targetBucket)
       .getPublicUrl(uploadData.path);
 
     return NextResponse.json({
