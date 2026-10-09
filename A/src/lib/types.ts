@@ -52,6 +52,7 @@ export type ProjectItem = {
   readonly completionDate: string;
   readonly neighborhood?: string;
   readonly gallery?: readonly ProjectPhoto[];
+  readonly isArchived?: boolean;
 };
 
 export type SpecItem = {

@@ -282,6 +282,7 @@ export async function fetchProjects(includeArchived = false, onlyFinalized = fal
       completionDate: p.completion_date,
       neighborhood: p.neighborhood || undefined,
       gallery: Array.isArray(p.gallery) ? p.gallery : [],
+      isArchived: p.is_archived || false,
     }));
   } catch {
     const initial = onlyFinalized
