@@ -28,6 +28,7 @@ import {
   HeartHandshake,
   Coins,
   Mail,
+  Upload,
 } from "lucide-react";
 import {
   AuditRequest,
@@ -139,6 +140,44 @@ export default function AdminPage() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Upload Imagini Proiecte în Supabase Storage
+  const [uploadingImage, setUploadingImage] = useState<"before" | "after" | null>(null);
+
+  const handleUploadProjectImage = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "before" | "after"
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(field);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (data.success && data.url) {
+        if (field === "before") {
+          setNewProject((prev) => ({ ...prev, beforeImage: data.url }));
+        } else {
+          setNewProject((prev) => ({ ...prev, afterImage: data.url }));
+        }
+        showToast("Fotografia a fost încărcată cu succes în Supabase Storage!");
+      } else {
+        alert(data.error || "Eroare la încărcarea imaginii.");
+      }
+    } catch {
+      alert("A apărut o eroare de rețea la încărcare.");
+    } finally {
+      setUploadingImage(null);
+    }
   };
 
   // Verificare sesiune admin pe server la mount
@@ -1739,27 +1778,71 @@ export default function AdminPage() {
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 mb-1 font-bold">URL / Cale Poză: Înainte de intervenție</label>
-                    <input
-                      type="text"
-                      required
-                      value={newProject.beforeImage}
-                      onChange={(e) => setNewProject({ ...newProject, beforeImage: e.target.value })}
-                      placeholder="/ref-assets/before-DmrOVzle.png sau link extern"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
-                    />
+                    <label className="block text-slate-700 mb-1 font-bold">Poză: Înainte de intervenție *</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        required
+                        value={newProject.beforeImage}
+                        onChange={(e) => setNewProject({ ...newProject, beforeImage: e.target.value })}
+                        placeholder="/ref-assets/before-DmrOVzle.png sau link"
+                        className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs font-mono"
+                      />
+                      <label className="cursor-pointer px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 shrink-0 border border-amber-300 transition-colors shadow-xs">
+                        {uploadingImage === "before" ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                            <span>Se încarcă...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5 text-amber-800" />
+                            <span>Încarcă Poză</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          disabled={uploadingImage !== null}
+                          onChange={(e) => handleUploadProjectImage(e, "before")}
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 mb-1 font-bold">URL / Cale Poză: După recepție</label>
-                    <input
-                      type="text"
-                      required
-                      value={newProject.afterImage}
-                      onChange={(e) => setNewProject({ ...newProject, afterImage: e.target.value })}
-                      placeholder="/ref-assets/after-C5YhGlz_.png sau link extern"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm"
-                    />
+                    <label className="block text-slate-700 mb-1 font-bold">Poză: După recepție *</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        required
+                        value={newProject.afterImage}
+                        onChange={(e) => setNewProject({ ...newProject, afterImage: e.target.value })}
+                        placeholder="/ref-assets/after-C5YhGlz_.png sau link"
+                        className="flex-1 px-3 py-2 rounded-xl bg-white border border-amber-900/25 text-slate-900 shadow-sm text-xs font-mono"
+                      />
+                      <label className="cursor-pointer px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-950 rounded-xl font-serif font-bold text-xs flex items-center gap-1.5 shrink-0 border border-amber-300 transition-colors shadow-xs">
+                        {uploadingImage === "after" ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                            <span>Se încarcă...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5 text-amber-800" />
+                            <span>Încarcă Poză</span>
+                          </>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          disabled={uploadingImage !== null}
+                          onChange={(e) => handleUploadProjectImage(e, "after")}
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div>
