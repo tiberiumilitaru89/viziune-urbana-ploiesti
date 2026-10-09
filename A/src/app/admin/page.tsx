@@ -34,6 +34,7 @@ import {
   ExternalLink,
   Sparkles,
   Check,
+  Archive,
 } from "lucide-react";
 import {
   AuditRequest,
@@ -268,11 +269,12 @@ export default function AdminPage() {
     showToast("Fotografia a fost adăugată în galeria lucrării!");
   };
 
-  const handleDeletePhotoFromProject = async (projectId: string, photoId: string) => {
+  const handleDeletePhotoFromProject = async (projectId: string, photoId: string, photoUrl?: string) => {
     const targetProject = projects.find((p) => p.id === projectId);
     if (!targetProject) return;
-    if (!confirm("Sigur doriți să eliminați această fotografie din galerie?")) return;
+    if (!confirm("ATENȚIE: Sigur doriți să ștergeți DEFINITIV această fotografie din baza de date și stocare?")) return;
 
+    const urlToDelete = photoUrl || targetProject.gallery?.find((p) => p.id === photoId)?.url;
     const updatedGallery = (targetProject.gallery || []).filter((p) => p.id !== photoId);
     const updatedProject: ProjectItem = {
       ...targetProject,
@@ -282,7 +284,23 @@ export default function AdminPage() {
     const updatedProjects = projects.map((p) => (p.id === updatedProject.id ? updatedProject : p));
     setProjects(updatedProjects);
     await saveProjectToDb(updatedProject);
-    showToast("Fotografia a fost ștearsă din galerie.");
+
+    if (urlToDelete) {
+      try {
+        await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "hard_delete_photo",
+            payload: { projectId, photoId, photoUrl: urlToDelete },
+          }),
+        });
+      } catch (err) {
+        console.warn("Storage cleanup notice:", err);
+      }
+    }
+
+    showToast("Fotografia a fost ștearsă definitiv!");
   };
 
   const handleSetPhotoAsCover = async (projectId: string, photoUrl: string, type: "before" | "after") => {
@@ -446,6 +464,32 @@ export default function AdminPage() {
       }
     } catch {
       alert("Eroare la arhivarea formularului.");
+    }
+  };
+
+  const handleHardDeleteF230 = async (id: string, name?: string) => {
+    if (
+      !confirm(
+        `ATENȚIE: Această acțiune este IREVERSIBILĂ!\n\nSigur doriți să ștergeți DEFINITIV formularul 230 ${name ? `pentru "${name}"` : ""} din baza de date Supabase?\nDocumentul fiscal va fi distrus complet din PostgreSQL.`
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/formular-230", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "hard_delete", id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setF230List((prev) => prev.filter((f) => f.id !== id));
+        showToast("Formularul 230 a fost șters definitiv din baza de date!");
+      } else {
+        alert("Eroare la ștergerea definitivă a formularului.");
+      }
+    } catch {
+      alert("Eroare de conexiune la server.");
     }
   };
 
@@ -685,6 +729,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleHardDeleteDonation = async (id: string) => {
+    if (
+      !confirm(
+        "ATENȚIE: Această acțiune este IREVERSIBILĂ!\n\nSigur doriți să ștergeți DEFINITIV această donație din baza de date Supabase?"
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "hard_delete_donation", payload: { id } }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDonations((prev) => prev.filter((d) => d.id !== id));
+        showToast("Donația a fost ștearsă definitiv din baza de date!");
+      } else {
+        alert("Eroare la ștergerea donației.");
+      }
+    } catch {
+      alert("Eroare de conexiune la server.");
+    }
+  };
+
   // Save Association (Single or All) to Supabase
   const saveAssociationToDb = async (assoc: AuditRequest) => {
     try {
@@ -718,6 +788,31 @@ export default function AdminPage() {
           showToast(`Asociația "${assoc.building}" a fost arhivată în siguranță!`);
         } else {
           alert("Eroare la arhivare.");
+        }
+      } catch {
+        alert("Eroare de conexiune.");
+      }
+    }
+  };
+
+  const handleHardDeleteAssociation = async (assoc: AuditRequest) => {
+    if (
+      confirm(
+        `ATENȚIE: Această acțiune este IREVERSIBILĂ!\n\nSigur doriți să ștergeți DEFINITIV asociația "${assoc.building}" din baza de date Supabase?\nToate înregistrările acestui imobil vor fi eliminate complet din PostgreSQL.`
+      )
+    ) {
+      try {
+        const res = await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hard_delete_association", payload: { id: assoc.id } }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setAssociations((prev) => prev.filter((item) => item.id !== assoc.id));
+          showToast(`Asociația "${assoc.building}" a fost ștearsă definitiv din baza de date!`);
+        } else {
+          alert("Eroare la ștergerea definitivă a asociației.");
         }
       } catch {
         alert("Eroare de conexiune.");
@@ -761,6 +856,31 @@ export default function AdminPage() {
     }
   };
 
+  const handleHardDeletePartner = async (partner: PartnerItem) => {
+    if (
+      confirm(
+        `ATENȚIE: Această acțiune este IREVERSIBILĂ!\n\nSigur doriți să ștergeți DEFINITIV partenerul "${partner.name}" din baza de date Supabase?`
+      )
+    ) {
+      try {
+        const res = await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hard_delete_partner", payload: { id: partner.id } }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setPartners((prev) => prev.filter((p) => p.id !== partner.id));
+          showToast(`Partenerul "${partner.name}" a fost șters definitiv din baza de date!`);
+        } else {
+          alert("Eroare la ștergerea definitivă a partenerului.");
+        }
+      } catch {
+        alert("Eroare de conexiune.");
+      }
+    }
+  };
+
   const handleUpdatePartnerAppStatus = async (id: string, status: "nou" | "contactat" | "arhivat") => {
     try {
       const res = await fetch("/api/admin/data", {
@@ -780,6 +900,31 @@ export default function AdminPage() {
       }
     } catch {
       alert("Eroare la actualizarea statusului.");
+    }
+  };
+
+  const handleHardDeletePartnerApp = async (id: string) => {
+    if (
+      confirm(
+        "ATENȚIE: Această acțiune este IREVERSIBILĂ!\n\nSigur doriți să ștergeți DEFINITIV această cerere de parteneriat din baza de date?"
+      )
+    ) {
+      try {
+        const res = await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hard_delete_partner_application", payload: { id } }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setPartnerApplications((prev) => prev.filter((app) => app.id !== id));
+          showToast("Cererea de parteneriat a fost ștearsă definitiv din baza de date!");
+        } else {
+          alert("Eroare la ștergerea cererii.");
+        }
+      } catch {
+        alert("Eroare de conexiune.");
+      }
     }
   };
 
@@ -815,6 +960,33 @@ export default function AdminPage() {
         }
       } catch {
         alert("Eroare la arhivare.");
+      }
+    }
+  };
+
+  const handleHardDeleteProject = async (project: ProjectItem) => {
+    if (
+      confirm(
+        `ATENȚIE: Această acțiune este IREVERSIBILĂ!\n\nSigur doriți să ștergeți DEFINITIV lucrarea "${project.title}" din baza de date Supabase?\nToate fotografiile și detaliile vor fi distruse ireversibil.`
+      )
+    ) {
+      try {
+        const res = await fetch("/api/admin/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "hard_delete_project", payload: { id: project.id } }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          const remaining = projects.filter((p) => p.id !== project.id);
+          setProjects(remaining);
+          setSelectedProjectId(remaining[0]?.id || "");
+          showToast(`Lucrarea "${project.title}" a fost ștearsă definitiv din baza de date!`);
+        } else {
+          alert("Eroare la ștergerea definitivă a lucrării.");
+        }
+      } catch {
+        alert("Eroare de conexiune.");
       }
     }
   };
@@ -1613,19 +1785,30 @@ export default function AdminPage() {
                       <span>Generează Fișă Avizier (PDF / Print)</span>
                     </button>
 
-                    <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => saveAssociationToDb(assoc)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-white bg-emerald-700 hover:bg-emerald-600 transition-colors shadow-sm"
-                    >
-                      <Save className="w-3.5 h-3.5" /> Salvează în Baza de Date
-                    </button>
-                    <button
-                      onClick={() => handleArchiveAssociation(assoc)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif text-rose-700 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 transition-colors border border-rose-200"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Șterge / Arhivează
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => saveAssociationToDb(assoc)}
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-serif font-bold text-white bg-emerald-700 hover:bg-emerald-600 transition-colors shadow-sm"
+                      >
+                        <Save className="w-3.5 h-3.5" /> Salvează în DB
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleArchiveAssociation(assoc)}
+                        title="Arhivează asociația (o ascunde din liste, dar rămâne protejată în DB)"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-300"
+                      >
+                        <Archive className="w-3.5 h-3.5" /> Arhivează
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleHardDeleteAssociation(assoc)}
+                        title="Șterge definitiv și ireversibil asociația din baza de date Supabase"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-serif font-bold text-rose-700 hover:text-white bg-rose-50 hover:bg-rose-600 transition-colors border border-rose-300 shadow-xs"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Șterge Definitiv din DB
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -1753,13 +1936,24 @@ export default function AdminPage() {
                       <p className="text-xs text-amber-800 font-serif font-semibold">{partner.role}</p>
                     </div>
 
-                    <button
-                      onClick={() => handleArchivePartner(partner)}
-                      title="Arhivează partenerul"
-                      className="text-slate-400 hover:text-rose-600 p-1 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleArchivePartner(partner)}
+                        title="Arhivează partenerul (ascuns dar păstrat în DB)"
+                        className="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                      >
+                        <Archive className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleHardDeletePartner(partner)}
+                        title="Șterge DEFINITIV partenerul din baza de date Supabase"
+                        className="text-rose-600 hover:text-white hover:bg-rose-600 p-1.5 rounded-lg transition-colors border border-rose-200"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <p className="text-xs text-slate-600 leading-relaxed font-sans">{partner.description}</p>
@@ -1855,6 +2049,15 @@ export default function AdminPage() {
                               Arhivează
                             </button>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => handleHardDeletePartnerApp(app.id)}
+                            className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white font-bold border border-rose-200 transition-colors flex items-center gap-1"
+                            title="Șterge definitiv această cerere din baza de date"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Șterge Definitiv</span>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -2139,14 +2342,26 @@ export default function AdminPage() {
                   </div>
 
                   {currentProject && (
-                    <button
-                      onClick={() => handleArchiveProject(currentProject)}
-                      title="Arhivează această lucrare"
-                      className="self-end sm:self-center flex items-center gap-1.5 px-3 py-2 text-xs font-serif font-bold text-rose-700 hover:text-white hover:bg-rose-600 rounded-xl border border-rose-300 transition-colors"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Arhivează Lucrarea</span>
-                    </button>
+                    <div className="self-end sm:self-center flex flex-wrap items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleArchiveProject(currentProject)}
+                        title="Arhivează această lucrare (o ascunde, dar rămâne salvată în DB)"
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-serif font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-300 transition-colors"
+                      >
+                        <Archive className="w-3.5 h-3.5" />
+                        <span>Arhivează</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleHardDeleteProject(currentProject)}
+                        title="Șterge definitiv și ireversibil lucrarea și toate fotografiile asociate din baza de date"
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs font-serif font-bold text-rose-700 hover:text-white bg-rose-50 hover:bg-rose-600 rounded-xl border border-rose-300 transition-colors shadow-xs"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Șterge Definitiv Lucrarea</span>
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -2427,10 +2642,10 @@ export default function AdminPage() {
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleDeletePhotoFromProject(currentProject.id, photo.id);
+                                  handleDeletePhotoFromProject(currentProject.id, photo.id, photo.url);
                                 }}
-                                title="Elimină definitiv această fotografie din proiect"
-                                aria-label="Șterge fotografia"
+                                title="Șterge definitiv această fotografie din baza de date și stocare"
+                                aria-label="Șterge fotografia definitiv"
                                 className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-700 text-white shadow-md hover:scale-110 transition-all z-10"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -2476,15 +2691,15 @@ export default function AdminPage() {
                                 </button>
                               </div>
 
-                              {/* Buton Text Clar de Eliminare / Ștergere */}
+                              {/* Buton Text Clar de Eliminare / Ștergere Definitivă */}
                               <button
                                 type="button"
-                                onClick={() => handleDeletePhotoFromProject(currentProject.id, photo.id)}
-                                title="Elimină definitiv fotografia din galerie"
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-lg transition-all shadow-xs"
+                                onClick={() => handleDeletePhotoFromProject(currentProject.id, photo.id, photo.url)}
+                                title="Șterge definitiv fotografia din baza de date și stocare"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-300 hover:border-rose-600 rounded-lg transition-all shadow-xs"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
-                                <span>Elimină</span>
+                                <span>Șterge Definitiv</span>
                               </button>
                             </div>
                           </div>
@@ -2905,9 +3120,18 @@ export default function AdminPage() {
                                 <span>Vezi PDF</span>
                               </button>
                               <button
+                                type="button"
                                 onClick={() => handleArchiveF230(item.id)}
                                 title="Arhivează formularul (rămâne securizat în baza de date)"
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                              >
+                                <Archive className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleHardDeleteF230(item.id, `${item.lastName} ${item.firstName}`)}
+                                title="Șterge DEFINITIV formularul din baza de date Supabase"
+                                className="p-1.5 rounded-lg text-rose-600 hover:text-white hover:bg-rose-600 transition-colors border border-rose-200"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -3037,6 +3261,7 @@ export default function AdminPage() {
                       <th className="py-3.5 px-4">Destinație (Asociație / Bloc)</th>
                       <th className="py-3.5 px-4">Data</th>
                       <th className="py-3.5 px-4">Status & Gestiune</th>
+                      <th className="py-3.5 px-4 text-center">Acțiuni</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-amber-900/10 text-slate-800">
@@ -3131,12 +3356,22 @@ export default function AdminPage() {
                               <option value="finalizat">Finalizat & Decontat</option>
                             </select>
                           </td>
+                          <td className="py-3.5 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleHardDeleteDonation(d.id)}
+                              title="Șterge definitiv această înregistrare de donație din baza de date"
+                              className="p-1.5 rounded-lg text-rose-600 hover:text-white hover:bg-rose-600 transition-colors border border-rose-200"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
                         </tr>
                       ))}
 
                     {donations.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="py-12 text-center text-slate-500 font-serif italic">
+                        <td colSpan={8} className="py-12 text-center text-slate-500 font-serif italic">
                           <HeartHandshake className="w-8 h-8 text-amber-700/40 mx-auto mb-2" />
                           Nu există încă donații sau sponsorizări înregistrate în sistem.
                         </td>

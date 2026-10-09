@@ -123,6 +123,23 @@ export async function archiveAssociation(id: string): Promise<boolean> {
   }
 }
 
+export async function hardDeleteAssociation(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("associations")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("Eroare la ștergerea definitivă a asociației din Supabase:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Excepție la ștergerea definitivă a asociației:", err);
+    return false;
+  }
+}
+
 // ==========================================
 // 2. PARTENERI
 // ==========================================
@@ -180,6 +197,23 @@ export async function archivePartner(id: string): Promise<boolean> {
       .eq("id", id);
     return !error;
   } catch {
+    return false;
+  }
+}
+
+export async function hardDeletePartner(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("partners")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("Eroare la ștergerea definitivă a partenerului din Supabase:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Excepție la ștergerea definitivă a partenerului:", err);
     return false;
   }
 }
@@ -247,6 +281,23 @@ export async function updatePartnerApplicationStatus(
       .eq("id", id);
     return !error;
   } catch {
+    return false;
+  }
+}
+
+export async function hardDeletePartnerApplication(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("partner_applications")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("Eroare la ștergerea definitivă a cererii de parteneriat:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Excepție la ștergerea definitivă a cererii de parteneriat:", err);
     return false;
   }
 }
@@ -329,6 +380,65 @@ export async function archiveProject(id: string): Promise<boolean> {
       .eq("id", id);
     return !error;
   } catch {
+    return false;
+  }
+}
+
+export async function deleteStorageFile(fileUrl: string): Promise<boolean> {
+  try {
+    if (!fileUrl) return true;
+    if (!fileUrl.includes("/storage/v1/object/public/")) return true;
+    const parts = fileUrl.split("/storage/v1/object/public/");
+    if (parts.length < 2) return true;
+    const bucketAndPath = parts[1];
+    const slashIdx = bucketAndPath.indexOf("/");
+    if (slashIdx === -1) return true;
+    const bucket = bucketAndPath.substring(0, slashIdx);
+    const filePath = decodeURIComponent(bucketAndPath.substring(slashIdx + 1));
+    const { error } = await supabaseAdmin.storage.from(bucket).remove([filePath]);
+    if (error) {
+      console.warn("Atenționare la ștergerea fișierului din Supabase Storage:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("Excepție la ștergerea fișierului din storage:", err);
+    return false;
+  }
+}
+
+export async function hardDeleteProject(id: string): Promise<boolean> {
+  try {
+    // 1. Preluăm datele proiectului pentru a șterge fișierele foto din Supabase Storage
+    const { data: proj } = await supabaseAdmin
+      .from("projects")
+      .select("before_image, after_image, gallery")
+      .eq("id", id)
+      .single();
+
+    if (proj) {
+      if (proj.before_image) await deleteStorageFile(proj.before_image);
+      if (proj.after_image) await deleteStorageFile(proj.after_image);
+      if (Array.isArray(proj.gallery)) {
+        for (const p of proj.gallery) {
+          if (p?.url) await deleteStorageFile(p.url);
+        }
+      }
+    }
+
+    // 2. Ștergem fizic înregistrarea din PostgreSQL
+    const { error } = await supabaseAdmin
+      .from("projects")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Eroare la ștergerea definitivă a proiectului:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Excepție la ștergerea definitivă a proiectului:", err);
     return false;
   }
 }
@@ -521,6 +631,23 @@ export async function archiveFormular230(id: string): Promise<boolean> {
   }
 }
 
+export async function hardDeleteFormular230(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("formulare_230")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("Eroare la ștergerea definitivă a formularului 230:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Excepție la ștergerea definitivă a formularului 230:", err);
+    return false;
+  }
+}
+
 // ==========================================
 // 7. DONAȚII & SPONSORIZĂRI
 // ==========================================
@@ -592,6 +719,23 @@ export async function saveDonationDb(donation: DonationEntry): Promise<boolean> 
     return true;
   } catch (err) {
     console.error("Excepție la salvarea donației în Supabase:", err);
+    return false;
+  }
+}
+
+export async function hardDeleteDonation(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("donations")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("Eroare la ștergerea definitivă a donației din Supabase:", error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Excepție la ștergerea definitivă a donației:", err);
     return false;
   }
 }

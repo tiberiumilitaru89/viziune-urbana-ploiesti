@@ -9,7 +9,8 @@ import {
   fetchOngConfig, 
   saveOngConfig, 
   updateFormular230StatusDb, 
-  archiveFormular230 
+  archiveFormular230,
+  hardDeleteFormular230 
 } from "@/lib/db";
 
 const Formular230Schema = z.object({
@@ -208,6 +209,13 @@ export async function PUT(req: Request) {
       if (!id) return NextResponse.json({ success: false, error: "Lipsește ID-ul" }, { status: 400 });
       const archived = await archiveFormular230(id);
       return NextResponse.json({ success: archived });
+    }
+
+    if (body.action === "hard_delete") {
+      const { id } = body;
+      if (!id) return NextResponse.json({ success: false, error: "Lipsește ID-ul" }, { status: 400 });
+      const deleted = await hardDeleteFormular230(id);
+      return NextResponse.json({ success: deleted });
     }
 
     if (body.action === "update_config") {

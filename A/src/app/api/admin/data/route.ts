@@ -5,20 +5,26 @@ import {
   fetchAssociations, 
   saveAssociation, 
   archiveAssociation,
+  hardDeleteAssociation,
   fetchPartners,
   savePartner,
   archivePartner,
+  hardDeletePartner,
   fetchProjects,
   saveProject,
   archiveProject,
+  hardDeleteProject,
   fetchMetrics,
   saveMetrics,
   fetchOngConfig,
   saveOngConfig,
   fetchPartnerApplications,
   updatePartnerApplicationStatus,
+  hardDeletePartnerApplication,
   fetchDonations,
   updateDonationStatus,
+  hardDeleteDonation,
+  deleteStorageFile,
 } from "@/lib/db";
 
 export async function GET(req: Request) {
@@ -145,6 +151,12 @@ const updateDonationStatusSchema = z.object({
   status: z.enum(["inregistrat", "confirmat", "finalizat", "arhivat"]),
 });
 
+const hardDeletePhotoSchema = z.object({
+  projectId: z.string().trim().min(1).max(100),
+  photoId: z.string().trim().min(1).max(100),
+  photoUrl: z.string().trim().min(1).max(1000),
+});
+
 export async function POST(req: Request) {
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Verificare sesiune admin
   if (!isRequestAuthenticated(req)) {
@@ -217,6 +229,39 @@ export async function POST(req: Request) {
       case "update_donation_status": {
         const validated = updateDonationStatusSchema.parse(payload);
         success = await updateDonationStatus(validated.id, validated.status as "inregistrat" | "confirmat" | "finalizat");
+        break;
+      }
+      case "hard_delete_association": {
+        const validated = idPayloadSchema.parse(payload);
+        success = await hardDeleteAssociation(validated.id);
+        break;
+      }
+      case "hard_delete_partner": {
+        const validated = idPayloadSchema.parse(payload);
+        success = await hardDeletePartner(validated.id);
+        break;
+      }
+      case "hard_delete_project": {
+        const validated = idPayloadSchema.parse(payload);
+        success = await hardDeleteProject(validated.id);
+        break;
+      }
+      case "hard_delete_partner_application": {
+        const validated = idPayloadSchema.parse(payload);
+        success = await hardDeletePartnerApplication(validated.id);
+        break;
+      }
+      case "hard_delete_donation": {
+        const validated = idPayloadSchema.parse(payload);
+        success = await hardDeleteDonation(validated.id);
+        break;
+      }
+      case "hard_delete_photo": {
+        const validated = hardDeletePhotoSchema.parse(payload);
+        if (validated.photoUrl) {
+          await deleteStorageFile(validated.photoUrl);
+        }
+        success = true;
         break;
       }
       default:
