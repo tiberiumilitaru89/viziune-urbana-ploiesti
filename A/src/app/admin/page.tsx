@@ -25,6 +25,9 @@ import {
   Download,
   X,
   Loader2,
+  HeartHandshake,
+  Coins,
+  Mail,
 } from "lucide-react";
 import {
   AuditRequest,
@@ -36,6 +39,7 @@ import {
   Formular230Status,
   OngConfig,
   PartnerApplication,
+  DonationEntry,
 } from "@/lib/types";
 import {
   INITIAL_ASSOCIATIONS,
@@ -45,7 +49,7 @@ import {
 } from "@/lib/data";
 import { Formular230OfficialDoc } from "@/components/form230/Formular230OfficialDoc";
 
-type AdminTab = "associations" | "partners" | "projects" | "metrics" | "form230";
+type AdminTab = "associations" | "partners" | "projects" | "metrics" | "form230" | "donations";
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -78,6 +82,11 @@ export default function AdminPage() {
   const [selectedFormForPreview, setSelectedFormForPreview] = useState<Formular230Entry | null>(null);
   const [isSavingOngConfig, setIsSavingOngConfig] = useState(false);
   const [isLoadingF230, setIsLoadingF230] = useState(false);
+
+  // Donații & Sponsorizări States
+  const [donations, setDonations] = useState<DonationEntry[]>([]);
+  const [donationFilter, setDonationFilter] = useState<string>("all");
+  const [donationSearch, setDonationSearch] = useState<string>("");
 
   // Filters & Searches
   const [assocFilter, setAssocFilter] = useState<string>("all");
@@ -168,6 +177,7 @@ export default function AdminPage() {
         if (json.data.projects?.length > 0) setProjects(json.data.projects);
         if (json.data.metrics) setMetrics(json.data.metrics);
         if (json.data.ongConfig) setOngConfig(json.data.ongConfig);
+        if (json.data.donations) setDonations(json.data.donations);
       }
     } catch {
       // Fallback to local or initial
@@ -261,7 +271,34 @@ export default function AdminPage() {
     return `${cnp.substring(0, 3)}******${cnp.substring(9)}`;
   };
 
-  // Export Borderou Centralizator Formular 230 ANAF (CSV cu UTF-8 BOM pentru Excel)
+  // ==========================================
+  // SHARED CSV EXPORT ENGINE (Excel UTF-8 BOM)
+  // ==========================================
+  const escapeCsv = (val: string | number | undefined | null) => {
+    const str = String(val ?? "");
+    if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r") || str.includes(";")) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const downloadCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
+    const csvContent =
+      "\uFEFF" +
+      [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 1. Export Borderou Centralizator Formular 230 ANAF
   const handleExportAnafBorderou = () => {
     if (f230List.length === 0) {
       alert("Nu există formulare 230 înregistrate pentru a genera borderoul.");
@@ -284,14 +321,6 @@ export default function AdminPage() {
       "Data Inregistrarii",
     ];
 
-    const escapeCsv = (val: string | number | undefined | null) => {
-      const str = String(val ?? "");
-      if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    };
-
     const rows = f230List.map((item, index) => [
       index + 1,
       escapeCsv(item.lastName),
@@ -308,22 +337,167 @@ export default function AdminPage() {
       new Date(item.createdAt).toLocaleDateString("ro-RO"),
     ]);
 
-    const csvContent =
-      "\uFEFF" +
-      [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
     const today = new Date().toISOString().split("T")[0];
-    link.setAttribute("href", url);
-    link.setAttribute("download", `Borderou_ANAF_Formulare230_VUP_${today}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    downloadCsv(`Borderou_ANAF_Formulare230_VUP_${today}.csv`, headers, rows);
+    showToast("Borderoul oficial ANAF (CSV/Excel) a fost descărcat cu succes!");
+  };
 
-    showToast("Borderoul oficial ANAF (CSV/Excel) a fost generat și descărcat!");
+  // 2. Export Registru Asociații de Proprietari & Cereri de Audit
+  const handleExportAssociations = () => {
+    if (associations.length === 0) {
+      alert("Nu există asociații înregistrate în sistem pentru export.");
+      return;
+    }
+
+    const headers = [
+      "Nr. Crt.",
+      "ID Cerere",
+      "Nume Solicitant",
+      "Telefon Contact",
+      "Asociatie / Bloc",
+      "Adresa Completa",
+      "Cartier",
+      "Problema Semnalata",
+      "Status Inregistrare",
+      "Formulare 230 Stranse",
+      "Tinta Formulare 230",
+      "Procent Formulare",
+      "Fond Manopera Strans (RON)",
+      "Tinta Fond Manopera (RON)",
+      "Procent Fond",
+      "Data Inregistrarii",
+    ];
+
+    const rows = associations.map((assoc, idx) => {
+      const formPct = assoc.formsTarget > 0 ? Math.round((assoc.formsCollected / assoc.formsTarget) * 100) : 0;
+      const fundPct = assoc.fundsTarget > 0 ? Math.round((assoc.fundsCollected / assoc.fundsTarget) * 100) : 0;
+      return [
+        idx + 1,
+        escapeCsv(assoc.id),
+        escapeCsv(assoc.name),
+        escapeCsv(assoc.phone),
+        escapeCsv(assoc.building),
+        escapeCsv(assoc.address),
+        escapeCsv(assoc.neighborhood || ""),
+        escapeCsv(assoc.problem),
+        escapeCsv(assoc.status),
+        assoc.formsCollected,
+        assoc.formsTarget,
+        `${formPct}%`,
+        assoc.fundsCollected,
+        assoc.fundsTarget,
+        `${fundPct}%`,
+        assoc.createdAt ? new Date(assoc.createdAt).toLocaleDateString("ro-RO") : "",
+      ];
+    });
+
+    const today = new Date().toISOString().split("T")[0];
+    downloadCsv(`Registru_Asociatii_Proprietari_VUP_${today}.csv`, headers, rows);
+    showToast("Registrul Asociațiilor de Proprietari (CSV/Excel) a fost descărcat!");
+  };
+
+  // 3. Export Candidaturi Solicitări Parteneri Tehnic („Devino Partener”)
+  const handleExportPartnerApplications = () => {
+    if (partnerApplications.length === 0) {
+      alert("Nu există candidaturi de parteneriat înregistrate pentru export.");
+      return;
+    }
+
+    const headers = [
+      "Nr. Crt.",
+      "ID Solicitare",
+      "Companie / Nume Instalator",
+      "Telefon Contact",
+      "Servicii & Descriere Oferta",
+      "Status Solicitare",
+      "Data Inregistrarii",
+    ];
+
+    const rows = partnerApplications.map((app, idx) => [
+      idx + 1,
+      escapeCsv(app.id),
+      escapeCsv(app.companyName),
+      escapeCsv(app.phone),
+      escapeCsv(app.description),
+      escapeCsv(app.status),
+      app.createdAt ? new Date(app.createdAt).toLocaleDateString("ro-RO") : "",
+    ]);
+
+    const today = new Date().toISOString().split("T")[0];
+    downloadCsv(`Candidaturi_Parteneri_Tehnici_VUP_${today}.csv`, headers, rows);
+    showToast("Registrul solicitărilor de parteneriat a fost descărcat!");
+  };
+
+  // 4. Export Registru Donații & Sponsorizări
+  const handleExportDonations = () => {
+    if (donations.length === 0) {
+      alert("Nu există donații sau sponsorizări înregistrate pentru export.");
+      return;
+    }
+
+    const headers = [
+      "Nr. Crt.",
+      "ID Donatie",
+      "Tip Donatie",
+      "Donator / Companie",
+      "Telefon Contact",
+      "Email Contact",
+      "Suma Donata (RON)",
+      "Tip Materiale",
+      "Cantitate",
+      "Unitate Masura",
+      "Asociatie Beneficiara",
+      "Status Donatie",
+      "Data Inregistrarii",
+    ];
+
+    const rows = donations.map((d, idx) => [
+      idx + 1,
+      escapeCsv(d.id),
+      d.type === "materiale" ? "Materiale" : "Bani (Fond Manoperă)",
+      escapeCsv(d.companyOrName),
+      escapeCsv(d.phone),
+      escapeCsv(d.email || ""),
+      d.amountRon ? `${d.amountRon} RON` : "—",
+      escapeCsv(d.materialType || "—"),
+      d.quantity !== undefined ? d.quantity : "—",
+      escapeCsv(d.unit || "—"),
+      escapeCsv(d.targetAssociationName || "Fond General Ploiești"),
+      escapeCsv(d.status),
+      d.createdAt ? new Date(d.createdAt).toLocaleDateString("ro-RO") : "",
+    ]);
+
+    const today = new Date().toISOString().split("T")[0];
+    downloadCsv(`Registru_Donatii_Sponsorizari_VUP_${today}.csv`, headers, rows);
+    showToast("Registrul donațiilor și sponsorizărilor a fost descărcat!");
+  };
+
+  // 5. Update Status Donație în Supabase
+  const handleUpdateDonationStatus = async (
+    id: string,
+    status: "inregistrat" | "confirmat" | "finalizat"
+  ) => {
+    try {
+      const res = await fetch("/api/admin/data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_donation_status",
+          payload: { id, status },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDonations((prev) =>
+          prev.map((d) => (d.id === id ? { ...d, status } : d))
+        );
+        showToast(`Statusul donației a fost actualizat la "${status}" în Supabase!`);
+      } else {
+        alert("Eroare la actualizarea statusului donației.");
+      }
+    } catch {
+      alert("Eroare de conexiune la server.");
+    }
   };
 
   // Save Association (Single or All) to Supabase
@@ -883,6 +1057,18 @@ export default function AdminPage() {
             <FileText className="w-4 h-4" />
             <span>Formulare 230 & Setări ONG ({f230List.length})</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab("donations")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-serif font-bold transition-all ${
+              activeTab === "donations"
+                ? "bg-[#c48834] text-white shadow-md"
+                : "text-slate-700 hover:text-slate-950 hover:bg-amber-100/50"
+            }`}
+          >
+            <HeartHandshake className="w-4 h-4" />
+            <span>Donații & Sponsorizări ({donations.length})</span>
+          </button>
         </div>
 
         {/* ============================================================== */}
@@ -922,14 +1108,27 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Add Association Button */}
-              <button
-                onClick={() => setShowAddAssoc(!showAddAssoc)}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 transition-colors shrink-0 shadow-md"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{showAddAssoc ? "Anulează" : "Adaugă Asociație Nouă"}</span>
-              </button>
+              {/* Action Buttons Right */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleExportAssociations}
+                  className="flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-serif font-bold text-slate-800 bg-white border border-amber-900/25 hover:bg-amber-50 hover:border-amber-600 transition-all shadow-sm"
+                  title="Descarcă tabelul complet al asociațiilor și cererilor de audit în format Excel / CSV"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                  <span>Exportă Asociații (Excel / CSV)</span>
+                </button>
+
+                {/* Add Association Button */}
+                <button
+                  onClick={() => setShowAddAssoc(!showAddAssoc)}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-serif font-bold text-white bg-[#c48834] hover:bg-amber-600 transition-colors shadow-md"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{showAddAssoc ? "Anulează" : "Adaugă Asociație Nouă"}</span>
+                </button>
+              </div>
             </div>
 
             {/* Expandable Form: Adaugă Asociație */}
@@ -1359,7 +1558,7 @@ export default function AdminPage() {
 
             {/* Secțiune Solicitări Noi de la Potențiali Parteneri (Devino Partener) */}
             <div className="pt-8 border-t border-amber-900/20 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h4 className="font-serif text-base font-bold text-[#071330]">
                     Solicitări Primite: „Devino Partener Tehnic” ({partnerApplications.length})
@@ -1368,6 +1567,18 @@ export default function AdminPage() {
                     Firme și instalatori care au completat formularul din site pentru a fi contactați de administrator
                   </p>
                 </div>
+
+                {partnerApplications.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleExportPartnerApplications}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-serif font-bold text-slate-800 bg-white border border-amber-900/25 hover:bg-amber-50 hover:border-amber-600 transition-all shadow-sm shrink-0"
+                    title="Descarcă registrul candidaturilor de parteneriat în format Excel / CSV"
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                    <span>Exportă Solicitări (Excel / CSV)</span>
+                  </button>
+                )}
               </div>
 
               {partnerApplications.length === 0 ? (
@@ -1992,6 +2203,226 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* ============================================================== */}
+        {/* TAB 6: DONAȚII & SPONSORIZĂRI (BANI & MATERIALE)               */}
+        {/* ============================================================== */}
+        {activeTab === "donations" && (
+          <div className="space-y-6">
+            {/* Header & Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white/90 backdrop-blur-md border border-amber-900/15 rounded-2xl p-5 shadow-sm space-y-1">
+                <div className="flex items-center justify-between text-slate-500 text-xs font-serif font-bold">
+                  <span>Fond Colectat din Donații</span>
+                  <Coins className="w-4 h-4 text-amber-600" />
+                </div>
+                <div className="font-serif text-2xl font-bold text-[#071330]">
+                  {donations
+                    .filter((d) => d.type === "bani" && d.amountRon)
+                    .reduce((sum, d) => sum + (d.amountRon || 0), 0)
+                    .toLocaleString("ro-RO")}{" "}
+                  <span className="text-sm font-normal text-slate-600">RON</span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  {donations.filter((d) => d.type === "bani").length} donații financiare directe
+                </p>
+              </div>
+
+              <div className="bg-white/90 backdrop-blur-md border border-amber-900/15 rounded-2xl p-5 shadow-sm space-y-1">
+                <div className="flex items-center justify-between text-slate-500 text-xs font-serif font-bold">
+                  <span>Sponsorizări în Materiale</span>
+                  <HeartHandshake className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div className="font-serif text-2xl font-bold text-[#071330]">
+                  {donations.filter((d) => d.type === "materiale").length}
+                </div>
+                <p className="text-[11px] text-slate-500">Țevi, fitinguri PPR, izolații, vopsea etc.</p>
+              </div>
+
+              <div className="bg-white/90 backdrop-blur-md border border-amber-900/15 rounded-2xl p-5 shadow-sm space-y-1">
+                <div className="flex items-center justify-between text-slate-500 text-xs font-serif font-bold">
+                  <span>Total Înregistrări Active</span>
+                  <BarChart3 className="w-4 h-4 text-blue-600" />
+                </div>
+                <div className="font-serif text-2xl font-bold text-[#071330]">{donations.length}</div>
+                <p className="text-[11px] text-slate-500">Înregistrate în baza de date securizată</p>
+              </div>
+            </div>
+
+            {/* Actions Bar: Search, Filters & Export Button */}
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
+              <div className="flex flex-wrap items-center gap-3 flex-1">
+                <div className="relative min-w-[240px] flex-1 sm:max-w-xs">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    value={donationSearch}
+                    onChange={(e) => setDonationSearch(e.target.value)}
+                    placeholder="Caută donator, firmă, telefon..."
+                    className="w-full pl-9 pr-3.5 py-2 rounded-xl bg-white/95 border border-amber-900/25 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-amber-600 shadow-sm"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5 p-1 bg-white/85 border border-amber-900/20 rounded-xl text-xs font-serif shadow-sm">
+                  {[
+                    { key: "all", label: "Toate" },
+                    { key: "bani", label: "Bani" },
+                    { key: "materiale", label: "Materiale" },
+                  ].map((filter) => (
+                    <button
+                      key={filter.key}
+                      onClick={() => setDonationFilter(filter.key)}
+                      className={`px-3 py-1.5 rounded-lg capitalize transition-colors ${
+                        donationFilter === filter.key
+                          ? "bg-[#c48834] text-white font-bold shadow-sm"
+                          : "text-slate-600 hover:text-slate-950"
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Export Button */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleExportDonations}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-serif font-bold text-slate-800 bg-white border border-amber-900/25 hover:bg-amber-50 hover:border-amber-600 transition-all shadow-sm"
+                  title="Descarcă tabelul complet al donațiilor și sponsorizărilor în format Excel / CSV"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-700" />
+                  <span>Exportă Registru Donații (Excel / CSV)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Donations Table */}
+            <div className="bg-white/90 backdrop-blur-md border border-amber-900/20 rounded-3xl overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#FAF7F2] border-b border-amber-900/15 text-slate-700 font-serif font-bold">
+                      <th className="py-3.5 px-4">#</th>
+                      <th className="py-3.5 px-4">Donator / Companie</th>
+                      <th className="py-3.5 px-4">Contact</th>
+                      <th className="py-3.5 px-4">Tip & Valoare</th>
+                      <th className="py-3.5 px-4">Destinație (Asociație / Bloc)</th>
+                      <th className="py-3.5 px-4">Data</th>
+                      <th className="py-3.5 px-4">Status & Gestiune</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-900/10 text-slate-800">
+                    {donations
+                      .filter((d) => {
+                        const matchesSearch =
+                          donationSearch === "" ||
+                          d.companyOrName.toLowerCase().includes(donationSearch.toLowerCase()) ||
+                          d.phone.includes(donationSearch) ||
+                          (d.email && d.email.toLowerCase().includes(donationSearch.toLowerCase())) ||
+                          (d.targetAssociationName &&
+                            d.targetAssociationName.toLowerCase().includes(donationSearch.toLowerCase()));
+
+                        const matchesFilter =
+                          donationFilter === "all" ||
+                          (donationFilter === "bani" && d.type === "bani") ||
+                          (donationFilter === "materiale" && d.type === "materiale");
+
+                        return matchesSearch && matchesFilter;
+                      })
+                      .map((d, idx) => (
+                        <tr key={d.id} className="hover:bg-amber-500/5 transition-colors">
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">{idx + 1}</td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-serif font-bold text-[#071330]">{d.companyOrName}</div>
+                            {d.description && (
+                              <p className="text-[11px] text-slate-500 italic mt-0.5 line-clamp-1">
+                                {d.description}
+                              </p>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 font-sans space-y-0.5">
+                            <div className="flex items-center gap-1.5 text-amber-900 font-semibold">
+                              <Phone className="w-3 h-3 text-slate-400" />
+                              <a href={`tel:${d.phone}`} className="hover:underline">
+                                {d.phone}
+                              </a>
+                            </div>
+                            {d.email && (
+                              <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
+                                <Mail className="w-3 h-3 text-slate-400" />
+                                <a href={`mailto:${d.email}`} className="hover:underline">
+                                  {d.email}
+                                </a>
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 font-serif">
+                            {d.type === "bani" ? (
+                              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                                <Coins className="w-3.5 h-3.5 text-emerald-600" />
+                                <span>{d.amountRon ? `${d.amountRon.toLocaleString("ro-RO")} RON` : "Bani"}</span>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 font-bold border border-blue-200">
+                                <HeartHandshake className="w-3.5 h-3.5 text-blue-600" />
+                                <span>
+                                  {d.quantity} {d.unit || "buc"} {d.materialType || "materiale"}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 font-serif font-medium text-slate-700">
+                            {d.targetAssociationName ? (
+                              <span className="text-[#071330] font-bold">{d.targetAssociationName}</span>
+                            ) : (
+                              <span className="text-slate-500 italic">Fond General Ploiești</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                            {d.createdAt ? new Date(d.createdAt).toLocaleDateString("ro-RO") : "—"}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <select
+                              value={d.status}
+                              onChange={(e) =>
+                                handleUpdateDonationStatus(
+                                  d.id,
+                                  e.target.value as "inregistrat" | "confirmat" | "finalizat"
+                                )
+                              }
+                              className={`px-2.5 py-1 rounded-lg text-xs font-bold border shadow-sm ${
+                                d.status === "finalizat"
+                                  ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                  : d.status === "confirmat"
+                                  ? "bg-blue-50 text-blue-800 border-blue-300"
+                                  : "bg-amber-50 text-amber-800 border-amber-300"
+                              }`}
+                            >
+                              <option value="inregistrat">Înregistrat</option>
+                              <option value="confirmat">Confirmat / Preluat</option>
+                              <option value="finalizat">Finalizat & Decontat</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+
+                    {donations.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-12 text-center text-slate-500 font-serif italic">
+                          <HeartHandshake className="w-8 h-8 text-amber-700/40 mx-auto mb-2" />
+                          Nu există încă donații sau sponsorizări înregistrate în sistem.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* Modal Previzualizare & Tipărire Formular 230 ANAF Oficial */}
         {selectedFormForPreview && (

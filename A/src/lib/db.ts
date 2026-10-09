@@ -486,6 +486,49 @@ export async function archiveFormular230(id: string): Promise<boolean> {
 // 7. DONAȚII & SPONSORIZĂRI
 // ==========================================
 
+export async function fetchDonations(): Promise<DonationEntry[]> {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("donations")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error || !data) return [];
+
+    return data.map((d) => ({
+      id: d.id,
+      type: d.type === "materiale" ? "materiale" : "bani",
+      targetAssociationName: d.target_association_name || undefined,
+      amountRon: d.amount_ron !== null && d.amount_ron !== undefined ? Number(d.amount_ron) : undefined,
+      materialType: d.material_type || undefined,
+      quantity: d.material_quantity !== null && d.material_quantity !== undefined ? Number(d.material_quantity) : undefined,
+      unit: d.material_unit || undefined,
+      companyOrName: d.donor_name_or_company,
+      phone: d.donor_phone,
+      email: d.donor_email || undefined,
+      status: d.status === "confirmat" ? "confirmat" : d.status === "finalizat" ? "finalizat" : "inregistrat",
+      createdAt: d.created_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function updateDonationStatus(
+  id: string,
+  status: "inregistrat" | "confirmat" | "finalizat"
+): Promise<boolean> {
+  try {
+    const { error } = await supabaseAdmin
+      .from("donations")
+      .update({ status })
+      .eq("id", id);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function saveDonationDb(donation: DonationEntry): Promise<boolean> {
   try {
     const { error } = await supabaseAdmin.from("donations").insert({
@@ -512,3 +555,4 @@ export async function saveDonationDb(donation: DonationEntry): Promise<boolean> 
     return true;
   }
 }
+

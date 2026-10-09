@@ -59,8 +59,9 @@ Thumbs.db
 .env
 .env.*
 !.env.example
-data/
-*/data/
+/data/
+/A/data/
+!**/src/**
 
 # Internal docs & knowledge
 .knowledge/
