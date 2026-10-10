@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { PublicAssociationSummary, AuditStatus } from "@/lib/types";
 import { INITIAL_ASSOCIATIONS } from "@/lib/data";
+import { fetchPublicDataClient } from "@/lib/publicData";
 
 const FSM_STEPS = [
   { key: "nou", label: "1. Cerere Înregistrată", desc: "Dosar deschis și preluat în registrul civic", icon: FileText },
@@ -59,29 +60,23 @@ export default function StatusTrackerPage() {
       }
 
       try {
-        const res = await fetch("/api/public/data");
-        const json = await res.json();
-        let loadedList: PublicAssociationSummary[] = [];
-
-        if (json.success && json.data?.associations) {
-          loadedList = json.data.associations;
-        } else {
-          // Fallback din date locale
-          loadedList = INITIAL_ASSOCIATIONS.map((r, idx) => ({
-            id: r.id,
-            dosarNumber: r.dosarNumber || `DOSAR-PH-${101 + idx}`,
-            building: r.building,
-            address: r.address,
-            neighborhood: r.neighborhood,
-            problem: r.problem,
-            status: r.status,
-            formsCollected: r.formsCollected,
-            formsTarget: r.formsTarget,
-            fundsCollected: r.fundsCollected,
-            fundsTarget: r.fundsTarget,
-            createdAt: r.createdAt,
-          }));
-        }
+        const bundle = await fetchPublicDataClient();
+        const loadedList = bundle.associations.length > 0
+          ? [...bundle.associations]
+          : INITIAL_ASSOCIATIONS.map((r, idx) => ({
+              id: r.id,
+              dosarNumber: r.dosarNumber || `DOSAR-PH-${101 + idx}`,
+              building: r.building,
+              address: r.address,
+              neighborhood: r.neighborhood,
+              problem: r.problem,
+              status: r.status,
+              formsCollected: r.formsCollected,
+              formsTarget: r.formsTarget,
+              fundsCollected: r.fundsCollected,
+              fundsTarget: r.fundsTarget,
+              createdAt: r.createdAt,
+            }));
 
         setAssociations(loadedList);
         if (loadedList.length > 0) {

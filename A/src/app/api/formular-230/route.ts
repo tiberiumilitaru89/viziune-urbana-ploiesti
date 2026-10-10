@@ -12,6 +12,7 @@ import {
   archiveFormular230,
   hardDeleteFormular230 
 } from "@/lib/db";
+import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
 
 const Formular230Schema = z.object({
   lastName: z.string().trim().min(2, "Numele de familie este obligatoriu"),
@@ -229,6 +230,9 @@ export async function PUT(req: Request) {
         percentage: validatedConfig.percentage || current.percentage,
         distributeYears: validatedConfig.distributeYears ?? current.distributeYears,
       });
+      if (updated) {
+        invalidatePublicDataServerCache();
+      }
       return NextResponse.json({ success: updated });
     }
 

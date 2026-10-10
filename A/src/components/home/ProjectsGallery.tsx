@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { INITIAL_PROJECTS } from "@/lib/data";
 import { ProjectItem } from "@/lib/types";
+import { fetchPublicDataClient } from "@/lib/publicData";
 import { CheckCircle2, AlertTriangle, ArrowRight, Sliders, Columns, Sparkles, Building2, ChevronDown } from "lucide-react";
 
 export function ProjectsGallery() {
@@ -19,11 +20,10 @@ export function ProjectsGallery() {
   const [viewMode, setViewMode] = useState<"side-by-side" | "slider">("side-by-side");
 
   useEffect(() => {
-    fetch("/api/public/data")
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success && res.data?.projects?.length > 0) {
-          const finalizateOnly = res.data.projects.filter(
+    fetchPublicDataClient()
+      .then((data) => {
+        if (data.projects.length > 0) {
+          const finalizateOnly = data.projects.filter(
             (p: ProjectItem) => p.status === "finalizat" && !p.isArchived
           );
           if (finalizateOnly.length > 0) {

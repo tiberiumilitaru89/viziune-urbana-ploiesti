@@ -5,16 +5,16 @@ import Image from "next/image";
 import { GraduationCap, Award, Users, Wrench, Landmark, ShieldCheck } from "lucide-react";
 import { INITIAL_PARTNERS } from "@/lib/data";
 import { PartnerItem } from "@/lib/types";
+import { fetchPublicDataClient } from "@/lib/publicData";
 
 export function PartnersStrip() {
   const [partners, setPartners] = useState<PartnerItem[]>([...INITIAL_PARTNERS]);
 
   useEffect(() => {
-    fetch("/api/public/data")
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success && res.data?.partners?.length > 0) {
-          setPartners(res.data.partners);
+    fetchPublicDataClient()
+      .then((data) => {
+        if (data.partners.length > 0) {
+          setPartners([...data.partners]);
         }
       })
       .catch(() => {

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { getPublicAssociations } from "@/lib/data";
 import { PublicAssociationSummary } from "@/lib/types";
+import { fetchPublicDataClient } from "@/lib/publicData";
 import { PLOIESTI_NEIGHBORHOODS, detectNeighborhood } from "@/lib/neighborhoods";
 import { Building2, FileSpreadsheet, Coins, CheckCircle, Clock, ArrowRight, Landmark, MapPin, Navigation } from "lucide-react";
 
@@ -16,12 +17,11 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>("toate");
 
   useEffect(() => {
-    // Fetch live data from Supabase via public API
-    fetch("/api/public/data")
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success && res.data?.associations?.length > 0) {
-          setAssociations(res.data.associations);
+    // Fetch live data from shared client cache
+    fetchPublicDataClient()
+      .then((data) => {
+        if (data.associations.length > 0) {
+          setAssociations([...data.associations]);
         }
       })
       .catch(() => {

@@ -1,39 +1,25 @@
 import { NextResponse } from "next/server";
-import { 
-  fetchPublicAssociations, 
-  fetchPartners, 
-  fetchProjects, 
-  fetchMetrics, 
-  fetchOngConfig 
-} from "@/lib/db";
+import { getCachedPublicData } from "@/lib/publicServerCache";
 
-// Revalidare la fiecare 30 de secunde pe Vercel (Edge Cache)
-export const revalidate = 30;
+// Revalidare la nivel Edge CDN la fiecare 60 de secunde
+export const revalidate = 60;
 
 export async function GET() {
   try {
-    const [associations, partners, projects, metrics, ongConfig] = await Promise.all([
-      fetchPublicAssociations(),
-      fetchPartners(false),
-      fetchProjects(false, true), // Doar proiectele finalizate și ne-arhivate sunt expuse public pe site
-      fetchMetrics(),
-      fetchOngConfig(),
-    ]);
+    const { data, cached, degraded } = await getCachedPublicData();
 
     return NextResponse.json(
       {
         success: true,
-        data: {
-          associations,
-          partners,
-          projects,
-          metrics,
-          ongConfig,
-        },
+        data,
+        cached,
+        ...(degraded ? { degraded: true } : {}),
       },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=59",
+          "Cache-Control": degraded
+            ? "public, s-maxage=30, stale-while-revalidate=60"
+            : "public, s-maxage=60, stale-while-revalidate=120",
         },
       }
     );

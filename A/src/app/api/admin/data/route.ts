@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isRequestAuthenticated } from "@/lib/auth";
 import { AuditRequest } from "@/lib/types";
+import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
 import { 
   fetchAssociations, 
   saveAssociation, 
@@ -266,6 +267,10 @@ export async function POST(req: Request) {
       }
       default:
         return NextResponse.json({ success: false, error: "Acțiune necunoscută" }, { status: 400 });
+    }
+
+    if (success) {
+      invalidatePublicDataServerCache();
     }
 
     return NextResponse.json({ success });

@@ -10,6 +10,7 @@ import { AuditModal } from "@/components/modals/AuditModal";
 import { DonationModal } from "@/components/modals/DonationModal";
 import { ProjectItem, PhotoStage } from "@/lib/types";
 import { INITIAL_PROJECTS } from "@/lib/data";
+import { fetchPublicDataClient } from "@/lib/publicData";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -59,27 +60,28 @@ function ArhivaLucrariContent() {
     }
   }, [urlProjectId]);
 
-  // Încărcare proiecte publice (strict finalizate)
+  // Încărcare proiecte publice (strict finalizate) din cache-ul client partajat
   useEffect(() => {
-    fetch("/api/public/data")
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success && res.data?.projects?.length > 0) {
-          const finalizateOnly = res.data.projects.filter(
+    fetchPublicDataClient()
+      .then((data) => {
+        if (data.projects.length > 0) {
+          const finalizateOnly = data.projects.filter(
             (p: ProjectItem) => p.status === "finalizat" && !p.isArchived
           );
           if (finalizateOnly.length > 0) {
             setProjects(finalizateOnly);
-            if (!urlProjectId && !activeProjectId) {
-              setActiveProjectId(finalizateOnly[0].id);
-            }
+            setActiveProjectId((prev) => {
+              if (urlProjectId) return urlProjectId;
+              const exists = finalizateOnly.some((p: ProjectItem) => p.id === prev);
+              return exists ? prev : finalizateOnly[0].id;
+            });
           }
         }
       })
       .catch(() => {
         // Fallback la INITIAL_PROJECTS
       });
-  }, [urlProjectId, activeProjectId]);
+  }, [urlProjectId]);
 
   const activeProject =
     projects.find((p) => p.id === activeProjectId) || projects[0] || INITIAL_PROJECTS[0];
@@ -499,6 +501,7 @@ function ArhivaLucrariContent() {
                           alt={photo.caption || "Fotografie din lucrare"}
                           fill
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          loading="lazy"
                           className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
 

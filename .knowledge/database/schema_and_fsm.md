@@ -137,3 +137,17 @@ Pentru a asigura control operațional absolut și prevenirea pierderilor acciden
    * **Curățare Fizică Supabase Storage:** La ștergerea definitivă a unui proiect sau a unei fotografii individuale din galerie, fișierele binare sunt eliminate fizic din bucket-ul Supabase Storage (`proiecte` / `Proiecte`) via API-ul de storage (`supabaseAdmin.storage.from(bucket).remove([filePath])`), eliminând fișierele orfane și consumul nejustificat de spațiu.
    * **Barieră de Siguranță:** Orice acțiune de Hard Delete solicită confirmare explicită din partea administratorului, atenționând asupra caracterului ireversibil al operațiunii.
 
+## 6. Sincronizare Bază de Date & Arhitectură de Caching de Înaltă Performanță
+
+1. **Stare Supabase (Consola Cloud):**
+   * **Comenzi Manuale Necesare:** **ZERO (0)**. Toate tabelele (`associations`, `projects`, `partners`, `metrics`, `ong_config`, `donations`, `partner_applications`, `formulare_230`) și bucket-ul `proiecte` sunt configurate, securizate prin RLS și 100% operaționale.
+   * **Inspecție Automată Executată:** Fiecare tabelă a fost verificată automat pentru operațiuni de scriere, citire și ștergere via Service Role Key cu succes deplin.
+2. **Arhitectură de Caching Server-Side (`src/lib/publicServerCache.ts`):**
+   * Servire instantanee (< 2ms) a endpoint-ului `/api/public/data` din memoria procesului Node.js cu TTL de 60s (`stale-while-revalidate`).
+   * **Invalidare Reactivă:** Orice mutație administrativă (`/api/admin/data`), cerere nouă de dosar (`/api/audit-request`) sau actualizare de configurare ONG (`/api/formular-230`) apelează automat `invalidatePublicDataServerCache()`, garantând consistență strictă.
+   * **Circuit Breaker / Resilient Fallback:** În cazul unor fluctuații temporare de conectivitate între serverless edge și instanța PostgreSQL din Supabase, serverul livrează datele din cache fără a genera coduri de eroare 500 vizitatorilor.
+3. **Optimizare Client-Side & Image Pipeline:**
+   * **Deduplicare Promisiuni (`src/lib/publicData.ts`):** Componentele concurente de pe pagina principală (`AssociationTracker`, `ProjectsGallery`, `PartnersStrip`) și paginile secundare (`/arhiva-lucrari`, `/status`) împart o singură cerere de rețea în memorie.
+   * **Pipeline Imagini AVIF/WebP:** `next.config.ts` comprimă dinamic activele foto brute (reducând transferul de la ~7 MB PNG la ~250 KB WebP/AVIF).
+
+

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { saveAssociation } from "@/lib/db";
+import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const requestSchema = z.object({
@@ -57,6 +58,9 @@ export async function POST(req: Request) {
     if (!saved) {
       return NextResponse.json({ success: false, message: "Eroare la salvare în baza de date" }, { status: 500 });
     }
+
+    // Invalidare cache public server-side pentru actualizare instantă pe site
+    invalidatePublicDataServerCache();
 
     // Notificare pe email către administrator & Confirmare Cetățean
     const { sendAdminNotification, sendCitizenConfirmation } = await import("@/lib/email");

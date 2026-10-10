@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SignatureCanvas } from "./SignatureCanvas";
 import { Formular230OfficialDoc } from "./Formular230OfficialDoc";
 import { OngConfig } from "@/lib/types";
+import { fetchPublicDataClient } from "@/lib/publicData";
 import { validateRomanianCnp } from "@/lib/cnp";
 import { Shield, CheckCircle2, ArrowRight, ArrowLeft, Send, AlertCircle } from "lucide-react";
 
@@ -49,10 +50,9 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal: _isEmbeddedI
   useEffect(() => {
     async function loadConfig() {
       try {
-        const res = await fetch("/api/public/data");
-        const json = await res.json();
-        if (json.success && json.data && json.data.ongConfig) {
-          setOngConfig(json.data.ongConfig);
+        const bundle = await fetchPublicDataClient();
+        if (bundle.ongConfig) {
+          setOngConfig(bundle.ongConfig);
         }
       } catch (err) {
         console.error("Eroare încărcare configurație ONG:", err);

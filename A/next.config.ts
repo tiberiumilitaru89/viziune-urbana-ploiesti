@@ -4,7 +4,21 @@ import path from "path";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
-    unoptimized: true,
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+      },
+      {
+        protocol: "https",
+        hostname: "viziuneurbanaploiesti.ro",
+      },
+      {
+        protocol: "https",
+        hostname: "www.viziuneurbanaploiesti.ro",
+      },
+    ],
   },
   eslint: {
     ignoreDuringBuilds: false,
