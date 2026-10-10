@@ -1,7 +1,7 @@
 import React from "react";
 import { FAQS } from "@/lib/data";
 
-export function JsonLd() {
+export function JsonLd({ nonce }: { readonly nonce?: string }) {
   const baseUrl = "https://viziuneurbanaploiesti.ro";
 
   const organizationSchema = {
@@ -68,14 +68,17 @@ export function JsonLd() {
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce}
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
     </>

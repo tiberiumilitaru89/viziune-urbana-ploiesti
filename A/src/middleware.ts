@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   // În development permitem 'unsafe-eval' pentru Next.js Fast Refresh & HMR
   const scriptSrc = isDev
     ? `'self' 'unsafe-eval' 'nonce-${nonce}'`
-    : `'self' 'nonce-${nonce}' 'strict-dynamic'`;
+    : `'self' 'nonce-${nonce}'`;
 
   const cspHeader = `
     default-src 'self';

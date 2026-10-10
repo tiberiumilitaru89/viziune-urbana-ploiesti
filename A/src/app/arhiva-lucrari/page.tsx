@@ -31,16 +31,26 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-function ArhivaLucrariContent() {
+function ProjectUrlSync({ onSelect }: { readonly onSelect: (id: string) => void }) {
   const searchParams = useSearchParams();
   const urlProjectId = searchParams.get("proiect");
 
+  useEffect(() => {
+    if (urlProjectId) {
+      onSelect(urlProjectId);
+    }
+  }, [urlProjectId, onSelect]);
+
+  return null;
+}
+
+function ArhivaLucrariContent() {
   const [projects, setProjects] = useState<ProjectItem[]>(() =>
     INITIAL_PROJECTS.filter((p) => p.status === "finalizat" && !p.isArchived)
   );
   const [activeProjectId, setActiveProjectId] = useState<string>(() => {
     const finalizate = INITIAL_PROJECTS.filter((p) => p.status === "finalizat" && !p.isArchived);
-    return urlProjectId || finalizate[0]?.id || "";
+    return finalizate[0]?.id || "";
   });
   const [viewMode, setViewMode] = useState<"side-by-side" | "slider">("side-by-side");
   const [sliderPos, setSliderPos] = useState(50);
@@ -53,13 +63,6 @@ function ArhivaLucrariContent() {
   // Lightbox State
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
-  // Sincronizare la schimbarea parametrului ?proiect=...
-  useEffect(() => {
-    if (urlProjectId) {
-      setActiveProjectId(urlProjectId);
-    }
-  }, [urlProjectId]);
-
   // Încărcare proiecte publice (strict finalizate) din cache-ul client partajat
   useEffect(() => {
     fetchPublicDataClient()
@@ -71,7 +74,6 @@ function ArhivaLucrariContent() {
           if (finalizateOnly.length > 0) {
             setProjects(finalizateOnly);
             setActiveProjectId((prev) => {
-              if (urlProjectId) return urlProjectId;
               const exists = finalizateOnly.some((p: ProjectItem) => p.id === prev);
               return exists ? prev : finalizateOnly[0].id;
             });
@@ -81,7 +83,7 @@ function ArhivaLucrariContent() {
       .catch(() => {
         // Fallback la INITIAL_PROJECTS
       });
-  }, [urlProjectId]);
+  }, []);
 
   const activeProject =
     projects.find((p) => p.id === activeProjectId) || projects[0] || INITIAL_PROJECTS[0];
@@ -137,6 +139,10 @@ function ArhivaLucrariContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent text-slate-900 selection:bg-amber-500 selection:text-slate-950">
+      <Suspense fallback={null}>
+        <ProjectUrlSync onSelect={setActiveProjectId} />
+      </Suspense>
+
       {/* Navigation */}
       <Navbar
         onOpenAuditModal={() => setAuditModalOpen(true)}
@@ -679,18 +685,5 @@ function ArhivaLucrariContent() {
 }
 
 export default function ArhivaLucrariPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#FAF7F2] flex items-center justify-center font-serif text-slate-700">
-          <div className="text-center p-8">
-            <div className="w-10 h-10 border-4 border-[#c48834] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="font-bold text-sm">Se încarcă arhiva tehnică a lucrărilor...</p>
-          </div>
-        </div>
-      }
-    >
-      <ArhivaLucrariContent />
-    </Suspense>
-  );
+  return <ArhivaLucrariContent />;
 }

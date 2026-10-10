@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -129,15 +130,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersList = await headers();
+  const nonce = headersList.get("x-nonce") ?? undefined;
+
   return (
     <html lang="ro" className={`${playfairDisplay.variable} ${plusJakartaSans.variable} scroll-smooth`}>
       <head>
-        <JsonLd />
+        <JsonLd nonce={nonce} />
       </head>
       <body className="min-h-screen bg-[#FAF7F2] text-slate-900 antialiased selection:bg-amber-500 selection:text-slate-950 relative overflow-x-hidden w-full font-sans">
         {/* Civic Background: Responsive — Portrait for mobile, Landscape for desktop */}
