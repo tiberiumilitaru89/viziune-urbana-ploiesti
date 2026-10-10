@@ -2,7 +2,7 @@
 id: okf-security-pii-auth
 title: "Securitate, Protecție PII & Autentificare Deterministă"
 domain: security
-last_verified: 2026-10-08
+last_verified: 2026-10-10
 dependencies: ["okf-index"]
 ---
 
@@ -42,3 +42,12 @@ dependencies: ["okf-index"]
 ## 5. Izolare Bază de Date & Supabase Client Roles
 * Operațiunile server-side de mutație și salvare utilizează exclusiv `supabaseAdmin` (Service Role cu `persistSession: false`), asigurând compatibilitate completă cu politicile RLS (Row Level Security).
 * Clientul public anonim `supabase` este utilizat strict pentru citiri publice permise.
+
+## 6. Politică CSP cu Nonce Dinamic & Prevenire Crash Hydration
+* **Problemă critică remediată:** Utilizarea `script-src 'self'` static în `next.config.ts` bloca scripturile inline esențiale generate de Next.js App Router (`self.__next_f.push`), provocând un ecran alb complet în browser („nu afișează nimic”).
+* **Arhitectură Implementată:**
+  - `src/middleware.ts` generează per-request un token criptografic unic (Nonce) cu `crypto.randomUUID()`.
+  - Header-ul `x-nonce` este transmis către Next.js, permițând framework-ului să atașeze automat atributul `nonce` la toate scripturile inline de hidratare.
+  - Directiva CSP `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'` elimină complet necesitatea `'unsafe-inline'` în producție, garantând conformitatea cu principiul zero-trust fără a compromite funcționalitatea.
+  - Redirect-ul domeniului alternativ către domeniul canonic folosește adresa unificată `https://viziuneurbanaploiesti.ro/:path*`.
+  - Componentele de barieră `app/error.tsx` și `app/not-found.tsx` previn căderea interfeței în ecran alb la erori neașteptate.
