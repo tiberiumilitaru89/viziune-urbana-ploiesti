@@ -62,7 +62,7 @@ export async function GET(req: Request) {
         donations,
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Eroare la încărcarea datelor din baza de date" },
       { status: 500 }

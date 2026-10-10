@@ -41,12 +41,10 @@ Thumbs.db
 *.bak
 *.backup.*
 
-# Internal knowledge, assistant caches & workspace notes
-.knowledge/
+# Internal assistant caches & scratch files
 .antigravity/
 .gemini/
 scratch/
-README.md
 
 # Non-project data & local dumps
 /data/

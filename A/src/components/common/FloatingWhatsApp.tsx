@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { MessageCircle, X, Camera } from "lucide-react";
+import { X, Camera } from "lucide-react";
 
 export function FloatingWhatsApp() {
   const pathname = usePathname();

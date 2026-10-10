@@ -6,14 +6,14 @@ import { SignatureCanvas } from "./SignatureCanvas";
 import { Formular230OfficialDoc } from "./Formular230OfficialDoc";
 import { OngConfig } from "@/lib/types";
 import { validateRomanianCnp } from "@/lib/cnp";
-import { Shield, CheckCircle2, ArrowRight, ArrowLeft, Send, Download, FileText, AlertCircle } from "lucide-react";
+import { Shield, CheckCircle2, ArrowRight, ArrowLeft, Send, AlertCircle } from "lucide-react";
 
 type Formular230WizardProps = {
   readonly onCompleted?: () => void;
   readonly isEmbeddedInModal?: boolean;
 };
 
-export function Formular230Wizard({ onCompleted, isEmbeddedInModal }: Formular230WizardProps) {
+export function Formular230Wizard({ onCompleted, isEmbeddedInModal: _isEmbeddedInModal }: Formular230WizardProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [ongConfig, setOngConfig] = useState<OngConfig>({
     name: "Asociația Viziune Urbană Ploiești",

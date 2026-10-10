@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef } from "react";
-import { X, Printer, CheckCircle2, ShieldCheck, QrCode, Phone, Building2, Calendar, FileText } from "lucide-react";
+import { X, Printer, CheckCircle2, ShieldCheck, Phone, Building2, FileText } from "lucide-react";
 import { AuditRequest } from "@/lib/types";
 
 type NoticeBoardModalProps = {

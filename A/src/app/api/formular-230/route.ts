@@ -63,7 +63,7 @@ export async function GET(req: Request) {
       totalCount: forms.length,
       forms,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Eroare la încărcarea datelor formularului 230" },
       { status: 500 }
@@ -233,7 +233,7 @@ export async function PUT(req: Request) {
     }
 
     return NextResponse.json({ success: false, error: "Acțiune necunoscută" }, { status: 400 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Eroare la procesarea cererii administrative" },
       { status: 500 }

@@ -37,7 +37,7 @@ export async function GET() {
         },
       }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Eroare la încărcarea datelor publice" },
       { status: 500 }

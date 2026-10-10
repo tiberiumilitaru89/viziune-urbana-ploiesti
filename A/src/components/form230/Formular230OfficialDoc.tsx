@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-import Image from "next/image";
-import { Printer, Download, CheckCircle2, Shield } from "lucide-react";
+import { Printer, CheckCircle2 } from "lucide-react";
 import { OngConfig } from "@/lib/types";
 
 type Formular230OfficialDocProps = {

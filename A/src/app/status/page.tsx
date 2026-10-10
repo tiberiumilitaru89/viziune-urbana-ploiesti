@@ -6,15 +6,12 @@ import Image from "next/image";
 import { 
   Search, 
   CheckCircle2, 
-  Clock, 
   FileText, 
   Wrench, 
   ShieldCheck, 
-  ChevronRight, 
   ArrowLeft,
   Building2,
   MapPin,
-  ExternalLink,
   MessageCircle,
   FileCheck
 } from "lucide-react";
@@ -328,7 +325,6 @@ export default function StatusTrackerPage() {
                         const Icon = step.icon;
                         const isDone = currentStep > idx || selectedAssoc.status === "finalizat";
                         const isCurrent = currentStep === idx && selectedAssoc.status !== "finalizat";
-                        const isPending = currentStep < idx;
 
                         return (
                           <div
@@ -476,7 +472,6 @@ export default function StatusTrackerPage() {
               <div className="space-y-3 max-h-[800px] overflow-y-auto pr-1">
                 {filtered.map((assoc) => {
                   const isSelected = selectedAssoc?.id === assoc.id;
-                  const step = getStepIndex(assoc.status);
 
                   return (
                     <button

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Heart, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check, Award, Landmark, ShieldCheck } from "lucide-react";
+import { X, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check, Award, Landmark, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { INITIAL_ASSOCIATIONS } from "@/lib/data";
 

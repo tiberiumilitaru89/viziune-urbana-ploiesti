@@ -22,7 +22,6 @@ import {
   FileText,
   FileSpreadsheet,
   Eye,
-  Download,
   X,
   Loader2,
   HeartHandshake,
@@ -360,6 +359,7 @@ export default function AdminPage() {
     };
 
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadAdminData = async () => {

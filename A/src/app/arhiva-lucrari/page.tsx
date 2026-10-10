@@ -8,7 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AuditModal } from "@/components/modals/AuditModal";
 import { DonationModal } from "@/components/modals/DonationModal";
-import { ProjectItem, ProjectPhoto, PhotoStage } from "@/lib/types";
+import { ProjectItem, PhotoStage } from "@/lib/types";
 import { INITIAL_PROJECTS } from "@/lib/data";
 import {
   ShieldCheck,
@@ -17,7 +17,6 @@ import {
   ArrowRight,
   Sliders,
   Columns,
-  Filter,
   Maximize2,
   ChevronLeft,
   ChevronRight,

@@ -92,7 +92,7 @@ export async function POST(req: Request) {
       { success: false, error: "Acțiune de autentificare necunoscută." },
       { status: 400 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Eroare internă de server la autentificare." },
       { status: 500 }
