@@ -43,11 +43,12 @@ dependencies: ["okf-index"]
 * Operațiunile server-side de mutație și salvare utilizează exclusiv `supabaseAdmin` (Service Role cu `persistSession: false`), asigurând compatibilitate completă cu politicile RLS (Row Level Security).
 * Clientul public anonim `supabase` este utilizat strict pentru citiri publice permise.
 
-## 6. Politică CSP cu Nonce Dinamic & Prevenire Crash Hydration
-* **Problemă critică remediată:** Utilizarea `script-src 'self'` static în `next.config.ts` bloca scripturile inline esențiale generate de Next.js App Router (`self.__next_f.push`), provocând un ecran alb complet în browser („nu afișează nimic”).
+## 6. Politică CSP cu Nonce Dinamic & Eliminare Blocaj Hydration / Spinner Arhivă
+* **Probleme critice remediate:**
+  1. `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'` forța browserele să ignore complet clauza `'self'` conform specificației W3C CSP Level 3. Din această cauză, toate fișierele bundle externe de chunk-uri Next.js (`/_next/static/chunks/*.js`) erau blocate ca încălcări CSP, blocând complet încărcarea JavaScript-ului și execuția React în browser.
+  2. `layout.tsx` nu era asincron și nu interoga `headers()` din `next/headers`, astfel încât framework-ul Next.js nu injecta atributul `nonce` pe scripturile interne generate.
+  3. Pe ruta `/arhiva-lucrari`, utilizarea `useSearchParams()` la nivelul rădăcinii componentei forța un bailout complet la client-side rendering învelit într-un `<Suspense fallback={<LoadingSpinner />}>`. Întrucât scripturile erau blocate de CSP, ecranul rămânea blocat la infinit pe spinnerul *"Se încarcă arhiva tehnică a lucrărilor..."*.
 * **Arhitectură Implementată:**
-  - `src/middleware.ts` generează per-request un token criptografic unic (Nonce) cu `crypto.randomUUID()`.
-  - Header-ul `x-nonce` este transmis către Next.js, permițând framework-ului să atașeze automat atributul `nonce` la toate scripturile inline de hidratare.
-  - Directiva CSP `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'` elimină complet necesitatea `'unsafe-inline'` în producție, garantând conformitatea cu principiul zero-trust fără a compromite funcționalitatea.
-  - Redirect-ul domeniului alternativ către domeniul canonic folosește adresa unificată `https://viziuneurbanaploiesti.ro/:path*`.
-  - Componentele de barieră `app/error.tsx` și `app/not-found.tsx` previn căderea interfeței în ecran alb la erori neașteptate.
+  - `src/middleware.ts` generează per-request un token criptografic unic (Nonce) cu `crypto.randomUUID()`. Directiva CSP folosește `script-src 'self' 'nonce-${nonce}'` fără `'strict-dynamic'`, permițând fișierelor bundle din `'self'` să se execute fără restricții, în timp ce scripturile de hidratare sunt autorizate prin `nonce`.
+  - `src/app/layout.tsx` devine asincron și citește `const nonce = (await headers()).get("x-nonce")`, activând mecanismul intern Next.js de atașare automată a nonce-ului pe toate scripturile și transmițându-l către `<JsonLd nonce={nonce} />`.
+  - În `src/app/arhiva-lucrari/page.tsx`, parametrul `?proiect=` este extras într-o micro-componentă decuplată `<ProjectUrlSync>` împachetată în `<Suspense fallback={null}>`. Conținutul principal al paginii (`ArhivaLucrariContent`) este randat direct server-side cu `INITIAL_PROJECTS` și datele curente, oferind utilizatorului acces instantaneu la proiecte, fără ecrane albe și fără spinner blocant.
