@@ -67,10 +67,13 @@ export function verifySessionToken(token: string | null | undefined): boolean {
     if (!crypto.timingSafeEqual(providedBuf, expectedBuf)) return false;
 
     const payloadJson = Buffer.from(payloadB64, "base64url").toString("utf-8");
-    const payload = JSON.parse(payloadJson) as SessionPayload;
+    const parsed = JSON.parse(payloadJson) as unknown;
 
-    if (payload.role !== "admin") return false;
-    if (Date.now() > payload.exp) return false;
+    if (!parsed || typeof parsed !== "object") return false;
+    const session = parsed as Partial<SessionPayload>;
+
+    if (session.role !== "admin" || typeof session.exp !== "number") return false;
+    if (Date.now() > session.exp) return false;
 
     return true;
   } catch {

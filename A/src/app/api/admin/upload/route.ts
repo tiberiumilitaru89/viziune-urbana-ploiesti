@@ -24,14 +24,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const fileEntry = formData.get("file");
 
-    if (!file) {
+    if (!fileEntry || typeof fileEntry === "string" || !(fileEntry instanceof File)) {
       return NextResponse.json(
-        { success: false, error: "Nu a fost furnizat niciun fișier." },
+        { success: false, error: "Nu a fost furnizat un fișier valid." },
         { status: 400 }
       );
     }
+
+    const file = fileEntry;
 
     // 2. Validare MIME strictă (Fără SVG sau fișiere arbitrare)
     if (!ALLOWED_MIME_TYPES.has(file.type)) {

@@ -12,7 +12,7 @@ const store = new Map<string, RateLimitRecord>();
 
 // Curățare periodică la fiecare 10 minute pentru evitarea scurgerilor de memorie
 if (typeof setInterval !== "undefined") {
-  setInterval(() => {
+  const timer = setInterval(() => {
     const now = Date.now();
     for (const [key, record] of store.entries()) {
       if (now > record.resetAt) {
@@ -20,6 +20,10 @@ if (typeof setInterval !== "undefined") {
       }
     }
   }, 10 * 60 * 1000);
+
+  if (typeof timer === "object" && timer !== null && "unref" in timer && typeof (timer as { unref: () => void }).unref === "function") {
+    (timer as { unref: () => void }).unref();
+  }
 }
 
 export type RateLimitResult = {
