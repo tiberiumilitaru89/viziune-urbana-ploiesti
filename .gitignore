@@ -51,3 +51,7 @@ scratch/
 /A/data/
 *.csv
 *.xlsx
+
+# Documentation & Rules
+.knowledge/
+*.md
