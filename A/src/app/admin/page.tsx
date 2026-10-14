@@ -1225,14 +1225,14 @@ export default function AdminPage() {
             <input
               type="text"
               name="prevent_autofill_username"
-              style={{ display: "none" }}
+              className="hidden"
               tabIndex={-1}
               autoComplete="off"
             />
             <input
               type="password"
               name="prevent_autofill_password"
-              style={{ display: "none" }}
+              className="hidden"
               tabIndex={-1}
               autoComplete="off"
             />

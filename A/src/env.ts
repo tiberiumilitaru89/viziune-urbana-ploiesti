@@ -1,10 +1,23 @@
 import { z } from "zod";
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
-  ADMIN_SECRET: z.string().min(6).default("viziune-admin-ploiesti-2026"),
-});
+const envSchema = z
+  .object({
+    NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+    NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
+    ADMIN_SECRET: z.string().min(6).default("viziune-admin-ploiesti-2026"),
+  })
+  .refine(
+    (data) => {
+      if (data.NODE_ENV === "production" && data.ADMIN_SECRET === "viziune-admin-ploiesti-2026") {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "În producție este obligatorie configurarea unui ADMIN_SECRET securizat (fără fallback implicit de dev).",
+      path: ["ADMIN_SECRET"],
+    }
+  );
 
 export const env = envSchema.parse({
   NODE_ENV: process.env.NODE_ENV,

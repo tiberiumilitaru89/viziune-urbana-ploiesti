@@ -145,20 +145,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen bg-[#FAF7F2] text-slate-900 antialiased selection:bg-amber-500 selection:text-slate-950 relative overflow-x-hidden w-full font-sans">
         {/* Civic Background: Responsive — Portrait for mobile, Landscape for desktop */}
-        <div
-          className="pointer-events-none civic-site-bg"
-          style={{
-            position: "fixed",
-            top: "var(--navbar-height, 88px)",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: "100vw",
-            height: "calc(100vh - var(--navbar-height, 88px))",
-            zIndex: 0,
-          }}
-          aria-hidden="true"
-        />
+        <div className="pointer-events-none civic-site-bg" aria-hidden="true" />
 
         {/* Page Content Container at z-10 — scrolls smoothly over the fixed background */}
         <div className="relative z-10 min-h-screen flex flex-col">
