@@ -6,7 +6,7 @@ import {
   isRequestAuthenticated, 
   verifyAdminPassword 
 } from "@/lib/auth";
-import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { checkRateLimitAsync, getClientIp } from "@/lib/rateLimit";
 
 export async function GET(req: Request) {
   const authenticated = isRequestAuthenticated(req);
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         value: "",
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "strict",
         path: "/",
         maxAge: 0,
       });
@@ -42,9 +42,9 @@ export async function POST(req: Request) {
     }
 
     if (action === "login") {
-      // Protecție Rate-Limiting împotriva atacurilor Brute-Force (5 încercări / 15 minute)
+      // Protecție Rate-Limiting distribuită împotriva atacurilor Brute-Force (5 încercări / 15 minute)
       const rateLimitKey = `admin-login:${ip}`;
-      const limit = checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000);
+      const limit = await checkRateLimitAsync(rateLimitKey, 5, 15 * 60 * 1000);
 
       if (!limit.allowed) {
         const waitMinutes = Math.ceil(limit.resetInMs / 60000);
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
         value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        sameSite: "strict",
         path: "/",
         maxAge: SESSION_DURATION_SECONDS, // 8 ore conforme politicilor de securitate
       });

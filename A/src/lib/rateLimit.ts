@@ -61,6 +61,74 @@ export function checkRateLimit(
   };
 }
 
+/**
+ * Rate limiter distribuit hibrid (Upstash Redis / Vercel KV REST API + Fallback In-Memory)
+ * Asigură persistența limitării între instanțele Serverless concurente.
+ */
+export async function checkRateLimitAsync(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<RateLimitResult> {
+  const kvUrl = (
+    process.env.UPSTASH_REDIS_REST_URL ||
+    process.env.KV_REST_API_URL ||
+    ""
+  ).trim();
+  const kvToken = (
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    process.env.KV_REST_API_TOKEN ||
+    ""
+  ).trim();
+
+  if (kvUrl && kvToken) {
+    try {
+      const windowSeconds = Math.max(1, Math.ceil(windowMs / 1000));
+      const redisKey = `vup:rl:${key}`;
+      const res = await fetch(`${kvUrl.replace(/\/$/, "")}/pipeline`, {
+        method: "POST",
+        signal: AbortSignal.timeout(1500),
+        headers: {
+          Authorization: `Bearer ${kvToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          ["INCR", redisKey],
+          ["EXPIRE", redisKey, windowSeconds, "NX"],
+          ["PTTL", redisKey],
+        ]),
+      });
+
+      if (res.ok) {
+        const data = (await res.json()) as Array<{ result?: number }>;
+        const currentCount = Number(data?.[0]?.result ?? 1);
+        const pttl = Number(data?.[2]?.result ?? windowMs);
+        const resetInMs = pttl > 0 ? pttl : windowMs;
+
+        if (currentCount > limit) {
+          store.set(key, { count: currentCount, resetAt: Date.now() + resetInMs });
+          return {
+            allowed: false,
+            remaining: 0,
+            resetInMs,
+          };
+        }
+
+        store.set(key, { count: currentCount, resetAt: Date.now() + resetInMs });
+        return {
+          allowed: true,
+          remaining: Math.max(0, limit - currentCount),
+          resetInMs,
+        };
+      }
+    } catch {
+      // Fallback determinist la store-ul din memorie dacă KV nu răspunde în 1.5s
+    }
+  }
+
+  return checkRateLimit(key, limit, windowMs);
+}
+
 export function getClientIp(req: Request): string {
   const forwarded = req.headers.get("x-forwarded-for");
   if (forwarded) {

@@ -12,8 +12,8 @@ export function middleware(request: NextRequest) {
   const cspHeader = `
     default-src 'self';
     script-src ${scriptSrc};
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    font-src 'self' https://fonts.gstatic.com data:;
+    style-src 'self' 'unsafe-inline';
+    font-src 'self' data:;
     img-src 'self' data: https: blob:;
     connect-src 'self' https://*.supabase.co;
     frame-ancestors 'none';
@@ -34,6 +34,10 @@ export function middleware(request: NextRequest) {
   });
 
   response.headers.set("Content-Security-Policy", cspHeader);
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
   return response;
 }
