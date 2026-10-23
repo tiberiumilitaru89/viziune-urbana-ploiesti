@@ -91,7 +91,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
               onClick={() => setSelectedNeighborhood("toate")}
               className={`px-4 py-2 rounded-xl text-xs font-serif font-bold transition-all shadow-sm ${
                 selectedNeighborhood === "toate"
-                  ? "bg-[#c48834] text-white shadow-md scale-105"
+                  ? "bg-[#92400e] text-white shadow-md scale-105"
                   : "bg-white/80 text-slate-700 border border-amber-900/20 hover:bg-amber-100/60"
               }`}
             >
@@ -108,7 +108,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
                   onClick={() => setSelectedNeighborhood(neighborhood)}
                   className={`px-3.5 py-2 rounded-xl text-xs font-serif transition-all shadow-sm flex items-center gap-1.5 ${
                     isSelected
-                      ? "bg-[#c48834] text-white font-bold shadow-md scale-105"
+                      ? "bg-[#92400e] text-white font-bold shadow-md scale-105"
                       : "bg-white/80 text-slate-700 border border-amber-900/20 hover:bg-amber-100/60 font-semibold"
                   }`}
                 >

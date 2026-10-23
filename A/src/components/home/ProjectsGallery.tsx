@@ -177,7 +177,7 @@ export function ProjectsGallery() {
             {/* Buton proeminent direct la cele două poze */}
             <Link
               href={`/arhiva-lucrari?proiect=${activeProject.id}`}
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#c48834] hover:bg-amber-600 text-white font-serif font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all shrink-0 self-start sm:self-center"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#92400e] hover:bg-[#78350f] text-white font-serif font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all shrink-0 self-start sm:self-center"
             >
               <Sparkles className="w-4 h-4 text-amber-200" />
               <span>Vezi Galeria Foto ({activeProject.gallery?.length || 0} imagini)</span>
@@ -195,7 +195,6 @@ export function ProjectsGallery() {
                   alt={`Înainte de intervenție - ${activeProject.title}`}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  priority
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-[#be123c] text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-serif font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">
@@ -211,7 +210,6 @@ export function ProjectsGallery() {
                   alt={`După recepție - ${activeProject.title}`}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  priority
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute top-3 left-3 bg-[#15803d] text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-serif font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">
@@ -235,7 +233,6 @@ export function ProjectsGallery() {
                   src={activeProject.afterImage}
                   alt="După lucrare subsol Ploiești"
                   fill
-                  priority
                   className="object-cover object-center pointer-events-none"
                 />
                 <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-[#15803d] text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-serif font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">
@@ -253,7 +250,6 @@ export function ProjectsGallery() {
                   src={activeProject.beforeImage}
                   alt="Înainte de lucrare subsol Ploiești"
                   fill
-                  priority
                   className="object-cover object-center pointer-events-none"
                 />
                 <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-[#be123c] text-white px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-serif font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">

@@ -74,7 +74,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-3xl font-serif font-black text-amber-800/40 group-hover:text-amber-700 transition-colors">
+                    <span className="text-3xl font-serif font-black text-amber-900/75 group-hover:text-amber-700 transition-colors">
                       {s.num}
                     </span>
                     <div className={`p-2.5 rounded-xl border ${s.accent}`}>

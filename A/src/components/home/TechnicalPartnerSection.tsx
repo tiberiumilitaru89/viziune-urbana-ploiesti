@@ -103,9 +103,9 @@ export function TechnicalPartnerSection() {
               <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white/85 backdrop-blur-md border border-amber-900/15 shadow-sm">
                 <Award className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-serif font-bold text-[#071330] mb-0.5">
+                  <h3 className="text-sm font-serif font-bold text-[#071330] mb-0.5">
                     15+ Ani de Experiență Dedicată Blocurilor
-                  </h4>
+                  </h3>
                   <p className="text-xs text-slate-600">
                     Sute de coloane înlocuite și subsoluri modernizate conform celor mai exigente standarde europene.
                   </p>
@@ -115,9 +115,9 @@ export function TechnicalPartnerSection() {
               <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white/85 backdrop-blur-md border border-amber-900/15 shadow-sm">
                 <CalendarCheck className="w-5 h-5 text-amber-700 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-serif font-bold text-[#071330] mb-0.5">
+                  <h3 className="text-sm font-serif font-bold text-[#071330] mb-0.5">
                     Garanție 5 Ani
-                  </h4>
+                  </h3>
                   <p className="text-xs text-slate-600">
                     Garanție de 5 ani oferită de către partenerii de execuție prin contract și proces-verbal de recepție.
                   </p>
@@ -127,9 +127,9 @@ export function TechnicalPartnerSection() {
               <div className="flex items-start gap-3.5 p-4 rounded-xl bg-white/85 backdrop-blur-md border border-amber-900/15 shadow-sm">
                 <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-serif font-bold text-[#071330] mb-0.5">
+                  <h3 className="text-sm font-serif font-bold text-[#071330] mb-0.5">
                     Echipă Completă de Instalatori Autorizați
-                  </h4>
+                  </h3>
                   <p className="text-xs text-slate-600">
                     Personal calificat cu vasta experienta in domeniul termic si sanitar.
                   </p>
@@ -145,7 +145,7 @@ export function TechnicalPartnerSection() {
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-serif font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#128C7E] hover:bg-[#075E54] text-white font-serif font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95"
               >
                 {/* WhatsApp SVG Icon */}
                 <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
