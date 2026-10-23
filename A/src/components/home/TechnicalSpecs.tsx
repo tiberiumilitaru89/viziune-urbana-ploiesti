@@ -1,13 +1,18 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import { SPEC_ITEMS } from "@/lib/data";
 import { Wrench, CheckCircle2, ShieldCheck, ArrowRight } from "lucide-react";
+import { useModals } from "@/context/ModalContext";
 
 type TechnicalSpecsProps = {
-  readonly onOpenAuditModal: () => void;
+  readonly onOpenAuditModal?: () => void;
 };
 
 export function TechnicalSpecs({ onOpenAuditModal }: TechnicalSpecsProps) {
+  const modals = useModals();
+  const handleAudit = onOpenAuditModal || modals.openAuditModal;
   return (
     <section id="caiet-sarcini" className="py-14 sm:py-20 lg:py-24 bg-transparent border-t border-amber-900/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -82,7 +87,7 @@ export function TechnicalSpecs({ onOpenAuditModal }: TechnicalSpecsProps) {
           </div>
 
           <button
-            onClick={onOpenAuditModal}
+            onClick={handleAudit}
             className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 shadow-md transition-all active:scale-95 shrink-0"
           >
             <span>Înscrie Asociația</span>

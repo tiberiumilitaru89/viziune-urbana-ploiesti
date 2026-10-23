@@ -8,11 +8,15 @@ import { fetchPublicDataClient } from "@/lib/publicData";
 import { PLOIESTI_NEIGHBORHOODS, detectNeighborhood } from "@/lib/neighborhoods";
 import { Building2, FileSpreadsheet, Coins, CheckCircle, Clock, ArrowRight, Landmark, MapPin, Navigation } from "lucide-react";
 
+import { useModals } from "@/context/ModalContext";
+
 type AssociationTrackerProps = {
-  readonly onOpenAuditModal: () => void;
+  readonly onOpenAuditModal?: () => void;
 };
 
 export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps) {
+  const modals = useModals();
+  const handleAudit = onOpenAuditModal || modals.openAuditModal;
   const [associations, setAssociations] = useState<PublicAssociationSummary[]>(() => getPublicAssociations());
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>("toate");
 
@@ -240,7 +244,7 @@ export function AssociationTracker({ onOpenAuditModal }: AssociationTrackerProps
 
         <div className="text-center">
           <button
-            onClick={onOpenAuditModal}
+            onClick={handleAudit}
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-600 shadow-md transition-all active:scale-95"
           >
             <span>Înscrie Asociația Ta din Ploiești în Registru</span>

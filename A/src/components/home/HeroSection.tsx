@@ -2,13 +2,18 @@
 
 import React from "react";
 import { ArrowRight, ShieldCheck, Heart, Award, CheckCircle2, Landmark } from "lucide-react";
+import { useModals } from "@/context/ModalContext";
 
 type HeroSectionProps = {
-  readonly onOpenAuditModal: () => void;
-  readonly onOpenDonationModal: () => void;
+  readonly onOpenAuditModal?: () => void;
+  readonly onOpenDonationModal?: () => void;
 };
 
 export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSectionProps) {
+  const modals = useModals();
+  const handleAudit = onOpenAuditModal || modals.openAuditModal;
+  const handleDonation = onOpenDonationModal || modals.openDonationModal;
+
   return (
     <section
       className="relative min-h-[calc(100vh-var(--navbar-height,88px))] flex items-center justify-center pt-28 sm:pt-32 pb-20 sm:pb-24 overflow-hidden bg-transparent text-slate-900"
@@ -17,8 +22,8 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
         <div className="max-w-3xl">
           {/* Institutional Civic Badge */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[#F5EDE1] border border-amber-700/30 backdrop-blur-md mb-8 shadow-sm">
-            <Award className="w-4 h-4 text-amber-800" />
-            <span className="text-xs font-serif font-bold tracking-[0.2em] uppercase text-amber-900">
+            <Award className="w-4 h-4 text-amber-900" />
+            <span className="text-xs font-serif font-bold tracking-[0.2em] uppercase text-amber-950">
               Inițiativă civică în municipiul Ploiești
             </span>
           </div>
@@ -39,7 +44,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
           {/* Action CTAs */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-10 sm:mb-14">
             <button
-              onClick={onOpenAuditModal}
+              onClick={handleAudit}
               className="group flex items-center justify-center gap-2.5 sm:gap-3 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-600 shadow-xl shadow-amber-950/20 transition-all active:scale-[0.98]"
             >
               <ShieldCheck className="w-5 h-5 text-white shrink-0" />
@@ -48,7 +53,7 @@ export function HeroSection({ onOpenAuditModal, onOpenDonationModal }: HeroSecti
             </button>
 
             <button
-              onClick={onOpenDonationModal}
+              onClick={handleDonation}
               className="flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl text-sm font-semibold text-slate-800 bg-white hover:bg-slate-50 border border-amber-900/20 transition-all shadow-md active:scale-[0.98]"
             >
               <Heart className="w-4 h-4 text-rose-500 shrink-0" />

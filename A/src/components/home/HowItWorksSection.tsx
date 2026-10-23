@@ -1,11 +1,17 @@
+"use client";
+
 import React from "react";
 import { FileText, ClipboardCheck, Gift, Wrench, AlertCircle, ArrowRight } from "lucide-react";
+import { useModals } from "@/context/ModalContext";
 
 type HowItWorksSectionProps = {
-  readonly onOpenAuditModal: () => void;
+  readonly onOpenAuditModal?: () => void;
 };
 
 export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) {
+  const modals = useModals();
+  const handleAudit = onOpenAuditModal || modals.openAuditModal;
+
   const steps = [
     {
       num: "01",
@@ -109,7 +115,7 @@ export function HowItWorksSection({ onOpenAuditModal }: HowItWorksSectionProps) 
           </div>
 
           <button
-            onClick={onOpenAuditModal}
+            onClick={handleAudit}
             className="w-full sm:w-auto justify-center sm:self-center shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-600 transition-all shadow-md active:scale-95 text-center"
           >
             <span>Înscrie Asociația</span>

@@ -1,12 +1,17 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import { Building2, Heart, ArrowRight } from "lucide-react";
+import { useModals } from "@/context/ModalContext";
 
 type DonorsSectionProps = {
-  readonly onOpenDonationModal: () => void;
+  readonly onOpenDonationModal?: () => void;
 };
 
 export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
+  const modals = useModals();
+  const handleDonation = onOpenDonationModal || modals.openDonationModal;
   return (
     <section id="donatori" className="py-14 sm:py-20 lg:py-24 bg-transparent border-t border-amber-900/15">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -50,7 +55,7 @@ export function DonorsSection({ onOpenDonationModal }: DonorsSectionProps) {
             </div>
 
             <button
-              onClick={onOpenDonationModal}
+              onClick={handleDonation}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 shadow-md transition-all active:scale-95"
             >
               <span>Încheie un Contract de Sponsorizare</span>
