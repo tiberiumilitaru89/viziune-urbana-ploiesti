@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://viziuneurbanaploiesti.ro"),
+  metadataBase: new URL("https://www.viziuneurbanaploiesti.ro"),
   title: {
     default: "Viziune Urbană Ploiești | Reabilitare Subsoluri de Bloc & Sponsorizări",
     template: "%s | Viziune Urbană Ploiești",
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
   creator: "Asociația Viziune Urbană Ploiești",
   publisher: "Asociația Viziune Urbană Ploiești",
   alternates: {
-    canonical: "/",
+    canonical: "./",
   },
   robots: {
     index: true,
@@ -109,7 +109,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Viziune Urbană Ploiești | Reabilitare Subsoluri de Bloc & Sponsorizări",
     description: "Sponsorizări materiale pentru rețeaua principală a blocului tău — fără costuri de materiale pentru asociația de proprietari.",
-    url: "https://viziuneurbanaploiesti.ro",
+    url: "https://www.viziuneurbanaploiesti.ro",
     siteName: "Viziune Urbană Ploiești",
     locale: "ro_RO",
     type: "website",

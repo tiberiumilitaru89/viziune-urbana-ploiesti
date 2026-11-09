@@ -2,7 +2,7 @@ import React from "react";
 import { FAQS } from "@/lib/data";
 
 export function JsonLd({ nonce }: { readonly nonce?: string }) {
-  const baseUrl = "https://viziuneurbanaploiesti.ro";
+  const baseUrl = "https://www.viziuneurbanaploiesti.ro";
 
   const organizationSchema = {
     "@context": "https://schema.org",
@@ -26,7 +26,7 @@ export function JsonLd({ nonce }: { readonly nonce?: string }) {
     "email": "viziuneurbanaploiesti@yahoo.com",
     "telephone": "+40720015592",
     "sameAs": [
-      "https://viziune-urbana-ploiesti.vercel.app"
+      "https://www.viziuneurbanaploiesti.ro"
     ]
   };
 
