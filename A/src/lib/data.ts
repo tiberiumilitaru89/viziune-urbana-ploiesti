@@ -1,6 +1,5 @@
 import { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary, PartnerItem, GlobalMetrics, Formular230Entry, OngConfig, Formular230Status } from "./types";
 import { detectNeighborhood } from "./neighborhoods";
-import { encryptPII, decryptPII } from "./pii-crypto";
 
 export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [
   {
@@ -478,28 +477,18 @@ let formulare230State: Formular230Entry[] = [
 ];
 
 export function getAllFormulare230(): readonly Formular230Entry[] {
-  return formulare230State.map((f) => ({
-    ...f,
-    cnp: decryptPII(f.cnp),
-    signatureDataUrl: decryptPII(f.signatureDataUrl),
-  }));
+  return formulare230State;
 }
 
 export function addFormular230(data: Omit<Formular230Entry, "id" | "createdAt" | "status">): Formular230Entry {
-  const encryptedEntry: Formular230Entry = {
+  const newEntry: Formular230Entry = {
     ...data,
-    cnp: encryptPII(data.cnp),
-    signatureDataUrl: encryptPII(data.signatureDataUrl),
     id: `f230-${Date.now()}`,
     createdAt: new Date().toISOString(),
     status: "inregistrat",
   };
-  formulare230State = [encryptedEntry, ...formulare230State];
-  return {
-    ...encryptedEntry,
-    cnp: data.cnp,
-    signatureDataUrl: data.signatureDataUrl,
-  };
+  formulare230State = [newEntry, ...formulare230State];
+  return newEntry;
 }
 
 export function updateFormular230Status(id: string, status: Formular230Status): boolean {

@@ -93,7 +93,7 @@ export const metadata: Metadata = {
   creator: "Asociația Viziune Urbană Ploiești",
   publisher: "Asociația Viziune Urbană Ploiești",
   alternates: {
-    canonical: "./",
+    canonical: "https://www.viziuneurbanaploiesti.ro",
   },
   robots: {
     index: true,

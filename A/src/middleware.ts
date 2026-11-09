@@ -19,6 +19,20 @@ export function middleware(request: NextRequest) {
   }
 
   const isDev = process.env.NODE_ENV === "development";
+  const hostHeader = (request.headers.get("host") || "").toLowerCase();
+  if (
+    !isDev &&
+    !request.nextUrl.pathname.startsWith("/api/") &&
+    (hostHeader === "viziuneurbanaploiesti.ro" ||
+      hostHeader === "viziune-urbana-ploiesti.vercel.app")
+  ) {
+    const canonicalUrl = new URL(
+      `${request.nextUrl.pathname}${request.nextUrl.search}`,
+      "https://www.viziuneurbanaploiesti.ro"
+    );
+    return NextResponse.redirect(canonicalUrl, 308);
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
 
   // În development permitem 'unsafe-eval' pentru Next.js Fast Refresh & HMR

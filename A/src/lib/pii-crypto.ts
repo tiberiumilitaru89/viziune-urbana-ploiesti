@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import crypto from "crypto";
 
 const ENCRYPTION_PREFIX = "enc:v1:";
 const IV_LENGTH_BYTES = 12;
