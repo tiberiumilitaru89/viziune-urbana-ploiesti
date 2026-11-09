@@ -5,15 +5,24 @@ export const SESSION_DURATION_SECONDS = 8 * 60 * 60; // 8 ore
 export const SESSION_DURATION_MS = SESSION_DURATION_SECONDS * 1000;
 
 function getSecretKey(): string {
-  const secret = process.env.ADMIN_SECRET || process.env.ADMIN_PASSWORD;
-  if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("EROARE CRITICĂ DE SECURITATE: Variabila ADMIN_PASSWORD lipsește din mediu.");
-    }
-    // Fail-safe determinist doar în modul local de test
-    return "local-dev-ephemeral-key-" + (process.env.COMPUTERNAME || "dev");
+  const adminSecret = process.env.ADMIN_SECRET;
+  if (adminSecret && adminSecret.trim().length > 0) {
+    return crypto
+      .createHmac("sha256", "vup-admin-session-signing-v1")
+      .update(adminSecret.trim())
+      .digest("hex");
   }
-  return secret;
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("EROARE CRITICĂ DE SECURITATE: Variabila ADMIN_SECRET lipsește din mediul de producție.");
+  }
+
+  // În mediul local/test fără ADMIN_SECRET, derivăm determinist prin HMAC-SHA256 cu salt de domeniu separat
+  const testSeed = process.env.COMPUTERNAME || "vup-local-test";
+  return crypto
+    .createHmac("sha256", "vup-dev-test-domain-salt-v1")
+    .update(testSeed)
+    .digest("hex");
 }
 
 type SessionPayload = {

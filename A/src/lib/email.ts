@@ -12,20 +12,47 @@ export const OFFICIAL_COORDINATOR_PHONE = "0720 015 592";
 export const OFFICIAL_COORDINATOR_EMAIL = "viziuneurbanaploiesti@yahoo.com";
 export const OFFICIAL_DOMAIN = "viziuneurbanaploiesti.ro";
 
+/**
+ * Neutralizează caracterele speciale HTML (&, <, >, ", ') pentru a preveni XSS / HTML Injection în șabloanele de email.
+ */
+export function escapeHtml(str: string | number | undefined | null): string {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * Elimină caracterele de control (\r, \n, \0) din antetele email (Subject, Reply-To, From, To)
+ * pentru a preveni CRLF / Email Header Injection.
+ */
+export function sanitizeHeader(str: string | number | undefined | null): string {
+  if (str === null || str === undefined) return "";
+  return String(str).replace(/[\r\n\0]+/g, " ").trim();
+}
+
 export type EmailNotificationPayload = {
   subject: string;
   type: "audit_request" | "partner_application" | "donation" | "formular_230";
   title: string;
+  category?: string;
+  summary?: string;
   fields: { label: string; value: string | number | undefined | null }[];
   replyTo?: string;
 };
 
 export async function sendAdminNotification(payload: EmailNotificationPayload): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail =
+  const fromEmail = sanitizeHeader(
     process.env.NOTIFICATION_FROM_EMAIL ||
-    "George Becheanu | Viziune Urbană Ploiești <notificari@viziuneurbanaploiesti.ro>";
-  const adminRecipient = process.env.ADMIN_NOTIFICATION_EMAIL || "viziuneurbanaploiesti@yahoo.com";
+      "George Becheanu | Viziune Urbană Ploiești <notificari@viziuneurbanaploiesti.ro>"
+  );
+  const adminRecipient = sanitizeHeader(
+    process.env.ADMIN_NOTIFICATION_EMAIL || "viziuneurbanaploiesti@yahoo.com"
+  );
 
   // Căutăm dacă solicitantul a lăsat un email valid pentru a permite reply direct din căsuța lui George
   const applicantEmailField = payload.fields.find(
@@ -34,18 +61,27 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
       typeof f.value === "string" &&
       f.value.includes("@")
   );
-  const effectiveReplyTo =
+  const effectiveReplyTo = sanitizeHeader(
     payload.replyTo ||
-    (applicantEmailField && typeof applicantEmailField.value === "string"
-      ? applicantEmailField.value.trim()
-      : OFFICIAL_COORDINATOR_EMAIL);
+      (applicantEmailField && typeof applicantEmailField.value === "string"
+        ? applicantEmailField.value.trim()
+        : OFFICIAL_COORDINATOR_EMAIL)
+  );
+
+  const safeTitle = escapeHtml(payload.title);
+  const safeCategory = payload.category ? escapeHtml(payload.category) : "";
+  const safeSummary = payload.summary ? escapeHtml(payload.summary) : "";
+  const safeApplicantEmail =
+    applicantEmailField && applicantEmailField.value !== undefined && applicantEmailField.value !== null
+      ? escapeHtml(applicantEmailField.value)
+      : "";
 
   const rowsHtml = payload.fields
     .map(
       (f) => `
       <tr style="border-bottom: 1px solid #e2e8f0;">
-        <td style="padding: 10px 14px; font-weight: bold; color: #1e293b; width: 35%; background: #f8fafc;">${f.label}</td>
-        <td style="padding: 10px 14px; color: #334155; font-family: sans-serif;">${f.value ?? "-"}</td>
+        <td style="padding: 10px 14px; font-weight: bold; color: #1e293b; width: 35%; background: #f8fafc;">${escapeHtml(f.label)}</td>
+        <td style="padding: 10px 14px; color: #334155; font-family: sans-serif;">${escapeHtml(f.value ?? "-")}</td>
       </tr>
     `
     )
@@ -62,16 +98,16 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
           
           <div style="background: #c48834; padding: 20px 24px; color: #ffffff;">
             <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; opacity: 0.9;">
-              Asociația Viziune Urbană Ploiești &bull; Alertă Coordonator
+              Asociația Viziune Urbană Ploiești &bull; Alertă Coordonator${safeCategory ? ` (${safeCategory})` : ""}
             </div>
             <h1 style="margin: 6px 0 0 0; font-size: 20px; font-weight: bold;">
-              ${payload.title}
+              ${safeTitle}
             </h1>
           </div>
 
           <div style="padding: 24px;">
             <p style="color: #475569; font-size: 14px; margin-top: 0; margin-bottom: 20px; line-height: 1.5;">
-              A fost înregistrată o acțiune nouă pe platformă. Detaliile transmise sunt sintetizate mai jos:
+              ${safeSummary || "A fost înregistrată o acțiune nouă pe platformă. Detaliile transmise sunt sintetizate mai jos:"}
             </p>
 
             <table style="width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
@@ -83,8 +119,8 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
                 Puteți gestiona și actualiza statusul acestei intrări direct din 
                 <a href="https://viziuneurbanaploiesti.ro/admin" style="color: #b45309; font-weight: bold; text-decoration: underline;">Panoul de Administrare</a>.
                 ${
-                  applicantEmailField
-                    ? `<br /><br /><strong>Notă:</strong> Apăsând „Răspunde” (Reply) la acest email veți trimite mesajul direct solicitantului (${applicantEmailField.value}).`
+                  safeApplicantEmail
+                    ? `<br /><br /><strong>Notă:</strong> Apăsând „Răspunde” (Reply) la acest email veți trimite mesajul direct solicitantului (${safeApplicantEmail}).`
                     : ""
                 }
               </span>
@@ -92,13 +128,15 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
           </div>
 
           <div style="background: #f8fafc; padding: 14px 24px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 11px; color: #94a3b8;">
-            Notificare automată generată de platforma Asociației Viziune Urbană Ploiești &bull; Coordonator Tehnic: ${OFFICIAL_COORDINATOR_NAME}
+            Notificare automată generată de platforma Asociației Viziune Urbană Ploiești &bull; Coordonator Tehnic: ${escapeHtml(OFFICIAL_COORDINATOR_NAME)}
           </div>
 
         </div>
       </body>
     </html>
   `;
+
+  const sanitizedSubject = sanitizeHeader(`[VUP] ${payload.subject}`);
 
   // 1. Expediere via Resend API
   if (apiKey && adminRecipient) {
@@ -114,18 +152,29 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
           from: fromEmail,
           to: [adminRecipient],
           reply_to: effectiveReplyTo,
-          subject: `[VUP] ${payload.subject}`,
+          subject: sanitizedSubject,
           html: emailHtml,
         }),
       });
 
       if (!res.ok) {
-        console.error("Resend API alertă admin a răspuns cu eroare:", await res.text());
+        console.error(
+          JSON.stringify({
+            level: "error",
+            event: "resend_admin_notification_failed",
+            status: res.status,
+          })
+        );
         return false;
       }
       return true;
-    } catch (err) {
-      console.error("Eroare la apelul Resend API (admin):", err);
+    } catch {
+      console.error(
+        JSON.stringify({
+          level: "error",
+          event: "resend_admin_notification_exception",
+        })
+      );
       return false;
     }
   }
@@ -135,12 +184,12 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
   if (formspreeEndpoint) {
     try {
       const formPayload: Record<string, string> = {
-        _subject: `[VUP] ${payload.subject}`,
-        tip_actiune: payload.title,
+        _subject: sanitizedSubject,
+        tip_actiune: sanitizeHeader(payload.title),
         coordonator: OFFICIAL_COORDINATOR_NAME,
       };
       payload.fields.forEach((f) => {
-        formPayload[f.label] = String(f.value ?? "-");
+        formPayload[sanitizeHeader(f.label)] = escapeHtml(f.value ?? "-");
       });
 
       await fetch(formspreeEndpoint, {
@@ -150,8 +199,13 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
         body: JSON.stringify(formPayload),
       });
       return true;
-    } catch (err) {
-      console.error("Eroare la apelul Formspree:", err);
+    } catch {
+      console.error(
+        JSON.stringify({
+          level: "error",
+          event: "formspree_notification_exception",
+        })
+      );
       return false;
     }
   }
@@ -169,11 +223,13 @@ export type CitizenConfirmationPayload = {
 
 export async function sendCitizenConfirmation(payload: CitizenConfirmationPayload): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail =
+  const fromEmail = sanitizeHeader(
     process.env.NOTIFICATION_FROM_EMAIL ||
-    "George Becheanu | Viziune Urbană Ploiești <notificari@viziuneurbanaploiesti.ro>";
+      "George Becheanu | Viziune Urbană Ploiești <notificari@viziuneurbanaploiesti.ro>"
+  );
+  const sanitizedToEmail = sanitizeHeader(payload.toEmail);
 
-  if (!payload.toEmail || !payload.toEmail.includes("@")) {
+  if (!sanitizedToEmail || !sanitizedToEmail.includes("@")) {
     return false;
   }
 
@@ -183,9 +239,12 @@ export async function sendCitizenConfirmation(payload: CitizenConfirmationPayloa
   }
 
   const isF230 = payload.type === "formular_230";
-  const emailSubject = isF230
-    ? `Confirmare Înregistrare Formular 230 - Asociația Viziune Urbană Ploiești (Nr. ${payload.registrationNumber})`
-    : `Confirmare Înregistrare Solicitare Evaluare Tehnică (Nr. ${payload.registrationNumber})`;
+  const safeRegNumberHeader = sanitizeHeader(payload.registrationNumber);
+  const emailSubject = sanitizeHeader(
+    isF230
+      ? `Confirmare Înregistrare Formular 230 - Asociația Viziune Urbană Ploiești (Nr. ${safeRegNumberHeader})`
+      : `Confirmare Înregistrare Solicitare Evaluare Tehnică (Nr. ${safeRegNumberHeader})`
+  );
 
   const actionHeadline = isF230
     ? "Formularul 230 a fost Înregistrat cu Succes!"
@@ -195,12 +254,15 @@ export async function sendCitizenConfirmation(payload: CitizenConfirmationPayloa
     ? "Vă mulțumim pentru susținerea campaniei de reabilitare a subsolurilor din municipiul Ploiești! Redirecționarea a 3,5% din impozitul pe venit reprezintă un sprijin vital ce va fi inclus în borderoul oficial depus la ANAF Prahova."
     : "Vă mulțumim pentru încredere! Solicitarea asociației dumneavoastră a fost înregistrată în baza de date. Echipa tehnică a Asociației Viziune Urbană Ploiești împreună cu inginerii partenerului autorizat Instal Serv Becheanu vor analiza detaliile și vă vor contacta telefonic pentru programarea inspecției tehnice gratuite a subsolului.";
 
+  const safeRecipientName = escapeHtml(payload.recipientName);
+  const safeRegistrationNumber = escapeHtml(payload.registrationNumber);
+
   const rowsHtml = payload.details
     .map(
       (f) => `
       <tr style="border-bottom: 1px solid #e2e8f0;">
-        <td style="padding: 10px 14px; font-weight: bold; color: #1e293b; width: 40%; background: #f8fafc;">${f.label}</td>
-        <td style="padding: 10px 14px; color: #334155; font-family: sans-serif;">${f.value ?? "-"}</td>
+        <td style="padding: 10px 14px; font-weight: bold; color: #1e293b; width: 40%; background: #f8fafc;">${escapeHtml(f.label)}</td>
+        <td style="padding: 10px 14px; color: #334155; font-family: sans-serif;">${escapeHtml(f.value ?? "-")}</td>
       </tr>
     `
     )
@@ -220,16 +282,16 @@ export async function sendCitizenConfirmation(payload: CitizenConfirmationPayloa
               Asociația Viziune Urbană Ploiești
             </div>
             <h1 style="margin: 8px 0 0 0; font-size: 20px; font-weight: bold; color: #ffffff;">
-              ${actionHeadline}
+              ${escapeHtml(actionHeadline)}
             </h1>
           </div>
 
           <div style="padding: 24px;">
             <p style="color: #334155; font-size: 14px; margin-top: 0; line-height: 1.6;">
-              Stimate/Stimată <strong>${payload.recipientName}</strong>,
+              Stimate/Stimată <strong>${safeRecipientName}</strong>,
             </p>
             <p style="color: #475569; font-size: 14px; line-height: 1.6;">
-              ${explanation}
+              ${escapeHtml(explanation)}
             </p>
 
             <div style="margin: 20px 0; padding: 14px 18px; background: #fefce8; border: 1px solid #fef08a; border-radius: 8px;">
@@ -237,7 +299,7 @@ export async function sendCitizenConfirmation(payload: CitizenConfirmationPayloa
                 Număr Unic de Înregistrare Dosar
               </span>
               <span style="font-size: 18px; font-weight: bold; color: #071330; font-family: monospace; display: block; margin-top: 4px;">
-                ${payload.registrationNumber}
+                ${safeRegistrationNumber}
               </span>
             </div>
 
@@ -250,13 +312,13 @@ export async function sendCitizenConfirmation(payload: CitizenConfirmationPayloa
                 Persoană de Contact & Coordonare Tehnică:
               </div>
               <div style="font-size: 13px; color: #334155; line-height: 1.6;">
-                <strong>${OFFICIAL_COORDINATOR_NAME}</strong><br />
+                <strong>${escapeHtml(OFFICIAL_COORDINATOR_NAME)}</strong><br />
                 Partener Tehnic Oficial: Instal Serv Becheanu<br />
-                Telefon Direct: <a href="tel:0720015592" style="color: #b45309; font-weight: bold; text-decoration: none;">${OFFICIAL_COORDINATOR_PHONE}</a><br />
-                Email Asistență: <a href="mailto:${OFFICIAL_COORDINATOR_EMAIL}" style="color: #b45309; font-weight: bold; text-decoration: none;">${OFFICIAL_COORDINATOR_EMAIL}</a>
+                Telefon Direct: <a href="tel:0720015592" style="color: #b45309; font-weight: bold; text-decoration: none;">${escapeHtml(OFFICIAL_COORDINATOR_PHONE)}</a><br />
+                Email Asistență: <a href="mailto:${escapeHtml(OFFICIAL_COORDINATOR_EMAIL)}" style="color: #b45309; font-weight: bold; text-decoration: none;">${escapeHtml(OFFICIAL_COORDINATOR_EMAIL)}</a>
               </div>
               <span style="font-size: 12px; color: #64748b; display: block; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 8px;">
-                Puteți răspunde direct la acest email sau ne puteți contacta telefonic menționând numărul de dosar <strong>${payload.registrationNumber}</strong>.
+                Puteți răspunde direct la acest email sau ne puteți contacta telefonic menționând numărul de dosar <strong>${safeRegistrationNumber}</strong>.
               </span>
             </div>
           </div>
@@ -280,20 +342,31 @@ export async function sendCitizenConfirmation(payload: CitizenConfirmationPayloa
       },
       body: JSON.stringify({
         from: fromEmail,
-        to: [payload.toEmail],
-        reply_to: OFFICIAL_COORDINATOR_EMAIL,
+        to: [sanitizedToEmail],
+        reply_to: sanitizeHeader(OFFICIAL_COORDINATOR_EMAIL),
         subject: emailSubject,
         html: emailHtml,
       }),
     });
 
     if (!res.ok) {
-      console.warn("Resend API avertisment la trimitere confirmare cetatean:", await res.text());
+      console.warn(
+        JSON.stringify({
+          level: "warn",
+          event: "resend_citizen_confirmation_failed",
+          status: res.status,
+        })
+      );
       return false;
     }
     return true;
-  } catch (err) {
-    console.warn("Eroare trimitere confirmare cetatean:", err);
+  } catch {
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        event: "resend_citizen_confirmation_exception",
+      })
+    );
     return false;
   }
 }

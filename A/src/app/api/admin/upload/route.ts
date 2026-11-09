@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { isRequestAuthenticated } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import crypto from "crypto";
+import {
+  createProblemResponse,
+  getCorrelationId,
+  logStructured,
+  withCorrelationHeader,
+} from "@/lib/logger";
 
 // Constrângeri de securitate MIME & Dimensiune
 const ALLOWED_MIME_TYPES = new Set([
@@ -49,13 +55,18 @@ function hasValidImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  const correlationId = getCorrelationId(req);
+
   // 1. Verificare Autentificare Admin Server-Side
   const isAuth = isRequestAuthenticated(req);
   if (!isAuth) {
-    return NextResponse.json(
-      { success: false, error: "Acces neautorizat. Sesiune expirată sau invalidă." },
-      { status: 401 }
-    );
+    return createProblemResponse({
+      status: 401,
+      title: "Unauthorized",
+      detail: "Acces neautorizat. Sesiune expirată sau invalidă.",
+      instance: "/api/admin/upload",
+      correlationId,
+    });
   }
 
   try {
@@ -63,34 +74,37 @@ export async function POST(req: NextRequest) {
     const fileEntry = formData.get("file");
 
     if (!fileEntry || typeof fileEntry === "string" || !(fileEntry instanceof File)) {
-      return NextResponse.json(
-        { success: false, error: "Nu a fost furnizat un fișier valid." },
-        { status: 400 }
-      );
+      return createProblemResponse({
+        status: 400,
+        title: "Bad Request",
+        detail: "Nu a fost furnizat un fișier valid.",
+        instance: "/api/admin/upload",
+        correlationId,
+      });
     }
 
     const file = fileEntry;
 
     // 2. Validare MIME strictă (Fără SVG sau fișiere arbitrare)
     if (!ALLOWED_MIME_TYPES.has(file.type)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Format de imagine nepermis. Sunt acceptate doar fișiere JPG, PNG sau WEBP.",
-        },
-        { status: 400 }
-      );
+      return createProblemResponse({
+        status: 400,
+        title: "Unsupported Media Type",
+        detail: "Format de imagine nepermis. Sunt acceptate doar fișiere JPG, PNG sau WEBP.",
+        instance: "/api/admin/upload",
+        correlationId,
+      });
     }
 
     // 3. Validare Dimensiune Maximă
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Dimensiunea fișierului depășește limita admisă de 5MB.",
-        },
-        { status: 400 }
-      );
+      return createProblemResponse({
+        status: 400,
+        title: "Payload Too Large",
+        detail: "Dimensiunea fișierului depășește limita admisă de 5MB.",
+        instance: "/api/admin/upload",
+        correlationId,
+      });
     }
 
     // 4. Sanitizare Nume & Extensie fișier
@@ -103,14 +117,13 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     if (!hasValidImageMagicBytes(buffer, file.type)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Semnătura binară (Magic Bytes) a fișierului nu corespunde formatului declarat (JPG/PNG/WEBP).",
-        },
-        { status: 400 }
-      );
+      return createProblemResponse({
+        status: 400,
+        title: "Bad Request",
+        detail: "Semnătura binară (Magic Bytes) a fișierului nu corespunde formatului declarat (JPG/PNG/WEBP).",
+        instance: "/api/admin/upload",
+        correlationId,
+      });
     }
 
     // 6. Încărcare în Supabase Storage (Bucket "proiecte" sau "Proiecte")
@@ -139,20 +152,24 @@ export async function POST(req: NextRequest) {
     }
 
     if (uploadError || !uploadData) {
-      // Dacă bucket-ul nu există sau returnează eroare de configurare storage,
-      // oferim fallback pe data URL optimizat pentru a nu bloca administratorul
-      console.warn("Supabase Storage bucket upload notice:", uploadError?.message || "Lipsă date răspuns storage");
-      
+      logStructured("warn", "supabase_storage_bucket_fallback", {
+        correlationId,
+        reason: uploadError?.message || "missing_upload_data",
+      });
+
       const base64Data = buffer.toString("base64");
       const dataUrl = `data:${file.type};base64,${base64Data}`;
-      
-      return NextResponse.json({
-        success: true,
-        url: dataUrl,
-        filename: sanitizedFileName,
-        storage: "base64_fallback",
-        message: "Imagine stocată cu succes.",
-      });
+
+      return withCorrelationHeader(
+        NextResponse.json({
+          success: true,
+          url: dataUrl,
+          filename: sanitizedFileName,
+          storage: "base64_fallback",
+          message: "Imagine stocată cu succes.",
+        }),
+        correlationId
+      );
     }
 
     // Obținere URL public din Supabase Storage
@@ -160,17 +177,26 @@ export async function POST(req: NextRequest) {
       .from(targetBucket)
       .getPublicUrl(uploadData.path);
 
-    return NextResponse.json({
-      success: true,
-      url: publicUrlData.publicUrl,
-      filename: sanitizedFileName,
-      storage: "supabase_storage",
-    });
-  } catch (error) {
-    console.error("Eroare upload imagine admin:", error);
-    return NextResponse.json(
-      { success: false, error: "A apărut o eroare internă la procesarea imaginii." },
-      { status: 500 }
+    return withCorrelationHeader(
+      NextResponse.json({
+        success: true,
+        url: publicUrlData.publicUrl,
+        filename: sanitizedFileName,
+        storage: "supabase_storage",
+      }),
+      correlationId
     );
+  } catch (error) {
+    logStructured("error", "admin_image_upload_failed", {
+      correlationId,
+      error: error instanceof Error ? error.message : "unknown_error",
+    });
+    return createProblemResponse({
+      status: 500,
+      title: "Internal Server Error",
+      detail: "A apărut o eroare internă la procesarea imaginii.",
+      instance: "/api/admin/upload",
+      correlationId,
+    });
   }
 }

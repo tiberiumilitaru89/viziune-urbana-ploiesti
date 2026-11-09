@@ -7,28 +7,29 @@
     "build": "next build",
     "start": "next start -p 3005",
     "lint": "eslint .",
-    "gatekeeper": "tsc --noEmit --incremental false && eslint . --max-warnings=0"
+    "test": "node --experimental-strip-types --test tests/security-regression.test.mjs",
+    "gatekeeper": "tsc --noEmit --incremental false && npm test"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.117.3",
-    "clsx": "^2.1.1",
-    "framer-motion": "^12.4.7",
-    "lucide-react": "^1.16.0",
-    "next": "^15.3.9",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.0.2",
-    "zod": "^3.24.2"
+    "@supabase/supabase-js": "2.117.3",
+    "clsx": "2.1.1",
+    "framer-motion": "12.43.0",
+    "lucide-react": "1.48.0",
+    "next": "15.5.27",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "tailwind-merge": "3.7.0",
+    "zod": "3.25.76"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.9",
-    "@types/node": "^20.17.19",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
-    "eslint": "^9.21.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "20.19.43",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
     "eslint-config-next": "15.2.1",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.0.9",
-    "typescript": "^5.7.3"
+    "postcss": "8.5.28",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3"
   }
 }

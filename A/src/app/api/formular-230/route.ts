@@ -3,16 +3,22 @@ import { z } from "zod";
 import { isRequestAuthenticated } from "@/lib/auth";
 import { validateRomanianCnp } from "@/lib/cnp";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
-import { 
-  insertFormular230, 
-  fetchFormulare230, 
-  fetchOngConfig, 
-  saveOngConfig, 
-  updateFormular230StatusDb, 
+import {
+  insertFormular230,
+  fetchFormulare230,
+  fetchOngConfig,
+  saveOngConfig,
+  updateFormular230StatusDb,
   archiveFormular230,
-  hardDeleteFormular230 
+  hardDeleteFormular230,
 } from "@/lib/db";
 import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
+import {
+  createProblemResponse,
+  getCorrelationId,
+  logStructured,
+  withCorrelationHeader,
+} from "@/lib/logger";
 
 const Formular230Schema = z.object({
   lastName: z.string().trim().min(2, "Numele de familie este obligatoriu"),
@@ -41,12 +47,17 @@ const ConfigUpdateSchema = z.object({
 });
 
 export async function GET(req: Request) {
+  const correlationId = getCorrelationId(req);
+
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Doar administratorul autentificat poate citi formularele 230
   if (!isRequestAuthenticated(req)) {
-    return NextResponse.json(
-      { success: false, error: "Acces neautorizat la registrul Formulare 230." },
-      { status: 401 }
-    );
+    return createProblemResponse({
+      status: 401,
+      title: "Unauthorized",
+      detail: "Acces neautorizat la registrul Formulare 230.",
+      instance: "/api/formular-230",
+      correlationId,
+    });
   }
 
   try {
@@ -58,21 +69,33 @@ export async function GET(req: Request) {
       fetchFormulare230(includeArchived),
     ]);
 
-    return NextResponse.json({
-      success: true,
-      config,
-      totalCount: forms.length,
-      forms,
-    });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Eroare la încărcarea datelor formularului 230" },
-      { status: 500 }
+    return withCorrelationHeader(
+      NextResponse.json({
+        success: true,
+        config,
+        totalCount: forms.length,
+        forms,
+      }),
+      correlationId
     );
+  } catch (err) {
+    logStructured("error", "formular_230_get_failed", {
+      correlationId,
+      error: err instanceof Error ? err.message : "unknown_error",
+    });
+    return createProblemResponse({
+      status: 500,
+      title: "Internal Server Error",
+      detail: "Eroare la încărcarea datelor formularului 230",
+      instance: "/api/formular-230",
+      correlationId,
+    });
   }
 }
 
 export async function POST(req: Request) {
+  const correlationId = getCorrelationId(req);
+
   try {
     const ip = getClientIp(req);
 
@@ -80,13 +103,13 @@ export async function POST(req: Request) {
     const rateLimit = checkRateLimit(`submit-f230:${ip}`, 5, 10 * 60 * 1000);
     if (!rateLimit.allowed) {
       const waitMin = Math.ceil(rateLimit.resetInMs / 60000);
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Ați trimis deja mai multe formulare. Vă rugăm să așteptați ${waitMin} minute înainte de a încerca din nou.`,
-        },
-        { status: 429 }
-      );
+      return createProblemResponse({
+        status: 429,
+        title: "Too Many Requests",
+        detail: `Ați trimis deja mai multe formulare. Vă rugăm să așteptați ${waitMin} minute înainte de a încerca din nou.`,
+        instance: "/api/formular-230",
+        correlationId,
+      });
     }
 
     const body = await req.json();
@@ -94,11 +117,14 @@ export async function POST(req: Request) {
     // 2. Neutralizare Bot prin Honeypot (dacă un bot a completat câmpul ascuns)
     if (body.hp_website && typeof body.hp_website === "string" && body.hp_website.trim().length > 0) {
       // Discard silențios
-      return NextResponse.json({
-        success: true,
-        message: "Formularul a fost recepționat.",
-        id: `f230-discarded-${Date.now()}`,
-      });
+      return withCorrelationHeader(
+        NextResponse.json({
+          success: true,
+          message: "Formularul a fost recepționat.",
+          id: `f230-discarded-${Date.now()}`,
+        }),
+        correlationId
+      );
     }
 
     const validatedData = Formular230Schema.parse(body);
@@ -106,13 +132,16 @@ export async function POST(req: Request) {
     // 3. Validare Matematică Riguroasă CNP (Algoritm Oficial Național ANAF)
     const cnpCheck = validateRomanianCnp(validatedData.cnp);
     if (!cnpCheck.isValid) {
-      return NextResponse.json(
-        { success: false, error: cnpCheck.error || "CNP invalid conform standardelor oficiale." },
-        { status: 400 }
-      );
+      return createProblemResponse({
+        status: 400,
+        title: "Bad Request",
+        detail: cnpCheck.error || "CNP invalid conform standardelor oficiale.",
+        instance: "/api/formular-230",
+        correlationId,
+      });
     }
 
-    // 4. Salvare în baza de date Supabase
+    // 4. Salvare în baza de date Supabase (cu criptare AES-256-GCM at-rest pe CNP și semnătură)
     const result = await insertFormular230({
       lastName: validatedData.lastName,
       firstName: validatedData.firstName,
@@ -129,7 +158,14 @@ export async function POST(req: Request) {
     });
 
     if (!result.success) {
-      return NextResponse.json({ success: false, error: "Eroare la salvare în baza de date" }, { status: 500 });
+      logStructured("error", "formular_230_db_insert_failed", { correlationId });
+      return createProblemResponse({
+        status: 500,
+        title: "Internal Server Error",
+        detail: "Eroare la salvare în baza de date",
+        instance: "/api/formular-230",
+        correlationId,
+      });
     }
 
     // 5. Notificare Email Asincronă către Administrator & Confirmare Cetățean
@@ -146,7 +182,9 @@ export async function POST(req: Request) {
         { label: "Opțiune 2 Ani", value: validatedData.distributeFor2Years ? "DA (2 ani)" : "NU (1 an)" },
         { label: "Borderou ANAF", value: validatedData.consentBorderou ? "Acord depunere borderou asociație" : "Depunere individuală" },
       ],
-    }).catch((err) => console.error("Eroare trimitere notificare email:", err));
+    }).catch(() =>
+      logStructured("error", "formular_230_admin_email_failed", { correlationId })
+    );
 
     if (validatedData.email) {
       const regNumber = `VUP-F230-${Date.now().toString().slice(-6)}`;
@@ -162,35 +200,55 @@ export async function POST(req: Request) {
           { label: "Mod Depunere", value: validatedData.consentBorderou ? "Borderou Colectiv Asociație la ANAF Prahova" : "Depunere Individuală" },
           { label: "Data Înregistrării", value: new Date().toLocaleDateString("ro-RO") },
         ],
-      }).catch((err) => console.warn("Eroare trimitere confirmare cetățean:", err));
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: "Formularul 230 a fost înregistrat cu succes în registrul asociației.",
-      id: result.id,
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: error.errors[0]?.message || "Date invalide transmise." },
-        { status: 400 }
+      }).catch(() =>
+        logStructured("warn", "formular_230_citizen_email_failed", { correlationId })
       );
     }
-    return NextResponse.json(
-      { success: false, error: "Eroare internă de server la salvarea formularului." },
-      { status: 500 }
+
+    return withCorrelationHeader(
+      NextResponse.json({
+        success: true,
+        message: "Formularul 230 a fost înregistrat cu succes în registrul asociației.",
+        id: result.id,
+      }),
+      correlationId
     );
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return createProblemResponse({
+        status: 400,
+        title: "Validation Error",
+        detail: error.errors[0]?.message || "Date invalide transmise.",
+        instance: "/api/formular-230",
+        correlationId,
+      });
+    }
+    logStructured("error", "formular_230_post_unhandled_error", {
+      correlationId,
+      error: error instanceof Error ? error.message : "unknown_error",
+    });
+    return createProblemResponse({
+      status: 500,
+      title: "Internal Server Error",
+      detail: "Eroare internă de server la salvarea formularului.",
+      instance: "/api/formular-230",
+      correlationId,
+    });
   }
 }
 
 export async function PUT(req: Request) {
+  const correlationId = getCorrelationId(req);
+
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Doar administratorul autentificat poate modifica stări sau setări
   if (!isRequestAuthenticated(req)) {
-    return NextResponse.json(
-      { success: false, error: "Acces neautorizat la operațiunile de administrare." },
-      { status: 401 }
-    );
+    return createProblemResponse({
+      status: 401,
+      title: "Unauthorized",
+      detail: "Acces neautorizat la operațiunile de administrare.",
+      instance: "/api/formular-230",
+      correlationId,
+    });
   }
 
   try {
@@ -199,24 +257,46 @@ export async function PUT(req: Request) {
     if (body.action === "update_status") {
       const { id, status } = body;
       if (!id || !["inregistrat", "validat", "depus_anaf"].includes(status)) {
-        return NextResponse.json({ success: false, error: "Parametri invalizi" }, { status: 400 });
+        return createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail: "Parametri invalizi",
+          instance: "/api/formular-230",
+          correlationId,
+        });
       }
       const updated = await updateFormular230StatusDb(id, status);
-      return NextResponse.json({ success: updated });
+      return withCorrelationHeader(NextResponse.json({ success: updated }), correlationId);
     }
 
     if (body.action === "archive") {
       const { id } = body;
-      if (!id) return NextResponse.json({ success: false, error: "Lipsește ID-ul" }, { status: 400 });
+      if (!id) {
+        return createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail: "Lipsește ID-ul",
+          instance: "/api/formular-230",
+          correlationId,
+        });
+      }
       const archived = await archiveFormular230(id);
-      return NextResponse.json({ success: archived });
+      return withCorrelationHeader(NextResponse.json({ success: archived }), correlationId);
     }
 
     if (body.action === "hard_delete") {
       const { id } = body;
-      if (!id) return NextResponse.json({ success: false, error: "Lipsește ID-ul" }, { status: 400 });
+      if (!id) {
+        return createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail: "Lipsește ID-ul",
+          instance: "/api/formular-230",
+          correlationId,
+        });
+      }
       const deleted = await hardDeleteFormular230(id);
-      return NextResponse.json({ success: deleted });
+      return withCorrelationHeader(NextResponse.json({ success: deleted }), correlationId);
     }
 
     if (body.action === "update_config") {
@@ -233,14 +313,27 @@ export async function PUT(req: Request) {
       if (updated) {
         invalidatePublicDataServerCache();
       }
-      return NextResponse.json({ success: updated });
+      return withCorrelationHeader(NextResponse.json({ success: updated }), correlationId);
     }
 
-    return NextResponse.json({ success: false, error: "Acțiune necunoscută" }, { status: 400 });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Eroare la procesarea cererii administrative" },
-      { status: 500 }
-    );
+    return createProblemResponse({
+      status: 400,
+      title: "Bad Request",
+      detail: "Acțiune necunoscută",
+      instance: "/api/formular-230",
+      correlationId,
+    });
+  } catch (err) {
+    logStructured("error", "formular_230_put_error", {
+      correlationId,
+      error: err instanceof Error ? err.message : "unknown_error",
+    });
+    return createProblemResponse({
+      status: 500,
+      title: "Internal Server Error",
+      detail: "Eroare la procesarea cererii administrative",
+      instance: "/api/formular-230",
+      correlationId,
+    });
   }
 }

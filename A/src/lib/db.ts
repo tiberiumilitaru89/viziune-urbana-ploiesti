@@ -16,6 +16,7 @@ import {
   INITIAL_METRICS 
 } from "./data";
 import { detectNeighborhood } from "./neighborhoods";
+import { encryptPII, decryptPII } from "./pii-crypto";
 
 // ==========================================
 // 1. ASOCIAȚII / AUDIT
@@ -559,13 +560,13 @@ export async function fetchFormulare230(includeArchived = false): Promise<Formul
       lastName: f.last_name,
       firstName: f.first_name,
       initialaTata: f.initiala_tata,
-      cnp: f.cnp,
+      cnp: decryptPII(f.cnp),
       email: f.email,
       phone: f.phone,
       address: f.address,
       city: f.city,
       county: f.county,
-      signatureDataUrl: f.signature_data_url,
+      signatureDataUrl: decryptPII(f.signature_data_url),
       distributeFor2Years: f.distribute_for_2_years,
       consentBorderou: f.consent_borderou,
       status: f.status,
@@ -575,21 +576,26 @@ export async function fetchFormulare230(includeArchived = false): Promise<Formul
   }
 }
 
+export const getFormulare230 = fetchFormulare230;
+
 export async function insertFormular230(entry: Omit<Formular230Entry, "id" | "createdAt" | "status">): Promise<{ success: boolean; id?: string }> {
   try {
     const id = `f230-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const encryptedCnp = encryptPII(entry.cnp);
+    const encryptedSignature = encryptPII(entry.signatureDataUrl);
+
     const { error } = await supabaseAdmin.from("formulare_230").insert({
       id,
       last_name: entry.lastName,
       first_name: entry.firstName,
       initiala_tata: entry.initialaTata || null,
-      cnp: entry.cnp,
+      cnp: encryptedCnp,
       email: entry.email,
       phone: entry.phone,
       address: entry.address,
       city: entry.city,
       county: entry.county,
-      signature_data_url: entry.signatureDataUrl,
+      signature_data_url: encryptedSignature,
       distribute_for_2_years: entry.distributeFor2Years,
       consent_borderou: entry.consentBorderou,
       status: "inregistrat",
