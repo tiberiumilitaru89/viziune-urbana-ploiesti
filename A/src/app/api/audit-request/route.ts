@@ -3,6 +3,7 @@ import { z } from "zod";
 import { saveAssociation } from "@/lib/db";
 import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { verifySameOriginRequest } from "@/lib/security-utils";
 
 const requestSchema = z.object({
   name: z.string().trim().min(3, "Numele este obligatoriu"),
@@ -16,6 +17,14 @@ const requestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const originCheck = verifySameOriginRequest(req);
+    if (!originCheck.allowed) {
+      return NextResponse.json(
+        { success: false, message: "Cerere respinsă: origine invalidă." },
+        { status: 403 }
+      );
+    }
+
     const ip = getClientIp(req);
 
     // Rate-Limiting pe IP (maxim 5 cereri / 10 minute)
@@ -99,7 +108,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, id, dosarNumber }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, message: error.errors[0]?.message || "Date invalide transmise." }, { status: 400 });
+      return NextResponse.json({ success: false, message: error.issues[0]?.message || "Date invalide transmise." }, { status: 400 });
     }
     return NextResponse.json({ success: false, message: "Eroare internă de server." }, { status: 500 });
   }

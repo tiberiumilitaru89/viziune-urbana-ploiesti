@@ -9,26 +9,7 @@ const HKDF_INFO = "vup-formular230-aes-256-gcm-key";
 let cachedRawSecret: string | null = null;
 let cachedDerivedKey: Buffer | null = null;
 
-/**
- * Derivă determinist o cheie de 32 octeți (256 biți) folosind HKDF-SHA256
- * din PII_ENCRYPTION_KEY sau ADMIN_SECRET.
- */
-function getEncryptionKey(): Buffer {
-  const rawSecret =
-    process.env.PII_ENCRYPTION_KEY ||
-    process.env.ADMIN_SECRET ||
-    (process.env.NODE_ENV !== "production" ? "vup-dev-fallback-pii-key-not-for-prod" : "");
-
-  if (!rawSecret || rawSecret.trim().length === 0) {
-    throw new Error(
-      "EROARE CRITICĂ DE SECURITATE: Cheia PII_ENCRYPTION_KEY (sau ADMIN_SECRET) lipsește din mediul de execuție."
-    );
-  }
-
-  if (cachedRawSecret === rawSecret && cachedDerivedKey) {
-    return cachedDerivedKey;
-  }
-
+function deriveAesKey(rawSecret: string): Buffer {
   const derived = crypto.hkdfSync(
     "sha256",
     Buffer.from(rawSecret, "utf8"),
@@ -36,9 +17,46 @@ function getEncryptionKey(): Buffer {
     Buffer.from(HKDF_INFO, "utf8"),
     32
   );
+  return Buffer.from(derived);
+}
+
+/**
+ * Derivă determinist o cheie de 32 octeți (256 biți) folosind HKDF-SHA256
+ * exclusiv din PII_ENCRYPTION_KEY (decuplată strict de ADMIN_SECRET).
+ */
+function getEncryptionKey(): Buffer {
+  const configuredPiiKey = process.env.PII_ENCRYPTION_KEY?.trim();
+  const adminSecret = process.env.ADMIN_SECRET?.trim();
+
+  if (process.env.NODE_ENV === "production") {
+    if (!configuredPiiKey || configuredPiiKey.length < 32) {
+      throw new Error(
+        "EROARE CRITICĂ DE SECURITATE: Variabila dedicată PII_ENCRYPTION_KEY lipsește sau are sub 32 caractere în producție."
+      );
+    }
+    if (adminSecret && configuredPiiKey === adminSecret) {
+      throw new Error(
+        "EROARE CRITICĂ DE SECURITATE: PII_ENCRYPTION_KEY nu poate fi identică cu ADMIN_SECRET."
+      );
+    }
+  }
+
+  const rawSecret =
+    configuredPiiKey ||
+    (process.env.NODE_ENV !== "production" ? "vup-dev-fallback-pii-key-not-for-prod" : "");
+
+  if (!rawSecret) {
+    throw new Error(
+      "EROARE CRITICĂ DE SECURITATE: Cheia PII_ENCRYPTION_KEY lipsește din mediul de execuție."
+    );
+  }
+
+  if (cachedRawSecret === rawSecret && cachedDerivedKey) {
+    return cachedDerivedKey;
+  }
 
   cachedRawSecret = rawSecret;
-  cachedDerivedKey = Buffer.from(derived);
+  cachedDerivedKey = deriveAesKey(rawSecret);
   return cachedDerivedKey;
 }
 

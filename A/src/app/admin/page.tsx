@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { sanitizeCsvCell } from "@/lib/security-utils";
 import {
   ArrowLeft,
   Search,
@@ -501,13 +502,7 @@ export default function AdminPage() {
   // ==========================================
   // SHARED CSV EXPORT ENGINE (Excel UTF-8 BOM)
   // ==========================================
-  const escapeCsv = (val: string | number | undefined | null) => {
-    const str = String(val ?? "");
-    if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r") || str.includes(";")) {
-      return `"${str.replace(/"/g, '""')}"`;
-    }
-    return str;
-  };
+  const escapeCsv = (val: string | number | undefined | null) => sanitizeCsvCell(val);
 
   const downloadCsv = (filename: string, headers: string[], rows: (string | number)[][]) => {
     const csvContent =

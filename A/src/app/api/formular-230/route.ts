@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isRequestAuthenticated } from "@/lib/auth";
 import { validateRomanianCnp } from "@/lib/cnp";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { verifySameOriginRequest } from "@/lib/security-utils";
 import {
   insertFormular230,
   fetchFormulare230,
@@ -95,6 +96,17 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const correlationId = getCorrelationId(req);
+
+  const originCheck = verifySameOriginRequest(req);
+  if (!originCheck.allowed) {
+    return createProblemResponse({
+      status: 403,
+      title: "Forbidden",
+      detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
+      instance: "/api/formular-230",
+      correlationId,
+    });
+  }
 
   try {
     const ip = getClientIp(req);
@@ -218,7 +230,7 @@ export async function POST(req: Request) {
       return createProblemResponse({
         status: 400,
         title: "Validation Error",
-        detail: error.errors[0]?.message || "Date invalide transmise.",
+        detail: error.issues[0]?.message || "Date invalide transmise.",
         instance: "/api/formular-230",
         correlationId,
       });
@@ -239,6 +251,17 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   const correlationId = getCorrelationId(req);
+
+  const originCheck = verifySameOriginRequest(req);
+  if (!originCheck.allowed) {
+    return createProblemResponse({
+      status: 403,
+      title: "Forbidden",
+      detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
+      instance: "/api/formular-230",
+      correlationId,
+    });
+  }
 
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Doar administratorul autentificat poate modifica stări sau setări
   if (!isRequestAuthenticated(req)) {

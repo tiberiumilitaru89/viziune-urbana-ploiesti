@@ -7,6 +7,7 @@ import {
   verifyAdminPassword 
 } from "@/lib/auth";
 import { checkRateLimitAsync, getClientIp } from "@/lib/rateLimit";
+import { verifySameOriginRequest } from "@/lib/security-utils";
 
 export async function GET(req: Request) {
   const authenticated = isRequestAuthenticated(req);
@@ -18,6 +19,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const originCheck = verifySameOriginRequest(req);
+    if (!originCheck.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Cerere respinsă: origine invalidă." },
+        { status: 403 }
+      );
+    }
+
     const ip = getClientIp(req);
     const body = await req.json().catch(() => ({}));
     const { action, password } = body;

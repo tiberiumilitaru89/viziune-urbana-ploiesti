@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Building2, CheckCircle2, ArrowRight, Loader2, Copy, PackageCheck, Coins, FileText, Check, Award, Landmark, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { INITIAL_ASSOCIATIONS } from "@/lib/data";
@@ -52,6 +52,17 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleCopyIban = () => {
@@ -78,7 +89,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
 
     const parseResult = sponsorshipSchema.safeParse(payload);
     if (!parseResult.success) {
-      setErrorMessage(parseResult.error.errors[0]?.message || "Verificați datele completate.");
+      setErrorMessage(parseResult.error.issues[0]?.message || "Verificați datele completate.");
       return;
     }
 
@@ -125,10 +136,17 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-amber-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-900">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="donation-modal-title"
+        className="relative w-full max-w-xl max-h-[92dvh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-amber-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-900"
+      >
         {/* Close button */}
         <button
+          type="button"
           onClick={onClose}
+          aria-label="Închide fereastra"
           className="absolute top-4 right-4 sm:top-5 sm:right-5 p-2 rounded-xl text-slate-500 hover:text-slate-950 hover:bg-amber-50 transition-colors"
         >
           <X className="w-5 h-5" />
@@ -139,7 +157,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-600">
               <CheckCircle2 className="w-7 h-7 sm:w-8 sm:h-8" />
             </div>
-            <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#071330]">
+            <h3 id="donation-modal-title" className="font-serif text-xl sm:text-2xl font-bold text-[#071330]">
               Sponsorizare Înregistrată Oficial!
             </h3>
             <p className="text-xs sm:text-sm text-slate-700 max-w-md mx-auto leading-relaxed font-serif">
@@ -163,7 +181,7 @@ export function DonationModal({ isOpen, onClose }: DonationModalProps) {
               <Award className="w-4 h-4 text-amber-700" />
               Susține Proiectul Civic
             </div>
-            <h3 className="text-xl sm:text-3xl font-serif font-black text-[#071330] mb-2 tracking-tight">
+            <h3 id="donation-modal-title" className="text-xl sm:text-3xl font-serif font-black text-[#071330] mb-2 tracking-tight">
               Susține Proiectul
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 mb-5 sm:mb-6 font-serif">

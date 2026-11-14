@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
@@ -19,9 +20,6 @@ const nextConfig: NextConfig = {
         hostname: "www.viziuneurbanaploiesti.ro",
       },
     ],
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
   },
   typescript: {
     ignoreBuildErrors: false,
@@ -66,7 +64,7 @@ const nextConfig: NextConfig = {
             value: "viziune-urbana-ploiesti.vercel.app",
           },
         ],
-        destination: "https://viziuneurbanaploiesti.ro/:path*",
+        destination: "https://www.viziuneurbanaploiesti.ro/:path*",
         permanent: true,
       },
     ];

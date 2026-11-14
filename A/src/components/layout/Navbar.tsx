@@ -27,6 +27,17 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileMenuOpen]);
+
   const navLinks = [
     { href: "/#misiune", label: "Misiune & Manifest" },
     { href: "/#cum-functioneaza", label: "Protocol de Lucru" },
@@ -107,6 +118,8 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
         {/* Mobile menu trigger */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-navigation-drawer"
           className="lg:hidden p-2 rounded-lg text-slate-800 hover:text-slate-950 hover:bg-amber-100/50 transition-colors"
           aria-label="Navigație mobilă"
         >
@@ -116,7 +129,10 @@ export function Navbar({ onOpenAuditModal, onOpenDonationModal }: NavbarProps) {
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#FAF7F2] border-b border-amber-900/20 px-5 pt-4 pb-6 space-y-3 shadow-2xl max-h-[calc(100dvh-5rem)] overflow-y-auto">
+        <div
+          id="mobile-navigation-drawer"
+          className="lg:hidden bg-[#FAF7F2] border-b border-amber-900/20 px-5 pt-4 pb-6 space-y-3 shadow-2xl max-h-[calc(100dvh-5rem)] overflow-y-auto"
+        >
           <div className="flex flex-col gap-2">
             {navLinks.map((link) => (
               <Link

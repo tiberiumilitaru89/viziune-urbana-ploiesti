@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isRequestAuthenticated } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
+import { stripJpegMetadata, verifySameOriginRequest } from "@/lib/security-utils";
 import crypto from "crypto";
 import {
   createProblemResponse,
@@ -56,6 +57,17 @@ function hasValidImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
 
 export async function POST(req: NextRequest) {
   const correlationId = getCorrelationId(req);
+
+  const originCheck = verifySameOriginRequest(req);
+  if (!originCheck.allowed) {
+    return createProblemResponse({
+      status: 403,
+      title: "Forbidden",
+      detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
+      instance: "/api/admin/upload",
+      correlationId,
+    });
+  }
 
   // 1. Verificare Autentificare Admin Server-Side
   const isAuth = isRequestAuthenticated(req);
@@ -126,11 +138,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 6. Încărcare în Supabase Storage (Bucket "proiecte" sau "Proiecte")
+    // 6. Eliminare metadate EXIF/GPS/COM pentru JPEG înainte de stocare și încărcare în Supabase Storage
+    const cleanBytes =
+      file.type === "image/jpeg"
+        ? Buffer.from(stripJpegMetadata(buffer))
+        : buffer;
+
     let targetBucket = "proiecte";
     let { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from(targetBucket)
-      .upload(sanitizedFileName, buffer, {
+      .upload(sanitizedFileName, cleanBytes, {
         contentType: file.type,
         upsert: false,
       });
@@ -139,7 +156,7 @@ export async function POST(req: NextRequest) {
     if (uploadError && (uploadError.message.toLowerCase().includes("not found") || (uploadError as { statusCode?: string }).statusCode === "404")) {
       const altResult = await supabaseAdmin.storage
         .from("Proiecte")
-        .upload(sanitizedFileName, buffer, {
+        .upload(sanitizedFileName, cleanBytes, {
           contentType: file.type,
           upsert: false,
         });
@@ -152,12 +169,22 @@ export async function POST(req: NextRequest) {
     }
 
     if (uploadError || !uploadData) {
-      logStructured("warn", "supabase_storage_bucket_fallback", {
+      logStructured("error", "supabase_storage_upload_failed", {
         correlationId,
         reason: uploadError?.message || "missing_upload_data",
       });
 
-      const base64Data = buffer.toString("base64");
+      if (process.env.NODE_ENV === "production") {
+        return createProblemResponse({
+          status: 503,
+          title: "Service Unavailable",
+          detail: "Serviciul de stocare media Supabase Storage este indisponibil temporar.",
+          instance: "/api/admin/upload",
+          correlationId,
+        });
+      }
+
+      const base64Data = cleanBytes.toString("base64");
       const dataUrl = `data:${file.type};base64,${base64Data}`;
 
       return withCorrelationHeader(
@@ -166,7 +193,7 @@ export async function POST(req: NextRequest) {
           url: dataUrl,
           filename: sanitizedFileName,
           storage: "base64_fallback",
-          message: "Imagine stocată cu succes.",
+          message: "Imagine stocată în fallback local de dezvoltare.",
         }),
         correlationId
       );

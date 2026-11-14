@@ -1,34 +1,8 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
+import { sanitizeLogValue } from "@/lib/security-utils";
 
-const CNP_PATTERN = /\b[1-8]\d{12}\b/g;
-
-function sanitizeLogValue(val: unknown): unknown {
-  if (typeof val === "string") {
-    return val.replace(CNP_PATTERN, "[REDACTED_CNP]");
-  }
-  if (val instanceof Error) {
-    return {
-      name: val.name,
-      message: val.message.replace(CNP_PATTERN, "[REDACTED_CNP]"),
-    };
-  }
-  if (Array.isArray(val)) {
-    return val.map(sanitizeLogValue);
-  }
-  if (val && typeof val === "object") {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(val as Record<string, unknown>)) {
-      if (k.toLowerCase() === "cnp" || k.toLowerCase().includes("password") || k.toLowerCase().includes("secret") || k.toLowerCase() === "stack") {
-        out[k] = "[REDACTED]";
-      } else {
-        out[k] = sanitizeLogValue(v);
-      }
-    }
-    return out;
-  }
-  return val;
-}
+export { sanitizeLogValue };
 
 export function getCorrelationId(req?: Request): string {
   const incoming = req?.headers.get("x-correlation-id")?.trim();

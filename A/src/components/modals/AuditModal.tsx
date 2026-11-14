@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, ShieldCheck, CheckCircle2, ArrowRight, Loader2, Award, ExternalLink } from "lucide-react";
 import { z } from "zod";
@@ -38,6 +38,17 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [hpWebsite, setHpWebsite] = useState("");
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -55,7 +66,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
     const result = auditFormSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Partial<Record<keyof AuditFormData, string>> = {};
-      result.error.errors.forEach((err) => {
+      result.error.issues.forEach((err) => {
         if (err.path[0]) {
           fieldErrors[err.path[0] as keyof AuditFormData] = err.message;
         }
@@ -89,10 +100,17 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-amber-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-900">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="audit-modal-title"
+        className="relative w-full max-w-lg max-h-[92dvh] overflow-y-auto bg-white/95 backdrop-blur-xl border border-amber-900/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl text-slate-900"
+      >
         {/* Close button */}
         <button
+          type="button"
           onClick={onClose}
+          aria-label="Închide fereastra"
           className="absolute top-5 right-5 p-2 rounded-xl text-slate-500 hover:text-slate-950 hover:bg-amber-50 transition-colors"
         >
           <X className="w-5 h-5" />
@@ -105,7 +123,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
             </div>
             
             <div>
-              <h3 className="font-serif text-2xl font-bold text-[#071330]">
+              <h3 id="audit-modal-title" className="font-serif text-2xl font-bold text-[#071330]">
                 Cerere Înregistrată în Registru!
               </h3>
               {registeredDosar && (
@@ -162,7 +180,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
               <Award className="w-4 h-4 text-amber-700" />
               Evaluare Gratuită în Teren
             </div>
-            <h3 className="font-serif text-2xl font-black text-[#071330] mb-2 tracking-tight">
+            <h3 id="audit-modal-title" className="font-serif text-2xl font-black text-[#071330] mb-2 tracking-tight">
               Înscriere Asociație de Proprietari
             </h3>
             <p className="text-xs text-slate-600 mb-6 leading-relaxed">
@@ -170,7 +188,7 @@ export function AuditModal({ isOpen, onClose }: AuditModalProps) {
             </p>
 
             {serverError && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-700 text-xs font-semibold">
+              <div role="alert" className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-300 text-rose-700 text-xs font-semibold">
                 {serverError}
               </div>
             )}

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isRequestAuthenticated } from "@/lib/auth";
 import { AuditRequest } from "@/lib/types";
 import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
+import { verifySameOriginRequest } from "@/lib/security-utils";
 import {
   fetchAssociations,
   saveAssociation,
@@ -181,6 +182,17 @@ const hardDeletePhotoSchema = z.object({
 export async function POST(req: Request) {
   const correlationId = getCorrelationId(req);
 
+  const originCheck = verifySameOriginRequest(req);
+  if (!originCheck.allowed) {
+    return createProblemResponse({
+      status: 403,
+      title: "Forbidden",
+      detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
+      instance: "/api/admin/data",
+      correlationId,
+    });
+  }
+
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Verificare sesiune admin
   if (!isRequestAuthenticated(req)) {
     return createProblemResponse({
@@ -316,7 +328,7 @@ export async function POST(req: Request) {
       return createProblemResponse({
         status: 400,
         title: "Validation Error",
-        detail: `Validare eșuată: ${error.errors.map((e) => e.message).join(", ")}`,
+        detail: `Validare eșuată: ${error.issues.map((e) => e.message).join(", ")}`,
         instance: "/api/admin/data",
         correlationId,
       });
