@@ -55,3 +55,4 @@ scratch/
 # Documentation & Rules
 .knowledge/
 *.md
+!/README.md
