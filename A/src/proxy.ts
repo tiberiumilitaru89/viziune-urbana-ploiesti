@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_HEALTH_PATHS = new Set(["/api/healthz", "/api/readyz"]);
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const correlationId =
     request.headers.get("x-correlation-id")?.trim() || crypto.randomUUID();
 
