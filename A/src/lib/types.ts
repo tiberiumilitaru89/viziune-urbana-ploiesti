@@ -74,7 +74,7 @@ export type DonationEntry = {
   readonly phone: string;
   readonly email?: string;
   readonly description?: string;
-  readonly status: "inregistrat" | "confirmat" | "finalizat";
+  readonly status: "inregistrat" | "confirmat" | "finalizat" | "arhivat";
   readonly createdAt: string;
 };
 

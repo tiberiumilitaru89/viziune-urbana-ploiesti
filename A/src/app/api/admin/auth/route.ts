@@ -5,12 +5,21 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_DURATION_SECONDS,
   createSessionToken,
-  isRequestAuthenticated,
+  extractSessionTokenFromRequest,
+  isRequestAuthenticatedAsync,
+  revokeSessionToken,
   verifyAdminPassword,
 } from "@/lib/auth";
 import { applyPrivateNoStoreHeaders } from "@/lib/logger";
 import { checkRateLimitAsync, getClientIp } from "@/lib/rateLimit";
+import {
+  InvalidJsonBodyError,
+  PayloadTooLargeError,
+  readJsonWithLimit,
+} from "@/lib/request-guard";
 import { verifySameOriginRequest } from "@/lib/security-utils";
+
+const MAX_AUTH_BODY_BYTES = 4_096;
 
 const authBodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("logout") }).strict(),
@@ -23,7 +32,7 @@ const authBodySchema = z.discriminatedUnion("action", [
 ]);
 
 export async function GET(req: Request) {
-  const authenticated = isRequestAuthenticated(req);
+  const authenticated = await isRequestAuthenticatedAsync(req);
   return applyPrivateNoStoreHeaders(
     NextResponse.json({
       success: true,
@@ -45,7 +54,7 @@ export async function POST(req: Request) {
     }
 
     const ip = getClientIp(req);
-    const body: unknown = await req.json().catch(() => null);
+    const body = await readJsonWithLimit(req, MAX_AUTH_BODY_BYTES);
     const parsed = authBodySchema.safeParse(body);
 
     if (!parsed.success) {
@@ -58,6 +67,11 @@ export async function POST(req: Request) {
     }
 
     if (parsed.data.action === "logout") {
+      const currentToken = extractSessionTokenFromRequest(req);
+      if (currentToken) {
+        await revokeSessionToken(currentToken);
+      }
+
       const response = NextResponse.json({
         success: true,
         message: "Deconectare reușită",
@@ -133,11 +147,27 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: SESSION_DURATION_SECONDS, // 8 ore conforme politicilor de securitate
+      maxAge: SESSION_DURATION_SECONDS,
     });
 
     return applyPrivateNoStoreHeaders(response);
-  } catch {
+  } catch (err) {
+    if (err instanceof PayloadTooLargeError) {
+      return applyPrivateNoStoreHeaders(
+        NextResponse.json(
+          { success: false, error: "Cerere prea mare." },
+          { status: 413 }
+        )
+      );
+    }
+    if (err instanceof InvalidJsonBodyError) {
+      return applyPrivateNoStoreHeaders(
+        NextResponse.json(
+          { success: false, error: "Corp JSON invalid." },
+          { status: 400 }
+        )
+      );
+    }
     return applyPrivateNoStoreHeaders(
       NextResponse.json(
         { success: false, error: "Eroare internă de server la autentificare." },

@@ -1,3 +1,4 @@
+import "server-only";
 import crypto from "crypto";
 
 const ENCRYPTION_PREFIX = "enc:v1:";
@@ -66,11 +67,6 @@ function getEncryptionKey(): Buffer {
  */
 export function encryptPII(plaintext: string): string {
   if (!plaintext || typeof plaintext !== "string") {
-    return plaintext;
-  }
-
-  // Evită dubla criptare dacă valoarea este deja criptată
-  if (plaintext.startsWith(ENCRYPTION_PREFIX)) {
     return plaintext;
   }
 

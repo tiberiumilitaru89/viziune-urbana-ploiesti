@@ -1,26 +1,57 @@
+import "server-only";
+import crypto from "node:crypto";
 import { supabaseAdmin } from "./supabase";
-import { 
-  AuditRequest, 
-  PartnerItem, 
-  ProjectItem, 
-  GlobalMetrics, 
-  OngConfig, 
-  Formular230Entry, 
+import type {
+  AuditRequest,
+  PartnerItem,
+  ProjectItem,
+  GlobalMetrics,
+  OngConfig,
+  Formular230Entry,
   PublicAssociationSummary,
-  DonationEntry 
+  DonationEntry,
 } from "./types";
-import { 
-  INITIAL_ASSOCIATIONS, 
-  INITIAL_PARTNERS, 
-  INITIAL_PROJECTS, 
-  INITIAL_METRICS 
+import {
+  INITIAL_ASSOCIATIONS,
+  INITIAL_PARTNERS,
+  INITIAL_PROJECTS,
+  INITIAL_METRICS,
 } from "./data";
 import { detectNeighborhood } from "./neighborhoods";
 import { encryptPII, decryptPII } from "./pii-crypto";
+import { logStructured } from "./logger";
+import { normalizeDonationStatus, parseAllowedStorageTarget } from "./security-utils";
 
 // ==========================================
 // 1. ASOCIAȚII / AUDIT
 // ==========================================
+
+export const PUBLIC_VISIBLE_ASSOCIATION_STATUSES = new Set<AuditRequest["status"]>([
+  "in_evaluare",
+  "acceptat",
+  "finalizat",
+]);
+
+export function filterPublicAssociations(
+  all: readonly AuditRequest[]
+): PublicAssociationSummary[] {
+  return all
+    .filter((r) => PUBLIC_VISIBLE_ASSOCIATION_STATUSES.has(r.status))
+    .map((r) => ({
+      id: r.id,
+      dosarNumber: r.dosarNumber,
+      building: r.building,
+      address: r.address,
+      neighborhood: r.neighborhood || detectNeighborhood(r.address, r.building),
+      problem: r.problem,
+      status: r.status,
+      formsCollected: r.formsCollected,
+      formsTarget: r.formsTarget,
+      fundsCollected: r.fundsCollected,
+      fundsTarget: r.fundsTarget,
+      createdAt: r.createdAt,
+    }));
+}
 
 export async function fetchAssociations(includeArchived = false): Promise<AuditRequest[]> {
   try {
@@ -61,20 +92,7 @@ export async function fetchAssociations(includeArchived = false): Promise<AuditR
 
 export async function fetchPublicAssociations(): Promise<PublicAssociationSummary[]> {
   const all = await fetchAssociations(false);
-  return all.map((r) => ({
-    id: r.id,
-    dosarNumber: r.dosarNumber,
-    building: r.building,
-    address: r.address,
-    neighborhood: r.neighborhood || detectNeighborhood(r.address, r.building),
-    problem: r.problem,
-    status: r.status,
-    formsCollected: r.formsCollected,
-    formsTarget: r.formsTarget,
-    fundsCollected: r.fundsCollected,
-    fundsTarget: r.fundsTarget,
-    createdAt: r.createdAt,
-  }));
+  return filterPublicAssociations(all);
 }
 
 export async function saveAssociation(assoc: AuditRequest): Promise<boolean> {
@@ -94,14 +112,12 @@ export async function saveAssociation(assoc: AuditRequest): Promise<boolean> {
       is_archived: false,
     };
 
-    // Încercăm salvarea cu dosar_number dacă coloana există în Supabase
     const { error } = await supabaseAdmin.from("associations").upsert({
       ...payload,
       dosar_number: assoc.dosarNumber || null,
     });
 
     if (error && (error.message.includes("dosar_number") || error.code === "PGRST204")) {
-      // Fallback fără coloana dosar_number dacă utilizatorul nu a adăugat încă coloana în SQL
       const { error: fallbackError } = await supabaseAdmin.from("associations").upsert(payload);
       return !fallbackError;
     }
@@ -131,12 +147,12 @@ export async function hardDeleteAssociation(id: string): Promise<boolean> {
       .delete()
       .eq("id", id);
     if (error) {
-      console.error("Eroare la ștergerea definitivă a asociației din Supabase:", error.message);
+      logStructured("error", "hard_delete_association_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la ștergerea definitivă a asociației:", err);
+    logStructured("error", "hard_delete_association_exception", { error: err });
     return false;
   }
 }
@@ -209,12 +225,12 @@ export async function hardDeletePartner(id: string): Promise<boolean> {
       .delete()
       .eq("id", id);
     if (error) {
-      console.error("Eroare la ștergerea definitivă a partenerului din Supabase:", error.message);
+      logStructured("error", "hard_delete_partner_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la ștergerea definitivă a partenerului:", err);
+    logStructured("error", "hard_delete_partner_exception", { error: err });
     return false;
   }
 }
@@ -251,7 +267,7 @@ export async function savePartnerApplication(app: {
   description: string;
 }): Promise<boolean> {
   try {
-    const id = `partapp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const id = `partapp-${crypto.randomUUID()}`;
     const { error } = await supabaseAdmin.from("partner_applications").insert({
       id,
       company_name: app.companyName,
@@ -261,12 +277,12 @@ export async function savePartnerApplication(app: {
     });
 
     if (error) {
-      console.warn("Eroare la salvarea partner_applications în Supabase:", error.message);
+      logStructured("warn", "save_partner_application_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la salvarea partner_applications:", err);
+    logStructured("error", "save_partner_application_exception", { error: err });
     return false;
   }
 }
@@ -293,12 +309,12 @@ export async function hardDeletePartnerApplication(id: string): Promise<boolean>
       .delete()
       .eq("id", id);
     if (error) {
-      console.error("Eroare la ștergerea definitivă a cererii de parteneriat:", error.message);
+      logStructured("error", "hard_delete_partner_application_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la ștergerea definitivă a cererii de parteneriat:", err);
+    logStructured("error", "hard_delete_partner_application_exception", { error: err });
     return false;
   }
 }
@@ -359,10 +375,8 @@ export async function saveProject(project: ProjectItem): Promise<boolean> {
       is_archived: false,
     };
 
-    // Încercăm salvarea cu coloana gallery (jsonb)
     const { error } = await supabaseAdmin.from("projects").upsert(payload);
     if (error && (error.message.includes("gallery") || error.code === "PGRST204")) {
-      // Fallback fără coloana gallery dacă nu a fost adăugată încă în Supabase SQL
       const { gallery: _, ...fallbackPayload } = payload;
       const { error: fallbackError } = await supabaseAdmin.from("projects").upsert(fallbackPayload);
       return !fallbackError;
@@ -387,30 +401,69 @@ export async function archiveProject(id: string): Promise<boolean> {
 
 export async function deleteStorageFile(fileUrl: string): Promise<boolean> {
   try {
-    if (!fileUrl) return true;
-    if (!fileUrl.includes("/storage/v1/object/public/")) return true;
-    const parts = fileUrl.split("/storage/v1/object/public/");
-    if (parts.length < 2) return true;
-    const bucketAndPath = parts[1];
-    const slashIdx = bucketAndPath.indexOf("/");
-    if (slashIdx === -1) return true;
-    const bucket = bucketAndPath.substring(0, slashIdx);
-    const filePath = decodeURIComponent(bucketAndPath.substring(slashIdx + 1));
-    const { error } = await supabaseAdmin.storage.from(bucket).remove([filePath]);
+    if (!fileUrl || fileUrl.startsWith("/")) return true;
+
+    const target = parseAllowedStorageTarget(
+      fileUrl,
+      process.env.NEXT_PUBLIC_SUPABASE_URL || ""
+    );
+    if (!target) {
+      logStructured("warn", "storage_delete_rejected_invalid_target");
+      return false;
+    }
+
+    const { error } = await supabaseAdmin.storage.from(target.bucket).remove([target.filePath]);
     if (error) {
-      console.warn("Atenționare la ștergerea fișierului din Supabase Storage:", error.message);
+      logStructured("warn", "supabase_storage_delete_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.warn("Excepție la ștergerea fișierului din storage:", err);
+    logStructured("warn", "supabase_storage_delete_exception", { error: err });
+    return false;
+  }
+}
+
+export async function deleteProjectPhotoFromStorage(
+  projectId: string,
+  photoId: string,
+  photoUrl: string
+): Promise<boolean> {
+  try {
+    const { data: proj, error } = await supabaseAdmin
+      .from("projects")
+      .select("before_image, after_image, gallery")
+      .eq("id", projectId)
+      .single();
+
+    if (error || !proj) {
+      logStructured("warn", "storage_delete_project_not_found", { projectId });
+      return false;
+    }
+
+    const galleryList = Array.isArray(proj.gallery)
+      ? (proj.gallery as Array<{ id?: string; url?: string }>)
+      : [];
+
+    const belongsToProject =
+      proj.before_image === photoUrl ||
+      proj.after_image === photoUrl ||
+      galleryList.some((p) => p?.url === photoUrl && (!photoId || p?.id === photoId));
+
+    if (!belongsToProject) {
+      logStructured("warn", "storage_delete_rejected_photo_ownership", { projectId, photoId });
+      return false;
+    }
+
+    return deleteStorageFile(photoUrl);
+  } catch (err) {
+    logStructured("warn", "delete_project_photo_exception", { projectId, error: err });
     return false;
   }
 }
 
 export async function hardDeleteProject(id: string): Promise<boolean> {
   try {
-    // 1. Preluăm datele proiectului pentru a șterge fișierele foto din Supabase Storage
     const { data: proj } = await supabaseAdmin
       .from("projects")
       .select("before_image, after_image, gallery")
@@ -427,19 +480,18 @@ export async function hardDeleteProject(id: string): Promise<boolean> {
       }
     }
 
-    // 2. Ștergem fizic înregistrarea din PostgreSQL
     const { error } = await supabaseAdmin
       .from("projects")
       .delete()
       .eq("id", id);
 
     if (error) {
-      console.error("Eroare la ștergerea definitivă a proiectului:", error.message);
+      logStructured("error", "hard_delete_project_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la ștergerea definitivă a proiectului:", err);
+    logStructured("error", "hard_delete_project_exception", { error: err });
     return false;
   }
 }
@@ -540,6 +592,59 @@ export async function saveOngConfig(config: OngConfig): Promise<boolean> {
 // 6. FORMULARE 230
 // ==========================================
 
+export type RawFormular230Row = {
+  readonly id: string;
+  readonly created_at: string;
+  readonly last_name: string;
+  readonly first_name: string;
+  readonly initiala_tata?: string | null;
+  readonly cnp: string;
+  readonly email: string;
+  readonly phone: string;
+  readonly address: string;
+  readonly city: string;
+  readonly county: string;
+  readonly signature_data_url: string;
+  readonly distribute_for_2_years: boolean;
+  readonly consent_borderou: boolean;
+  readonly status: Formular230Entry["status"];
+};
+
+function safeDecryptField(
+  value: string,
+  rowId: string,
+  field: "cnp" | "signatureDataUrl"
+): string {
+  try {
+    return decryptPII(value);
+  } catch {
+    logStructured("error", "formular_230_row_decryption_failed", { rowId, field });
+    return field === "cnp" ? "[EROARE DECRIPTARE]" : "";
+  }
+}
+
+export function mapAndDecryptFormular230Rows(
+  rows: readonly RawFormular230Row[]
+): Formular230Entry[] {
+  return rows.map((f) => ({
+    id: f.id,
+    createdAt: f.created_at,
+    lastName: f.last_name,
+    firstName: f.first_name,
+    initialaTata: f.initiala_tata ?? undefined,
+    cnp: safeDecryptField(f.cnp, f.id, "cnp"),
+    email: f.email,
+    phone: f.phone,
+    address: f.address,
+    city: f.city,
+    county: f.county,
+    signatureDataUrl: safeDecryptField(f.signature_data_url, f.id, "signatureDataUrl"),
+    distributeFor2Years: f.distribute_for_2_years,
+    consentBorderou: f.consent_borderou,
+    status: f.status,
+  }));
+}
+
 export async function fetchFormulare230(includeArchived = false): Promise<Formular230Entry[]> {
   try {
     let query = supabaseAdmin
@@ -554,33 +659,20 @@ export async function fetchFormulare230(includeArchived = false): Promise<Formul
     const { data, error } = await query;
     if (error || !data) return [];
 
-    return data.map((f) => ({
-      id: f.id,
-      createdAt: f.created_at,
-      lastName: f.last_name,
-      firstName: f.first_name,
-      initialaTata: f.initiala_tata,
-      cnp: decryptPII(f.cnp),
-      email: f.email,
-      phone: f.phone,
-      address: f.address,
-      city: f.city,
-      county: f.county,
-      signatureDataUrl: decryptPII(f.signature_data_url),
-      distributeFor2Years: f.distribute_for_2_years,
-      consentBorderou: f.consent_borderou,
-      status: f.status,
-    }));
-  } catch {
+    return mapAndDecryptFormular230Rows(data as RawFormular230Row[]);
+  } catch (err) {
+    logStructured("error", "fetch_formulare_230_exception", { error: err });
     return [];
   }
 }
 
 export const getFormulare230 = fetchFormulare230;
 
-export async function insertFormular230(entry: Omit<Formular230Entry, "id" | "createdAt" | "status">): Promise<{ success: boolean; id?: string }> {
+export async function insertFormular230(
+  entry: Omit<Formular230Entry, "id" | "createdAt" | "status">
+): Promise<{ success: boolean; id?: string }> {
   try {
-    const id = `f230-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const id = `f230-${crypto.randomUUID()}`;
     const encryptedCnp = encryptPII(entry.cnp);
     const encryptedSignature = encryptPII(entry.signatureDataUrl);
 
@@ -603,17 +695,20 @@ export async function insertFormular230(entry: Omit<Formular230Entry, "id" | "cr
     });
 
     if (error) {
-      console.error("Eroare insert formular 230:", error);
+      logStructured("error", "insert_formular_230_failed", { error: error.message });
       return { success: false };
     }
     return { success: true, id };
   } catch (err) {
-    console.error("Eroare formular 230:", err);
+    logStructured("error", "insert_formular_230_exception", { error: err });
     return { success: false };
   }
 }
 
-export async function updateFormular230StatusDb(id: string, status: Formular230Entry["status"]): Promise<boolean> {
+export async function updateFormular230StatusDb(
+  id: string,
+  status: Formular230Entry["status"]
+): Promise<boolean> {
   try {
     const { error } = await supabaseAdmin
       .from("formulare_230")
@@ -644,12 +739,12 @@ export async function hardDeleteFormular230(id: string): Promise<boolean> {
       .delete()
       .eq("id", id);
     if (error) {
-      console.error("Eroare la ștergerea definitivă a formularului 230:", error.message);
+      logStructured("error", "hard_delete_formular_230_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la ștergerea definitivă a formularului 230:", err);
+    logStructured("error", "hard_delete_formular_230_exception", { error: err });
     return false;
   }
 }
@@ -678,7 +773,7 @@ export async function fetchDonations(): Promise<DonationEntry[]> {
       companyOrName: d.donor_name_or_company,
       phone: d.donor_phone,
       email: d.donor_email || undefined,
-      status: d.status === "confirmat" ? "confirmat" : d.status === "finalizat" ? "finalizat" : "inregistrat",
+      status: normalizeDonationStatus(d.status),
       createdAt: d.created_at,
     }));
   } catch {
@@ -688,7 +783,7 @@ export async function fetchDonations(): Promise<DonationEntry[]> {
 
 export async function updateDonationStatus(
   id: string,
-  status: "inregistrat" | "confirmat" | "finalizat"
+  status: DonationEntry["status"]
 ): Promise<boolean> {
   try {
     const { error } = await supabaseAdmin
@@ -719,12 +814,12 @@ export async function saveDonationDb(donation: DonationEntry): Promise<boolean> 
     });
 
     if (error) {
-      console.warn("Eroare la salvarea donației în Supabase:", error.message);
+      logStructured("warn", "save_donation_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la salvarea donației în Supabase:", err);
+    logStructured("error", "save_donation_exception", { error: err });
     return false;
   }
 }
@@ -736,13 +831,12 @@ export async function hardDeleteDonation(id: string): Promise<boolean> {
       .delete()
       .eq("id", id);
     if (error) {
-      console.error("Eroare la ștergerea definitivă a donației din Supabase:", error.message);
+      logStructured("error", "hard_delete_donation_failed", { error: error.message });
       return false;
     }
     return true;
   } catch (err) {
-    console.error("Excepție la ștergerea definitivă a donației:", err);
+    logStructured("error", "hard_delete_donation_exception", { error: err });
     return false;
   }
 }
-

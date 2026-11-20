@@ -1,4 +1,4 @@
-import { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary, PartnerItem, GlobalMetrics, Formular230Entry, OngConfig, Formular230Status } from "./types";
+import type { AuditRequest, ProjectItem, SpecItem, DonationEntry, PublicAssociationSummary, PartnerItem, GlobalMetrics, Formular230Entry, OngConfig, Formular230Status } from "./types";
 import { detectNeighborhood } from "./neighborhoods";
 
 export const INITIAL_ASSOCIATIONS: readonly AuditRequest[] = [

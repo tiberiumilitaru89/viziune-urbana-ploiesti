@@ -221,7 +221,7 @@ export function NoticeBoardModal({ association, isOpen, onClose }: NoticeBoardMo
               <div className="flex flex-col items-center justify-center p-2.5 bg-slate-50 border border-slate-300 rounded-lg text-center">
                 <div className="w-24 h-24 bg-white p-1 rounded border border-slate-300 flex items-center justify-center shadow-xs">
                   <img
-                    src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https%3A%2F%2Fviziuneurbanaploiesti.ro%2Fformular-230"
+                    src="/qr-formular-230.svg"
                     alt="Cod QR Formular 230"
                     className="w-full h-full object-contain"
                   />

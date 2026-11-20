@@ -14,7 +14,9 @@ const envSchema = z
     NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
     ADMIN_SECRET: z.string().min(32).optional(),
     PII_ENCRYPTION_KEY: z.string().min(32).optional(),
-    ADMIN_PASSWORD: z.string().min(1).optional(),
+    // TODO(SEC-AUDIT-03): Crește pragul la min(12) imediat după rotirea ADMIN_PASSWORD în Vercel & .env.local
+    ADMIN_PASSWORD: z.string().min(1).max(128).optional(),
+    ADMIN_PASSWORD_SCRYPT_HASH: z.string().min(32).optional(),
     SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   })
   .refine(
@@ -61,12 +63,17 @@ const envSchema = z
   .refine(
     (data) => {
       if (isProductionRuntime() && data.NODE_ENV === "production") {
-        return Boolean(data.ADMIN_PASSWORD && data.ADMIN_PASSWORD.trim().length > 0);
+        const hasPlainPassword = Boolean(data.ADMIN_PASSWORD && data.ADMIN_PASSWORD.trim().length > 0);
+        const hasScryptHash = Boolean(
+          data.ADMIN_PASSWORD_SCRYPT_HASH && data.ADMIN_PASSWORD_SCRYPT_HASH.trim().length >= 32
+        );
+        return hasPlainPassword || hasScryptHash;
       }
       return true;
     },
     {
-      message: "În producție este obligatorie variabila ADMIN_PASSWORD.",
+      message:
+        "În producție este obligatorie configurarea ADMIN_PASSWORD sau ADMIN_PASSWORD_SCRYPT_HASH.",
       path: ["ADMIN_PASSWORD"],
     }
   );
@@ -77,5 +84,6 @@ export const env = envSchema.parse({
   ADMIN_SECRET: process.env.ADMIN_SECRET,
   PII_ENCRYPTION_KEY: process.env.PII_ENCRYPTION_KEY,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+  ADMIN_PASSWORD_SCRYPT_HASH: process.env.ADMIN_PASSWORD_SCRYPT_HASH,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 });

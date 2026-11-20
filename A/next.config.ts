@@ -1,25 +1,50 @@
 import type { NextConfig } from "next";
 import path from "path";
 
+function resolveSupabaseHostname(): string | null {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "https:" ? parsed.hostname : null;
+  } catch {
+    return null;
+  }
+}
+
+const supabaseHostname = resolveSupabaseHostname();
+
+const remotePatterns: NonNullable<NextConfig["images"]>["remotePatterns"] = [
+  ...(supabaseHostname
+    ? [
+        {
+          protocol: "https" as const,
+          hostname: supabaseHostname,
+          pathname: "/storage/v1/object/public/proiecte/**",
+        },
+        {
+          protocol: "https" as const,
+          hostname: supabaseHostname,
+          pathname: "/storage/v1/object/public/Proiecte/**",
+        },
+      ]
+    : []),
+  {
+    protocol: "https",
+    hostname: "viziuneurbanaploiesti.ro",
+  },
+  {
+    protocol: "https",
+    hostname: "www.viziuneurbanaploiesti.ro",
+  },
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-      },
-      {
-        protocol: "https",
-        hostname: "viziuneurbanaploiesti.ro",
-      },
-      {
-        protocol: "https",
-        hostname: "www.viziuneurbanaploiesti.ro",
-      },
-    ],
+    remotePatterns,
   },
   typescript: {
     ignoreBuildErrors: false,

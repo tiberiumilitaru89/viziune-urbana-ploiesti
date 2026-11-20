@@ -8,39 +8,83 @@ import { fileURLToPath } from "node:url";
 import sitemap from "../src/app/sitemap.ts";
 import { encryptPII, decryptPII } from "../src/lib/pii-crypto.ts";
 import { escapeHtml, sanitizeHeader } from "../src/lib/email.ts";
-import { createSessionToken, verifySessionToken } from "../src/lib/auth.ts";
+import {
+  createSessionToken,
+  extractSessionTokenFromRequest,
+  isRequestAuthenticatedAsync,
+  isSessionTokenRevokedAsync,
+  revokeSessionToken,
+  SESSION_COOKIE_NAME,
+  verifySessionToken,
+} from "../src/lib/auth.ts";
 import {
   extractTrustedClientIp,
+  isValidPngSignatureDataUrl,
+  normalizeDonationStatus,
+  parseAllowedStorageTarget,
   sanitizeCsvCell,
   sanitizeLogValue,
   stripJpegMetadata,
+  stripPngMetadata,
+  stripWebpMetadata,
+  validateSafeMediaOrLinkUrl,
   verifySameOriginRequest,
 } from "../src/lib/security-utils.ts";
+import {
+  InvalidJsonBodyError,
+  PayloadTooLargeError,
+  readJsonWithLimit,
+} from "../src/lib/request-guard.ts";
+import { validateRomanianCnp } from "../src/lib/cnp.ts";
+import {
+  filterPublicAssociations,
+  mapAndDecryptFormular230Rows,
+} from "../src/lib/db.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
 
+function buildPngChunk(type, data) {
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(data.length, 0);
+  const typeBuf = Buffer.from(type, "ascii");
+  const crc = Buffer.alloc(4);
+  return Buffer.concat([len, typeBuf, data, crc]);
+}
+
+function buildSamplePngDataUrl(extraPaddingBytes = 40) {
+  const sig = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdrData = Buffer.alloc(13);
+  ihdrData.writeUInt32BE(120, 0);
+  ihdrData.writeUInt32BE(60, 4);
+  ihdrData[8] = 8;
+  ihdrData[9] = 6;
+  const idatData = Buffer.alloc(extraPaddingBytes, 0xaa);
+  const full = Buffer.concat([
+    sig,
+    buildPngChunk("IHDR", ihdrData),
+    buildPngChunk("IDAT", idatData),
+    buildPngChunk("IEND", Buffer.alloc(0)),
+  ]);
+  return `data:image/png;base64,${full.toString("base64")}`;
+}
+
 test("[VUP-SEC-001] AES-256-GCM PII Encryption & Decryption (CNP & Signature)", () => {
   process.env.PII_ENCRYPTION_KEY =
     "3e7a1c5f9b2d4e8a6c0f2b4d6e8a0c2f4b6d8e0a2c4f6b8d0e2a4c6f8b0d2e4a";
 
-  const sampleCnp = "1890101290011";
+  const sampleCnp = "1890101290016";
   const encrypted1 = encryptPII(sampleCnp);
   const encrypted2 = encryptPII(sampleCnp);
 
-  // 1. Format enc:v1:<iv>:<tag>:<cipher> și absența CNP-ului în clar
   assert.equal(encrypted1.startsWith("enc:v1:"), true, "Ciphertext must start with enc:v1:");
   assert.equal(encrypted1.includes(sampleCnp), false, "Ciphertext must not contain plaintext CNP");
-
-  // 2. IV aleator de 12 octeți produce ciphertext diferit la apeluri succesive
   assert.notEqual(encrypted1, encrypted2, "Repeated encryption must use distinct random IVs");
 
-  // 3. Decriptare deterministă la valoarea inițială
   const decrypted = decryptPII(encrypted1);
   assert.equal(decrypted, sampleCnp, "Decrypted value must match original CNP");
 
-  // 4. Detectarea alterării ciphertext-ului / AuthTag-ului (GCM Integrity)
   const parts = encrypted1.split(":");
   assert.equal(parts.length, 5);
   const tamperedTag = Buffer.from(parts[3], "base64");
@@ -53,7 +97,6 @@ test("[VUP-SEC-001] AES-256-GCM PII Encryption & Decryption (CNP & Signature)", 
     "Tampered AuthTag or ciphertext must throw an error"
   );
 
-  // 5. Compatibilitate zero-downtime cu rânduri istorice necriptate
   const legacyPlaintext = "2900714298456";
   assert.equal(decryptPII(legacyPlaintext), legacyPlaintext);
 });
@@ -109,29 +152,37 @@ test("[Modulul 5] Supply Chain Pinning in A/package.json (0 occurrences of ^ or 
 });
 
 test("[VUP-SEC-004] Trusted Client IP extraction resists X-Forwarded-For spoofing", () => {
-  const spoofedReq = new Request("https://www.viziuneurbanaploiesti.ro/api/donation", {
-    headers: {
-      "x-forwarded-for": "1.2.3.4, 198.51.100.42",
-    },
-  });
-  assert.equal(extractTrustedClientIp(spoofedReq), "198.51.100.42");
+  const prevTrustCf = process.env.TRUST_CLOUDFLARE_PROXY;
+  delete process.env.TRUST_CLOUDFLARE_PROXY;
 
-  const realIpReq = new Request("https://www.viziuneurbanaploiesti.ro/api/admin/auth", {
-    headers: {
-      "x-forwarded-for": "9.9.9.9, 10.0.0.1",
-      "x-real-ip": "203.0.113.10",
-    },
-  });
-  assert.equal(extractTrustedClientIp(realIpReq), "203.0.113.10");
+  try {
+    const spoofedReq = new Request("https://www.viziuneurbanaploiesti.ro/api/donation", {
+      headers: {
+        "x-forwarded-for": "1.2.3.4, 198.51.100.42",
+      },
+    });
+    assert.equal(extractTrustedClientIp(spoofedReq), "198.51.100.42");
 
-  const vercelReq = new Request("https://www.viziuneurbanaploiesti.ro/api/audit-request", {
-    headers: {
-      "x-forwarded-for": "9.9.9.9",
-      "x-vercel-forwarded-for": "192.0.2.55",
-      "x-real-ip": "10.0.0.2",
-    },
-  });
-  assert.equal(extractTrustedClientIp(vercelReq), "192.0.2.55");
+    const realIpReq = new Request("https://www.viziuneurbanaploiesti.ro/api/admin/auth", {
+      headers: {
+        "x-forwarded-for": "9.9.9.9, 10.0.0.1",
+        "x-real-ip": "203.0.113.10",
+      },
+    });
+    assert.equal(extractTrustedClientIp(realIpReq), "203.0.113.10");
+
+    const vercelReq = new Request("https://www.viziuneurbanaploiesti.ro/api/audit-request", {
+      headers: {
+        "x-forwarded-for": "9.9.9.9",
+        "x-vercel-forwarded-for": "192.0.2.55",
+        "x-real-ip": "10.0.0.2",
+      },
+    });
+    assert.equal(extractTrustedClientIp(vercelReq), "192.0.2.55");
+  } finally {
+    if (prevTrustCf === undefined) delete process.env.TRUST_CLOUDFLARE_PROXY;
+    else process.env.TRUST_CLOUDFLARE_PROXY = prevTrustCf;
+  }
 });
 
 test("[VUP-SEC-005] CSV / Excel formula injection defense & RFC 4180 quoting", () => {
@@ -220,14 +271,14 @@ test("[VUP-SEC-008] Production PII key decoupling & structured logger redaction"
     delete process.env.PII_ENCRYPTION_KEY;
 
     assert.throws(
-      () => encryptPII("1890101290011"),
+      () => encryptPII("1890101290016"),
       /PII_ENCRYPTION_KEY/,
       "Production must refuse to encrypt PII using ADMIN_SECRET fallback"
     );
 
     process.env.PII_ENCRYPTION_KEY = process.env.ADMIN_SECRET;
     assert.throws(
-      () => encryptPII("1890101290011"),
+      () => encryptPII("1890101290016"),
       /identică cu ADMIN_SECRET/i,
       "Production must reject PII_ENCRYPTION_KEY equal to ADMIN_SECRET"
     );
@@ -240,7 +291,7 @@ test("[VUP-SEC-008] Production PII key decoupling & structured logger redaction"
   }
 
   const sanitized = sanitizeLogValue({
-    cnp: "1890101290011",
+    cnp: "1890101290016",
     phone: "0722000111",
     email: "cetatean@example.ro",
     address: "Str. Exemplu nr. 10",
@@ -338,7 +389,7 @@ test("[VUP-SEC-011] Supabase build-safety without secrets vs. production runtime
 
   const buildResult = spawnSync(
     process.execPath,
-    ["--experimental-strip-types", "--input-type=module", "-e", harnessScript],
+    ["--conditions=react-server", "--experimental-strip-types", "--input-type=module", "-e", harnessScript],
     {
       cwd: projectRoot,
       env: {
@@ -358,7 +409,7 @@ test("[VUP-SEC-011] Supabase build-safety without secrets vs. production runtime
 
   const missingKeyResult = spawnSync(
     process.execPath,
-    ["--experimental-strip-types", "--input-type=module", "-e", harnessScript],
+    ["--conditions=react-server", "--experimental-strip-types", "--input-type=module", "-e", harnessScript],
     {
       cwd: projectRoot,
       env: {
@@ -381,7 +432,7 @@ test("[VUP-SEC-011] Supabase build-safety without secrets vs. production runtime
 
   const missingUrlResult = spawnSync(
     process.execPath,
-    ["--experimental-strip-types", "--input-type=module", "-e", harnessScript],
+    ["--conditions=react-server", "--experimental-strip-types", "--input-type=module", "-e", harnessScript],
     {
       cwd: projectRoot,
       env: {
@@ -475,4 +526,294 @@ test("[Modulul 5] Server/Client Module Isolation (zero server module imports in 
   }
 
   assert.equal(clientFilesChecked > 0, true, "Expected at least one 'use client' file in src/");
+});
+
+// =========================================================================
+// Audit Defensiv Regression Tests ([SEC-AUDIT-01] .. [SEC-AUDIT-09])
+// =========================================================================
+
+test("[SEC-AUDIT-01] encryptPII always encrypts enc:v1: inputs, PNG signature validation is strict, and batch decryption isolates corrupted rows", () => {
+  process.env.PII_ENCRYPTION_KEY =
+    "3e7a1c5f9b2d4e8a6c0f2b4d6e8a0c2f4b6d8e0a2c4f6b8d0e2a4c6f8b0d2e4a";
+
+  const forgedPrefix = "enc:v1:not-a-valid-ciphertext-payload";
+  const encrypted = encryptPII(forgedPrefix);
+  assert.notEqual(encrypted, forgedPrefix, "encryptPII must not bypass inputs prefixed with enc:v1:");
+  assert.equal(decryptPII(encrypted), forgedPrefix, "Round-trip decryption must restore literal input");
+
+  const validPng = buildSamplePngDataUrl();
+  assert.equal(isValidPngSignatureDataUrl(validPng), true);
+  assert.equal(isValidPngSignatureDataUrl("https://evil.example/sig.png"), false);
+  assert.equal(isValidPngSignatureDataUrl("enc:v1:forged"), false);
+  assert.equal(
+    isValidPngSignatureDataUrl("data:image/png;base64," + Buffer.from("<svg><script>").toString("base64")),
+    false
+  );
+  assert.equal(isValidPngSignatureDataUrl("data:image/png;base64," + "A".repeat(360_000)), false);
+
+  const validRow = {
+    id: "f230-valid",
+    created_at: "2026-11-20T10:00:00Z",
+    last_name: "Popescu",
+    first_name: "Ion",
+    initiala_tata: "M",
+    cnp: encryptPII("1890101290016"),
+    email: "ion@example.ro",
+    phone: "0722123456",
+    address: "Str. Exemplu nr. 1",
+    city: "Ploiești",
+    county: "Prahova",
+    signature_data_url: encryptPII(validPng),
+    distribute_for_2_years: true,
+    consent_borderou: true,
+    status: "inregistrat",
+  };
+
+  const corruptedRow = {
+    ...validRow,
+    id: "f230-corrupted",
+    cnp: "enc:v1:corrupted-payload",
+    signature_data_url: "enc:v1:bad:tag:cipher",
+  };
+
+  const decryptedRows = mapAndDecryptFormular230Rows([corruptedRow, validRow]);
+  assert.equal(decryptedRows.length, 2, "One corrupted row must not wipe out remaining rows");
+  assert.equal(decryptedRows[0].cnp, "[EROARE DECRIPTARE]");
+  assert.equal(decryptedRows[0].signatureDataUrl, "");
+  assert.equal(decryptedRows[1].cnp, "1890101290016");
+  assert.equal(decryptedRows[1].signatureDataUrl, validPng);
+});
+
+test("[SEC-AUDIT-02] extractTrustedClientIp requires opt-in for cf-connecting-ip and public association listing filters unmoderated statuses", () => {
+  const prevTrustCf = process.env.TRUST_CLOUDFLARE_PROXY;
+  delete process.env.TRUST_CLOUDFLARE_PROXY;
+
+  try {
+    const req = new Request("https://www.viziuneurbanaploiesti.ro/api/admin/auth", {
+      headers: {
+        "cf-connecting-ip": "198.51.100.99",
+        "x-vercel-forwarded-for": "203.0.113.10",
+      },
+    });
+    assert.equal(extractTrustedClientIp(req), "203.0.113.10");
+
+    process.env.TRUST_CLOUDFLARE_PROXY = "true";
+    assert.equal(extractTrustedClientIp(req), "198.51.100.99");
+  } finally {
+    if (prevTrustCf === undefined) delete process.env.TRUST_CLOUDFLARE_PROXY;
+    else process.env.TRUST_CLOUDFLARE_PROXY = prevTrustCf;
+  }
+
+  const base = {
+    name: "Contact Test",
+    phone: "0722000111",
+    address: "Str. Test nr. 1, Ploiești",
+    problem: "Descriere tehnică test",
+    formsCollected: 10,
+    formsTarget: 40,
+    fundsCollected: 1000,
+    fundsTarget: 10000,
+    createdAt: "2026-11-20T10:00:00Z",
+  };
+  const visible = filterPublicAssociations([
+    { ...base, id: "a1", building: "Bloc Nou", status: "nou" },
+    { ...base, id: "a2", building: "Bloc Respins", status: "respins" },
+    { ...base, id: "a3", building: "Bloc Evaluare", status: "in_evaluare" },
+    { ...base, id: "a4", building: "Bloc Acceptat", status: "acceptat" },
+    { ...base, id: "a5", building: "Bloc Finalizat", status: "finalizat" },
+  ]);
+
+  assert.deepEqual(
+    visible.map((a) => a.id),
+    ["a3", "a4", "a5"]
+  );
+});
+
+test("[SEC-AUDIT-03] Session logout revokes tokens server-side and Same-Origin verification fails closed", async () => {
+  process.env.ADMIN_SECRET =
+    "9f4c8a2e7b1d6f3a5c8e0b2d4f6a8c1e3b5d7f9a1c3e5b7d9f0a2c4e6b8d0f2a";
+
+  const token = createSessionToken();
+  const reqCookie = new Request("https://www.viziuneurbanaploiesti.ro/api/admin/data", {
+    headers: {
+      cookie: `${SESSION_COOKIE_NAME}=${token}`,
+    },
+  });
+  const reqBearerOnly = new Request("https://www.viziuneurbanaploiesti.ro/api/admin/data", {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  });
+
+  assert.equal(extractSessionTokenFromRequest(reqCookie), token);
+  assert.equal(extractSessionTokenFromRequest(reqBearerOnly), null);
+  assert.equal(await isRequestAuthenticatedAsync(reqCookie), true);
+  assert.equal(await isRequestAuthenticatedAsync(reqBearerOnly), false);
+
+  await revokeSessionToken(token);
+  assert.equal(verifySessionToken(token), false);
+  assert.equal(await isSessionTokenRevokedAsync(token), true);
+  assert.equal(await isRequestAuthenticatedAsync(reqCookie), false);
+
+  const missingOriginAndReferer = new Request("https://www.viziuneurbanaploiesti.ro/api/admin/data", {
+    method: "POST",
+  });
+  assert.equal(verifySameOriginRequest(missingOriginAndReferer).allowed, false);
+
+  const forgedForwardedHost = new Request("https://www.viziuneurbanaploiesti.ro/api/admin/data", {
+    method: "POST",
+    headers: {
+      "x-forwarded-host": "untrusted.example",
+      origin: "https://untrusted.example",
+    },
+  });
+  assert.equal(verifySameOriginRequest(forgedForwardedHost).allowed, false);
+});
+
+test("[SEC-AUDIT-04] Wildcard *.supabase.co patterns are absent from next.config.ts and proxy.ts", () => {
+  const nextConfigContent = fs.readFileSync(path.join(projectRoot, "next.config.ts"), "utf8");
+  const proxyContent = fs.readFileSync(path.join(projectRoot, "src", "proxy.ts"), "utf8");
+
+  assert.equal(nextConfigContent.includes("*.supabase.co"), false);
+  assert.equal(proxyContent.includes("*.supabase.co"), false);
+});
+
+test("[SEC-AUDIT-05] readJsonWithLimit aborts oversized streams before parse and URL validation blocks unsafe schemes", async () => {
+  const largeBody = JSON.stringify({ problem: "x".repeat(25_000) });
+  const oversizedReq = new Request("https://www.viziuneurbanaploiesti.ro/api/audit-request", {
+    method: "POST",
+    body: largeBody,
+  });
+
+  await assert.rejects(
+    () => readJsonWithLimit(oversizedReq, 16_384),
+    (err) => err instanceof PayloadTooLargeError
+  );
+
+  const badJsonReq = new Request("https://www.viziuneurbanaploiesti.ro/api/audit-request", {
+    method: "POST",
+    body: "{not valid json",
+  });
+  await assert.rejects(
+    () => readJsonWithLimit(badJsonReq, 16_384),
+    (err) => err instanceof InvalidJsonBodyError
+  );
+
+  assert.equal(validateSafeMediaOrLinkUrl("javascript:alert(1)"), false);
+  assert.equal(validateSafeMediaOrLinkUrl("data:text/html,<script>alert(1)</script>"), false);
+  assert.equal(validateSafeMediaOrLinkUrl("//evil.example/img.png"), false);
+  assert.equal(validateSafeMediaOrLinkUrl("/ref-assets/after-C5YhGlz_.png"), true);
+  assert.equal(validateSafeMediaOrLinkUrl("https://viziuneurbanaploiesti.ro", { allowRelative: false }), true);
+});
+
+test("[SEC-AUDIT-06] parseAllowedStorageTarget restricts deletions to matching origin, bucket, and flat file key", () => {
+  const base = "https://proj.supabase.co";
+  assert.equal(
+    parseAllowedStorageTarget("https://other.supabase.co/storage/v1/object/public/proiecte/a.jpg", base),
+    null
+  );
+  assert.equal(
+    parseAllowedStorageTarget("https://proj.supabase.co/storage/v1/object/public/private-backups/db.sql", base),
+    null
+  );
+  assert.equal(
+    parseAllowedStorageTarget("https://proj.supabase.co/storage/v1/object/public/proiecte/../secret.jpg", base),
+    null
+  );
+  assert.equal(
+    parseAllowedStorageTarget("https://proj.supabase.co/storage/v1/object/public/proiecte/sub%2Fdir.jpg", base),
+    null
+  );
+  assert.deepEqual(
+    parseAllowedStorageTarget("https://proj.supabase.co/storage/v1/object/public/proiecte/img_123.jpg?t=1", base),
+    { bucket: "proiecte", filePath: "img_123.jpg" }
+  );
+  assert.deepEqual(
+    parseAllowedStorageTarget("https://proj.supabase.co/storage/v1/object/public/Proiecte/img_123.webp", base),
+    { bucket: "Proiecte", filePath: "img_123.webp" }
+  );
+});
+
+test("[SEC-AUDIT-07] PNG and WebP metadata stripping removes EXIF/XMP/tEXt chunks and Math.random() is absent from src/", () => {
+  const pngSig = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const ihdr = buildPngChunk("IHDR", Buffer.alloc(13));
+  const exifChunk = buildPngChunk("eXIf", Buffer.from("ExifGPSData"));
+  const textChunk = buildPngChunk("tEXt", Buffer.from("Author\0Secret"));
+  const idat = buildPngChunk("IDAT", Buffer.from([1, 2, 3, 4]));
+  const iend = buildPngChunk("IEND", Buffer.alloc(0));
+
+  const dirtyPng = Buffer.concat([pngSig, ihdr, exifChunk, textChunk, idat, iend]);
+  const cleanPng = Buffer.from(stripPngMetadata(dirtyPng));
+  assert.equal(cleanPng.includes("eXIf"), false);
+  assert.equal(cleanPng.includes("tEXt"), false);
+  assert.equal(cleanPng.includes("IHDR"), true);
+  assert.equal(cleanPng.includes("IDAT"), true);
+  assert.equal(cleanPng.includes("IEND"), true);
+
+  const vp8xPayload = Buffer.alloc(10);
+  vp8xPayload[0] = 0x1c; // ICC (0x10) + EXIF (0x08) + XMP (0x04)
+  const vp8xHeader = Buffer.concat([Buffer.from("VP8X", "ascii"), Buffer.from([10, 0, 0, 0]), vp8xPayload]);
+  const vp8Chunk = Buffer.concat([Buffer.from("VP8 ", "ascii"), Buffer.from([4, 0, 0, 0]), Buffer.from([1, 2, 3, 4])]);
+  const exifWebp = Buffer.concat([Buffer.from("EXIF", "ascii"), Buffer.from([4, 0, 0, 0]), Buffer.from("Exif")]);
+  const xmpWebp = Buffer.concat([Buffer.from("XMP ", "ascii"), Buffer.from([4, 0, 0, 0]), Buffer.from("Xmp!")]);
+  const bodyChunks = Buffer.concat([vp8xHeader, vp8Chunk, exifWebp, xmpWebp]);
+  const riffSizeBuf = Buffer.alloc(4);
+  riffSizeBuf.writeUInt32LE(4 + bodyChunks.length, 0);
+  const dirtyWebp = Buffer.concat([Buffer.from("RIFF"), riffSizeBuf, Buffer.from("WEBP"), bodyChunks]);
+
+  const cleanWebp = Buffer.from(stripWebpMetadata(dirtyWebp));
+  assert.equal(cleanWebp.includes("EXIF"), false);
+  assert.equal(cleanWebp.includes("XMP "), false);
+  assert.equal(cleanWebp.readUInt32LE(4), cleanWebp.length - 8, "RIFF chunk size must match stripped buffer length");
+  assert.equal(cleanWebp[12 + 8], 0x10, "VP8X EXIF/XMP bits must be cleared while keeping ICC bit");
+
+  const srcDir = path.join(projectRoot, "src");
+  function scanMathRandom(dir) {
+    for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, item.name);
+      if (item.isDirectory()) scanMathRandom(full);
+      else if (item.isFile() && /\.(?:ts|tsx)$/.test(item.name)) {
+        const txt = fs.readFileSync(full, "utf8");
+        assert.equal(txt.includes("Math.random("), false, `${full} must not call Math.random()`);
+      }
+    }
+  }
+  scanMathRandom(srcDir);
+});
+
+test("[SEC-AUDIT-08] CNP county validation, local QR SVG asset, and non-prechecked GDPR consent", () => {
+  for (const invalidCountyCnp of ["1890101000011", "1890101490015", "1890101500014", "1890101990018"]) {
+    const res = validateRomanianCnp(invalidCountyCnp);
+    assert.equal(res.isValid, false, `County code in ${invalidCountyCnp} must be rejected`);
+  }
+  for (const validCountyCnp of ["1890101290016", "1890101510011", "1890101520019", "1890101700013"]) {
+    const res = validateRomanianCnp(validCountyCnp);
+    assert.equal(res.isValid, true, `Valid county CNP ${validCountyCnp} must pass`);
+  }
+
+  const noticeModal = fs.readFileSync(
+    path.join(projectRoot, "src", "components", "admin", "NoticeBoardModal.tsx"),
+    "utf8"
+  );
+  assert.equal(noticeModal.includes("api.qrserver.com"), false);
+  assert.equal(noticeModal.includes("/qr-formular-230.svg"), true);
+  assert.equal(fs.existsSync(path.join(projectRoot, "public", "qr-formular-230.svg")), true);
+
+  const wizard = fs.readFileSync(
+    path.join(projectRoot, "src", "components", "form230", "Formular230Wizard.tsx"),
+    "utf8"
+  );
+  assert.equal(
+    /const\s*\[\s*consentGdpr\s*,\s*setConsentGdpr\s*\]\s*=\s*useState\(\s*false\s*\)/.test(wizard),
+    true,
+    "GDPR consent checkbox must default to false"
+  );
+});
+
+test("[SEC-AUDIT-09] normalizeDonationStatus preserves 'arhivat' instead of resetting to 'inregistrat'", () => {
+  assert.equal(normalizeDonationStatus("arhivat"), "arhivat");
+  assert.equal(normalizeDonationStatus("confirmat"), "confirmat");
+  assert.equal(normalizeDonationStatus("finalizat"), "finalizat");
+  assert.equal(normalizeDonationStatus("inregistrat"), "inregistrat");
+  assert.equal(normalizeDonationStatus("unexpected_value"), "inregistrat");
 });

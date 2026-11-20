@@ -38,7 +38,7 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal: _isEmbeddedI
   const [signatureDataUrl, setSignatureDataUrl] = useState("");
   const [distributeFor2Years, setDistributeFor2Years] = useState(true);
   const [consentBorderou, setConsentBorderou] = useState(true);
-  const [consentGdpr, setConsentGdpr] = useState(true);
+  const [consentGdpr, setConsentGdpr] = useState(false);
   const [hpWebsite, setHpWebsite] = useState("");
 
   // Submission state
@@ -126,6 +126,7 @@ export function Formular230Wizard({ onCompleted, isEmbeddedInModal: _isEmbeddedI
         signatureDataUrl,
         distributeFor2Years,
         consentBorderou,
+        consentGdpr,
         hp_website: hpWebsite,
       };
 

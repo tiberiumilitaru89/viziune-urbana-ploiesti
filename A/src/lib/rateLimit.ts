@@ -1,3 +1,6 @@
+import "server-only";
+import { extractTrustedClientIp } from "@/lib/security-utils";
+
 /**
  * In-Memory Sliding Window Rate Limiter
  * Protejează endpoint-urile publice și administrative împotriva atacurilor de tip DoS și brute-force.
@@ -8,20 +11,41 @@ type RateLimitRecord = {
   resetAt: number;
 };
 
+const MAX_STORE_ENTRIES = 10_000;
 const store = new Map<string, RateLimitRecord>();
+
+function purgeExpiredEntries(now: number): void {
+  for (const [key, record] of store.entries()) {
+    if (now > record.resetAt) {
+      store.delete(key);
+    }
+  }
+}
+
+function setBoundedStoreEntry(key: string, record: RateLimitRecord): void {
+  if (store.size >= MAX_STORE_ENTRIES && !store.has(key)) {
+    purgeExpiredEntries(Date.now());
+    while (store.size >= MAX_STORE_ENTRIES) {
+      const oldestKey = store.keys().next().value;
+      if (oldestKey === undefined) break;
+      store.delete(oldestKey);
+    }
+  }
+  store.set(key, record);
+}
 
 // Curățare periodică la fiecare 10 minute pentru evitarea scurgerilor de memorie
 if (typeof setInterval !== "undefined") {
   const timer = setInterval(() => {
-    const now = Date.now();
-    for (const [key, record] of store.entries()) {
-      if (now > record.resetAt) {
-        store.delete(key);
-      }
-    }
+    purgeExpiredEntries(Date.now());
   }, 10 * 60 * 1000);
 
-  if (typeof timer === "object" && timer !== null && "unref" in timer && typeof (timer as { unref: () => void }).unref === "function") {
+  if (
+    typeof timer === "object" &&
+    timer !== null &&
+    "unref" in timer &&
+    typeof (timer as { unref: () => void }).unref === "function"
+  ) {
     (timer as { unref: () => void }).unref();
   }
 }
@@ -41,7 +65,7 @@ export function checkRateLimit(
   const record = store.get(key);
 
   if (!record || now > record.resetAt) {
-    store.set(key, { count: 1, resetAt: now + windowMs });
+    setBoundedStoreEntry(key, { count: 1, resetAt: now + windowMs });
     return { allowed: true, remaining: limit - 1, resetInMs: windowMs };
   }
 
@@ -106,7 +130,7 @@ export async function checkRateLimitAsync(
         const resetInMs = pttl > 0 ? pttl : windowMs;
 
         if (currentCount > limit) {
-          store.set(key, { count: currentCount, resetAt: Date.now() + resetInMs });
+          setBoundedStoreEntry(key, { count: currentCount, resetAt: Date.now() + resetInMs });
           return {
             allowed: false,
             remaining: 0,
@@ -114,7 +138,7 @@ export async function checkRateLimitAsync(
           };
         }
 
-        store.set(key, { count: currentCount, resetAt: Date.now() + resetInMs });
+        setBoundedStoreEntry(key, { count: currentCount, resetAt: Date.now() + resetInMs });
         return {
           allowed: true,
           remaining: Math.max(0, limit - currentCount),
@@ -128,8 +152,6 @@ export async function checkRateLimitAsync(
 
   return checkRateLimit(key, limit, windowMs);
 }
-
-import { extractTrustedClientIp } from "@/lib/security-utils";
 
 export function getClientIp(req: Request): string {
   return extractTrustedClientIp(req);

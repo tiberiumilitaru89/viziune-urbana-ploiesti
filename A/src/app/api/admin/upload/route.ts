@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isRequestAuthenticated } from "@/lib/auth";
+import { isRequestAuthenticatedAsync } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
-import { stripJpegMetadata, verifySameOriginRequest } from "@/lib/security-utils";
+import { stripImageMetadata, verifySameOriginRequest } from "@/lib/security-utils";
 import crypto from "crypto";
 import {
   applyPrivateNoStoreHeaders,
@@ -11,7 +11,6 @@ import {
   withCorrelationHeader,
 } from "@/lib/logger";
 
-// Constrângeri de securitate MIME & Dimensiune
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
   "image/png",
@@ -19,11 +18,8 @@ const ALLOWED_MIME_TYPES = new Set([
 ]);
 
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_MULTIPART_BODY_BYTES = Math.ceil(5.5 * 1024 * 1024);
 
-/**
- * Validare binară la nivel de octeți (Magic Bytes Inspection)
- * Previne atacurile de tip MIME Spoofing (ex. script sau executabil redenumit în .jpg/.png)
- */
 function hasValidImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
   if (mimeType === "image/jpeg") {
     return (
@@ -72,8 +68,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 1. Verificare Autentificare Admin Server-Side
-  const isAuth = isRequestAuthenticated(req);
+  // 1. Verificare Autentificare Admin Server-Side (cu verificarea revocării)
+  const isAuth = await isRequestAuthenticatedAsync(req);
   if (!isAuth) {
     return applyPrivateNoStoreHeaders(
       createProblemResponse({
@@ -84,6 +80,23 @@ export async function POST(req: NextRequest) {
         correlationId,
       })
     );
+  }
+
+  // 2. Verificare timpurie Content-Length pre-formData()
+  const rawLength = req.headers.get("content-length");
+  if (rawLength !== null) {
+    const parsedLength = Number(rawLength);
+    if (Number.isFinite(parsedLength) && parsedLength > MAX_MULTIPART_BODY_BYTES) {
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 413,
+          title: "Payload Too Large",
+          detail: "Dimensiunea cererii depășește limita admisă de 5MB.",
+          instance: "/api/admin/upload",
+          correlationId,
+        })
+      );
+    }
   }
 
   try {
@@ -104,7 +117,6 @@ export async function POST(req: NextRequest) {
 
     const file = fileEntry;
 
-    // 2. Validare MIME strictă (Fără SVG sau fișiere arbitrare)
     if (!ALLOWED_MIME_TYPES.has(file.type)) {
       return applyPrivateNoStoreHeaders(
         createProblemResponse({
@@ -117,11 +129,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Validare Dimensiune Maximă
     if (file.size > MAX_FILE_SIZE_BYTES) {
       return applyPrivateNoStoreHeaders(
         createProblemResponse({
-          status: 400,
+          status: 413,
           title: "Payload Too Large",
           detail: "Dimensiunea fișierului depășește limita admisă de 5MB.",
           instance: "/api/admin/upload",
@@ -130,32 +141,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Sanitizare Nume & Extensie fișier
-    const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+    const extension =
+      file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
     const safeId = crypto.randomBytes(8).toString("hex");
     const sanitizedFileName = `img_${Date.now()}_${safeId}.${extension}`;
 
-    // 5. Conversie buffer & Validare Semnătură Binară (Magic Bytes)
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    if (!hasValidImageMagicBytes(buffer, file.type)) {
+    if (buffer.byteLength > MAX_FILE_SIZE_BYTES) {
       return applyPrivateNoStoreHeaders(
         createProblemResponse({
-          status: 400,
-          title: "Bad Request",
-          detail: "Semnătura binară (Magic Bytes) a fișierului nu corespunde formatului declarat (JPG/PNG/WEBP).",
+          status: 413,
+          title: "Payload Too Large",
+          detail: "Dimensiunea fișierului depășește limita admisă de 5MB.",
           instance: "/api/admin/upload",
           correlationId,
         })
       );
     }
 
-    // 6. Eliminare metadate EXIF/GPS/COM pentru JPEG înainte de stocare și încărcare în Supabase Storage
-    const cleanBytes =
-      file.type === "image/jpeg"
-        ? Buffer.from(stripJpegMetadata(buffer))
-        : buffer;
+    if (!hasValidImageMagicBytes(buffer, file.type)) {
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail:
+            "Semnătura binară (Magic Bytes) a fișierului nu corespunde formatului declarat (JPG/PNG/WEBP).",
+          instance: "/api/admin/upload",
+          correlationId,
+        })
+      );
+    }
+
+    // Eliminare metadate EXIF/GPS/XMP/tEXt/COM pentru JPEG, PNG și WebP
+    const cleanBytes = Buffer.from(stripImageMetadata(buffer, file.type));
 
     let targetBucket = "proiecte";
     let { data: uploadData, error: uploadError } = await supabaseAdmin.storage
@@ -165,8 +185,11 @@ export async function POST(req: NextRequest) {
         upsert: false,
       });
 
-    // Dacă utilizatorul a creat bucket-ul cu majusculă "Proiecte", încercăm automat și această variantă
-    if (uploadError && (uploadError.message.toLowerCase().includes("not found") || (uploadError as { statusCode?: string }).statusCode === "404")) {
+    if (
+      uploadError &&
+      (uploadError.message.toLowerCase().includes("not found") ||
+        (uploadError as { statusCode?: string }).statusCode === "404")
+    ) {
       const altResult = await supabaseAdmin.storage
         .from("Proiecte")
         .upload(sanitizedFileName, cleanBytes, {
@@ -216,7 +239,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Obținere URL public din Supabase Storage
     const { data: publicUrlData } = supabaseAdmin.storage
       .from(targetBucket)
       .getPublicUrl(uploadData.path);

@@ -16,6 +16,7 @@ type Formular230OfficialDocProps = {
     email: string;
     signatureDataUrl: string;
     distributeFor2Years: boolean;
+    createdAt?: string;
   };
   readonly ongConfig: OngConfig;
   readonly onPrint?: () => void;
@@ -35,6 +36,11 @@ export function Formular230OfficialDoc({
   };
 
   const cnpDigits = formData.cnp.padEnd(13, " ").split("");
+  const parsedDate = formData.createdAt ? new Date(formData.createdAt) : new Date();
+  const formattedSubmissionDate = Number.isNaN(parsedDate.getTime())
+    ? new Date().toLocaleDateString("ro-RO")
+    : parsedDate.toLocaleDateString("ro-RO");
+  const isSafePngSignature = formData.signatureDataUrl.startsWith("data:image/png;base64,");
 
   return (
     <div className="space-y-4">
@@ -214,8 +220,15 @@ export function Formular230OfficialDoc({
 
             {/* OPȚIUNE 2 ANI */}
             <div className="flex items-center gap-2.5 pt-2">
-              <div className="w-5 h-5 border-2 border-slate-900 bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
-                ✓
+              <div
+                className={`w-5 h-5 border-2 border-slate-900 flex items-center justify-center font-bold text-xs ${
+                  formData.distributeFor2Years
+                    ? "bg-slate-900 text-white"
+                    : "bg-white text-transparent"
+                }`}
+                aria-checked={formData.distributeFor2Years}
+              >
+                {formData.distributeFor2Years ? "✓" : ""}
               </div>
               <span className="font-medium text-slate-900">
                 Opțiune privind distribuirea sumei pentru o perioadă de 2 ani (art. 79 alin. (3) din Legea nr. 227/2015)
@@ -229,7 +242,7 @@ export function Formular230OfficialDoc({
           <div>
             <span className="font-bold text-[11px] block text-slate-700">Data completării:</span>
             <div className="font-mono text-sm py-1 font-semibold">
-              {new Date().toLocaleDateString("ro-RO")}
+              {formattedSubmissionDate}
             </div>
             <div className="text-[10px] text-slate-600 mt-2 leading-relaxed">
               Prin semnarea prezentului formular, împuternicesc Asociația Viziune Urbană Ploiești să depună formularul la organul fiscal competent pe bază de borderou.
@@ -241,14 +254,14 @@ export function Formular230OfficialDoc({
               Semnătură contribuabil:
             </span>
             <div className="w-48 sm:w-56 h-20 border-2 border-slate-900 bg-slate-50 ml-auto flex items-center justify-center p-1 overflow-hidden relative">
-              {formData.signatureDataUrl ? (
+              {isSafePngSignature ? (
                 <img
                   src={formData.signatureDataUrl}
                   alt="Semnătură olografă digitală"
                   className="w-full h-full object-contain"
                 />
               ) : (
-                <span className="text-[10px] text-slate-600 italic">Lipsă semnătură</span>
+                <span className="text-[10px] text-slate-600 italic">Lipsă semnătură validă</span>
               )}
             </div>
             <div className="text-[10px] font-mono text-slate-600 mt-1 uppercase">

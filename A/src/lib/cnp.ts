@@ -74,6 +74,16 @@ export function validateRomanianCnp(cnp: string): CnpValidationResult {
     };
   }
 
+  // Verificare cod județ (01-48, 51, 52, plus 70 introdus de MAI din 2024)
+  const jj = parseInt(clean.substring(7, 9), 10);
+  const isValidCounty = (jj >= 1 && jj <= 48) || jj === 51 || jj === 52 || jj === 70;
+  if (!isValidCounty) {
+    return {
+      isValid: false,
+      error: "Codul de județ din CNP este invalid.",
+    };
+  }
+
   // Algoritmul ponderat pentru cifra de control
   let sum = 0;
   for (let i = 0; i < 12; i++) {

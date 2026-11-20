@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { isRequestAuthenticated } from "@/lib/auth";
+import { isRequestAuthenticatedAsync } from "@/lib/auth";
 import { AuditRequest } from "@/lib/types";
 import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
-import { verifySameOriginRequest } from "@/lib/security-utils";
+import {
+  InvalidJsonBodyError,
+  PayloadTooLargeError,
+  readJsonWithLimit,
+} from "@/lib/request-guard";
+import {
+  validateSafeMediaOrLinkUrl,
+  verifySameOriginRequest,
+} from "@/lib/security-utils";
 import {
   fetchAssociations,
   saveAssociation,
@@ -27,7 +35,7 @@ import {
   fetchDonations,
   updateDonationStatus,
   hardDeleteDonation,
-  deleteStorageFile,
+  deleteProjectPhotoFromStorage,
 } from "@/lib/db";
 import {
   applyPrivateNoStoreHeaders,
@@ -37,11 +45,19 @@ import {
   withCorrelationHeader,
 } from "@/lib/logger";
 
+const MAX_ADMIN_DATA_BODY_BYTES = 262_144;
+
+const adminActionEnvelopeSchema = z
+  .object({
+    action: z.string().trim().min(1).max(80),
+    payload: z.unknown(),
+  })
+  .strict();
+
 export async function GET(req: Request) {
   const correlationId = getCorrelationId(req);
 
-  // BARIERĂ INVIOLABILĂ DE SECURITATE: Verificare sesiune admin
-  if (!isRequestAuthenticated(req)) {
+  if (!(await isRequestAuthenticatedAsync(req))) {
     return applyPrivateNoStoreHeaders(
       createProblemResponse({
         status: 401,
@@ -57,15 +73,16 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const includeArchived = searchParams.get("includeArchived") === "true";
 
-    const [associations, partners, projects, metrics, ongConfig, partnerApplications, donations] = await Promise.all([
-      fetchAssociations(includeArchived),
-      fetchPartners(includeArchived),
-      fetchProjects(includeArchived),
-      fetchMetrics(),
-      fetchOngConfig(),
-      fetchPartnerApplications(),
-      fetchDonations(),
-    ]);
+    const [associations, partners, projects, metrics, ongConfig, partnerApplications, donations] =
+      await Promise.all([
+        fetchAssociations(includeArchived),
+        fetchPartners(includeArchived),
+        fetchProjects(includeArchived),
+        fetchMetrics(),
+        fetchOngConfig(),
+        fetchPartnerApplications(),
+        fetchDonations(),
+      ]);
 
     return applyPrivateNoStoreHeaders(
       withCorrelationHeader(
@@ -101,90 +118,141 @@ export async function GET(req: Request) {
   }
 }
 
-const saveAssociationSchema = z.object({
-  id: z.string().trim().min(1).max(100),
-  dosarNumber: z.string().trim().max(50).optional(),
-  name: z.string().trim().min(1).max(150),
-  phone: z.string().trim().min(5).max(30),
-  building: z.string().trim().min(1).max(200),
-  address: z.string().trim().min(1).max(300),
-  neighborhood: z.string().trim().max(100).optional(),
-  problem: z.string().trim().min(1).max(2000),
-  status: z.enum(["nou", "in_evaluare", "acceptat", "respins", "finalizat"]),
-  formsCollected: z.number().int().min(0).max(100000),
-  formsTarget: z.number().int().min(1).max(100000),
-  fundsCollected: z.number().int().min(0).max(100000000),
-  fundsTarget: z.number().int().min(0).max(100000000),
-  createdAt: z.string().optional(),
-});
+const saveAssociationSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    dosarNumber: z.string().trim().max(50).optional(),
+    name: z.string().trim().min(1).max(150),
+    phone: z.string().trim().min(5).max(30),
+    building: z.string().trim().min(1).max(200),
+    address: z.string().trim().min(1).max(300),
+    neighborhood: z.string().trim().max(100).optional(),
+    problem: z.string().trim().min(1).max(2000),
+    status: z.enum(["nou", "in_evaluare", "acceptat", "respins", "finalizat"]),
+    formsCollected: z.number().int().min(0).max(100000),
+    formsTarget: z.number().int().min(1).max(100000),
+    fundsCollected: z.number().int().min(0).max(100000000),
+    fundsTarget: z.number().int().min(0).max(100000000),
+    createdAt: z.string().max(100).optional(),
+  })
+  .strict();
 
-const idPayloadSchema = z.object({
-  id: z.string().trim().min(1).max(100),
-});
+const idPayloadSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+  })
+  .strict();
 
-const savePartnerSchema = z.object({
-  id: z.string().trim().min(1).max(100),
-  name: z.string().trim().min(1).max(150),
-  role: z.string().trim().min(1).max(200),
-  category: z.enum(["executie", "practica", "comunitate", "academic"]),
-  description: z.string().trim().min(1).max(3000),
-  logoUrl: z.string().trim().max(500).optional().or(z.literal("")),
-  website: z.string().trim().max(500).optional().or(z.literal("")),
-  badgeText: z.string().trim().max(100).optional().or(z.literal("")),
-});
+const savePartnerSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    name: z.string().trim().min(1).max(150),
+    role: z.string().trim().min(1).max(200),
+    category: z.enum(["executie", "practica", "comunitate", "academic"]),
+    description: z.string().trim().min(1).max(3000),
+    logoUrl: z
+      .string()
+      .trim()
+      .max(500)
+      .refine((v) => !v || validateSafeMediaOrLinkUrl(v), "URL logo invalid")
+      .optional()
+      .or(z.literal("")),
+    website: z
+      .string()
+      .trim()
+      .max(500)
+      .refine(
+        (v) => !v || validateSafeMediaOrLinkUrl(v, { allowRelative: false }),
+        "URL website invalid"
+      )
+      .optional()
+      .or(z.literal("")),
+    badgeText: z.string().trim().max(100).optional().or(z.literal("")),
+  })
+  .strict();
 
-const projectPhotoSchema = z.object({
-  id: z.string().trim().min(1).max(100),
-  url: z.string().trim().min(1).max(1000),
-  caption: z.string().trim().max(500).optional(),
-  stage: z.enum(["inainte", "in_lucru", "dupa"]),
-  createdAt: z.string().optional(),
-});
+const projectPhotoSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    url: z
+      .string()
+      .trim()
+      .min(1)
+      .max(1000)
+      .refine((v) => validateSafeMediaOrLinkUrl(v), "URL fotografie invalid"),
+    caption: z.string().trim().max(500).optional(),
+    stage: z.enum(["inainte", "in_lucru", "dupa"]),
+    createdAt: z.string().max(100).optional(),
+  })
+  .strict();
 
-const saveProjectSchema = z.object({
-  id: z.string().trim().min(1).max(100),
-  title: z.string().trim().min(1).max(250),
-  description: z.string().trim().min(1).max(3000),
-  status: z.enum(["in_curs", "finalizat"]),
-  beforeImage: z.string().trim().min(1).max(500),
-  afterImage: z.string().trim().min(1).max(500),
-  completionDate: z.string().trim().min(1).max(100),
-  neighborhood: z.string().trim().max(100).optional(),
-  gallery: z.array(projectPhotoSchema).optional().default([]),
-});
+const saveProjectSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    title: z.string().trim().min(1).max(250),
+    description: z.string().trim().min(1).max(3000),
+    status: z.enum(["in_curs", "finalizat"]),
+    beforeImage: z
+      .string()
+      .trim()
+      .min(1)
+      .max(500)
+      .refine((v) => validateSafeMediaOrLinkUrl(v), "URL imagine 'Înainte' invalid"),
+    afterImage: z
+      .string()
+      .trim()
+      .min(1)
+      .max(500)
+      .refine((v) => validateSafeMediaOrLinkUrl(v), "URL imagine 'După' invalid"),
+    completionDate: z.string().trim().min(1).max(100),
+    neighborhood: z.string().trim().max(100).optional(),
+    gallery: z.array(projectPhotoSchema).max(200).optional().default([]),
+    isArchived: z.boolean().optional(),
+  })
+  .strict();
 
-const saveMetricsSchema = z.object({
-  totalFormsCollected: z.number().int().min(0).max(1000000),
-  totalFormsTarget: z.number().int().min(0).max(1000000),
-  totalFundsCollectedRon: z.number().int().min(0).max(1000000000),
-  totalFundsTargetRon: z.number().int().min(0).max(1000000000),
-  activeAssociationsCount: z.number().int().min(0).max(10000),
-});
+const saveMetricsSchema = z
+  .object({
+    totalFormsCollected: z.number().int().min(0).max(1000000),
+    totalFormsTarget: z.number().int().min(0).max(1000000),
+    totalFundsCollectedRon: z.number().int().min(0).max(1000000000),
+    totalFundsTargetRon: z.number().int().min(0).max(1000000000),
+    activeAssociationsCount: z.number().int().min(0).max(10000),
+  })
+  .strict();
 
-const saveOngConfigSchema = z.object({
-  name: z.string().trim().min(1).max(200),
-  cif: z.string().trim().min(2).max(50),
-  iban: z.string().trim().min(10).max(50),
-  bank: z.string().trim().min(2).max(100),
-  percentage: z.string().trim().min(1).max(20),
-  distributeYears: z.number().int().min(1).max(10),
-});
+const saveOngConfigSchema = z
+  .object({
+    name: z.string().trim().min(1).max(200),
+    cif: z.string().trim().min(2).max(50),
+    iban: z.string().trim().min(10).max(50),
+    bank: z.string().trim().min(2).max(100),
+    percentage: z.string().trim().min(1).max(20),
+    distributeYears: z.number().int().min(1).max(10),
+  })
+  .strict();
 
-const updatePartnerAppSchema = z.object({
-  id: z.string().trim().min(1).max(100),
-  status: z.enum(["nou", "contactat", "arhivat"]),
-});
+const updatePartnerAppSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    status: z.enum(["nou", "contactat", "arhivat"]),
+  })
+  .strict();
 
-const updateDonationStatusSchema = z.object({
-  id: z.string().trim().min(1).max(100),
-  status: z.enum(["inregistrat", "confirmat", "finalizat", "arhivat"]),
-});
+const updateDonationStatusSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    status: z.enum(["inregistrat", "confirmat", "finalizat", "arhivat"]),
+  })
+  .strict();
 
-const hardDeletePhotoSchema = z.object({
-  projectId: z.string().trim().min(1).max(100),
-  photoId: z.string().trim().min(1).max(100),
-  photoUrl: z.string().trim().min(1).max(1000),
-});
+const hardDeletePhotoSchema = z
+  .object({
+    projectId: z.string().trim().min(1).max(100),
+    photoId: z.string().trim().min(1).max(100),
+    photoUrl: z.string().trim().min(1).max(1000),
+  })
+  .strict();
 
 export async function POST(req: Request) {
   const correlationId = getCorrelationId(req);
@@ -202,8 +270,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // BARIERĂ INVIOLABILĂ DE SECURITATE: Verificare sesiune admin
-  if (!isRequestAuthenticated(req)) {
+  if (!(await isRequestAuthenticatedAsync(req))) {
     return applyPrivateNoStoreHeaders(
       createProblemResponse({
         status: 401,
@@ -216,20 +283,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json();
-    const { action, payload } = body;
-
-    if (!action || !payload) {
-      return applyPrivateNoStoreHeaders(
-        createProblemResponse({
-          status: 400,
-          title: "Bad Request",
-          detail: "Date incomplete",
-          instance: "/api/admin/data",
-          correlationId,
-        })
-      );
-    }
+    const rawBody = await readJsonWithLimit(req, MAX_ADMIN_DATA_BODY_BYTES);
+    const { action, payload } = adminActionEnvelopeSchema.parse(rawBody);
 
     let success = false;
 
@@ -285,7 +340,7 @@ export async function POST(req: Request) {
       }
       case "update_donation_status": {
         const validated = updateDonationStatusSchema.parse(payload);
-        success = await updateDonationStatus(validated.id, validated.status as "inregistrat" | "confirmat" | "finalizat");
+        success = await updateDonationStatus(validated.id, validated.status);
         break;
       }
       case "hard_delete_association": {
@@ -315,10 +370,11 @@ export async function POST(req: Request) {
       }
       case "hard_delete_photo": {
         const validated = hardDeletePhotoSchema.parse(payload);
-        if (validated.photoUrl) {
-          await deleteStorageFile(validated.photoUrl);
-        }
-        success = true;
+        success = await deleteProjectPhotoFromStorage(
+          validated.projectId,
+          validated.photoId,
+          validated.photoUrl
+        );
         break;
       }
       default:
@@ -341,6 +397,28 @@ export async function POST(req: Request) {
       withCorrelationHeader(NextResponse.json({ success }), correlationId)
     );
   } catch (error) {
+    if (error instanceof PayloadTooLargeError) {
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 413,
+          title: "Payload Too Large",
+          detail: "Dimensiunea cererii depășește limita permisă.",
+          instance: "/api/admin/data",
+          correlationId,
+        })
+      );
+    }
+    if (error instanceof InvalidJsonBodyError) {
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail: "Corp JSON invalid.",
+          instance: "/api/admin/data",
+          correlationId,
+        })
+      );
+    }
     if (error instanceof z.ZodError) {
       return applyPrivateNoStoreHeaders(
         createProblemResponse({

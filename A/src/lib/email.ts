@@ -1,3 +1,6 @@
+import "server-only";
+import { logStructured } from "./logger";
+
 /**
  * Serviciu Centralizat de Notificări Email pentru Asociația Viziune Urbană Ploiești
  * Expediază alerte detaliate către coordonatorul tehnic (George Becheanu)
@@ -158,23 +161,14 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
       });
 
       if (!res.ok) {
-        console.error(
-          JSON.stringify({
-            level: "error",
-            event: "resend_admin_notification_failed",
-            status: res.status,
-          })
-        );
+        logStructured("error", "resend_admin_notification_failed", {
+          status: res.status,
+        });
         return false;
       }
       return true;
     } catch {
-      console.error(
-        JSON.stringify({
-          level: "error",
-          event: "resend_admin_notification_exception",
-        })
-      );
+      logStructured("error", "resend_admin_notification_exception");
       return false;
     }
   }
@@ -200,12 +194,7 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
       });
       return true;
     } catch {
-      console.error(
-        JSON.stringify({
-          level: "error",
-          event: "formspree_notification_exception",
-        })
-      );
+      logStructured("error", "formspree_notification_exception");
       return false;
     }
   }
@@ -350,23 +339,14 @@ export async function sendCitizenConfirmation(payload: CitizenConfirmationPayloa
     });
 
     if (!res.ok) {
-      console.warn(
-        JSON.stringify({
-          level: "warn",
-          event: "resend_citizen_confirmation_failed",
-          status: res.status,
-        })
-      );
+      logStructured("warn", "resend_citizen_confirmation_failed", {
+        status: res.status,
+      });
       return false;
     }
     return true;
   } catch {
-    console.warn(
-      JSON.stringify({
-        level: "warn",
-        event: "resend_citizen_confirmation_exception",
-      })
-    );
+    logStructured("warn", "resend_citizen_confirmation_exception");
     return false;
   }
 }

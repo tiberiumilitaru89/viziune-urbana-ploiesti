@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_HEALTH_PATHS = new Set(["/api/healthz", "/api/readyz"]);
+const SAFE_CORRELATION_ID_REGEX = /^[A-Za-z0-9._-]{1,64}$/;
+
+function resolveCorrelationId(req: NextRequest): string {
+  const incoming = req.headers.get("x-correlation-id")?.trim();
+  if (incoming && SAFE_CORRELATION_ID_REGEX.test(incoming)) {
+    return incoming;
+  }
+  return crypto.randomUUID();
+}
+
+function resolveSupabaseConnectOrigin(): string | null {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "https:" ? parsed.origin : null;
+  } catch {
+    return null;
+  }
+}
 
 function applySecurityHeaders(response: NextResponse): void {
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -12,8 +32,7 @@ function applySecurityHeaders(response: NextResponse): void {
 }
 
 export function proxy(request: NextRequest) {
-  const correlationId =
-    request.headers.get("x-correlation-id")?.trim() || crypto.randomUUID();
+  const correlationId = resolveCorrelationId(request);
   const pathname = request.nextUrl.pathname;
 
   // Rutele /api/healthz și /api/readyz sunt întotdeauna publice
@@ -46,11 +65,14 @@ export function proxy(request: NextRequest) {
   }
 
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+  const supabaseOrigin = resolveSupabaseConnectOrigin();
 
   // În development permitem 'unsafe-eval' pentru Next.js Fast Refresh & HMR
   const scriptSrc = isDev
     ? `'self' 'unsafe-eval' 'nonce-${nonce}'`
     : `'self' 'nonce-${nonce}'`;
+
+  const connectSrc = supabaseOrigin ? `connect-src 'self' ${supabaseOrigin}` : "connect-src 'self'";
 
   const cspDirectives = [
     "default-src 'self'",
@@ -58,7 +80,7 @@ export function proxy(request: NextRequest) {
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self' data:",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://*.supabase.co",
+    connectSrc,
     "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",
@@ -95,9 +117,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Interceptăm rutele de pagini și excludem fișierele statice de bundle / media
-     */
     {
       source:
         "/((?!_next/static|_next/image|favicon.svg|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:jpg|jpeg|gif|png|webp|svg|ico)$).*)",

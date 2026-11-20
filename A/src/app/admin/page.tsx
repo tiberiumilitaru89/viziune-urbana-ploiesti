@@ -244,7 +244,7 @@ export default function AdminPage() {
     }
 
     const photoToAdd: ProjectPhoto = {
-      id: `photo-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      id: `photo-${crypto.randomUUID()}`,
       url: newPhoto.url.trim(),
       caption: newPhoto.caption.trim() || undefined,
       stage: newPhoto.stage,
@@ -275,16 +275,9 @@ export default function AdminPage() {
     if (!confirm("ATENȚIE: Sigur doriți să ștergeți DEFINITIV această fotografie din baza de date și stocare?")) return;
 
     const urlToDelete = photoUrl || targetProject.gallery?.find((p) => p.id === photoId)?.url;
-    const updatedGallery = (targetProject.gallery || []).filter((p) => p.id !== photoId);
-    const updatedProject: ProjectItem = {
-      ...targetProject,
-      gallery: updatedGallery,
-    };
 
-    const updatedProjects = projects.map((p) => (p.id === updatedProject.id ? updatedProject : p));
-    setProjects(updatedProjects);
-    await saveProjectToDb(updatedProject);
-
+    // Ștergere din Storage ÎNAINTE de salvarea galeriei fără fotografie,
+    // astfel încât serverul să poată valida apartenența fotografiei la proiect.
     if (urlToDelete) {
       try {
         await fetch("/api/admin/data", {
@@ -299,6 +292,16 @@ export default function AdminPage() {
         console.warn("Storage cleanup notice:", err);
       }
     }
+
+    const updatedGallery = (targetProject.gallery || []).filter((p) => p.id !== photoId);
+    const updatedProject: ProjectItem = {
+      ...targetProject,
+      gallery: updatedGallery,
+    };
+
+    const updatedProjects = projects.map((p) => (p.id === updatedProject.id ? updatedProject : p));
+    setProjects(updatedProjects);
+    await saveProjectToDb(updatedProject);
 
     showToast("Fotografia a fost ștearsă definitiv!");
   };
@@ -699,7 +702,7 @@ export default function AdminPage() {
   // 5. Update Status Donație în Supabase
   const handleUpdateDonationStatus = async (
     id: string,
-    status: "inregistrat" | "confirmat" | "finalizat"
+    status: "inregistrat" | "confirmat" | "finalizat" | "arhivat"
   ) => {
     try {
       const res = await fetch("/api/admin/data", {
@@ -3335,7 +3338,7 @@ export default function AdminPage() {
                               onChange={(e) =>
                                 handleUpdateDonationStatus(
                                   d.id,
-                                  e.target.value as "inregistrat" | "confirmat" | "finalizat"
+                                  e.target.value as "inregistrat" | "confirmat" | "finalizat" | "arhivat"
                                 )
                               }
                               className={`px-2.5 py-1 rounded-lg text-xs font-bold border shadow-sm ${
@@ -3343,12 +3346,15 @@ export default function AdminPage() {
                                   ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                                   : d.status === "confirmat"
                                   ? "bg-blue-50 text-blue-800 border-blue-300"
+                                  : d.status === "arhivat"
+                                  ? "bg-slate-100 text-slate-700 border-slate-300"
                                   : "bg-amber-50 text-amber-800 border-amber-300"
                               }`}
                             >
                               <option value="inregistrat">Înregistrat</option>
                               <option value="confirmat">Confirmat / Preluat</option>
                               <option value="finalizat">Finalizat & Decontat</option>
+                              <option value="arhivat">Arhivat</option>
                             </select>
                           </td>
                           <td className="py-3.5 px-4 text-center">
@@ -3417,6 +3423,7 @@ export default function AdminPage() {
                     email: selectedFormForPreview.email,
                     signatureDataUrl: selectedFormForPreview.signatureDataUrl,
                     distributeFor2Years: selectedFormForPreview.distributeFor2Years,
+                    createdAt: selectedFormForPreview.createdAt,
                   }}
                   ongConfig={ongConfig}
                 />
