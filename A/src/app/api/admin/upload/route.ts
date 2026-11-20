@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { stripJpegMetadata, verifySameOriginRequest } from "@/lib/security-utils";
 import crypto from "crypto";
 import {
+  applyPrivateNoStoreHeaders,
   createProblemResponse,
   getCorrelationId,
   logStructured,
@@ -60,25 +61,29 @@ export async function POST(req: NextRequest) {
 
   const originCheck = verifySameOriginRequest(req);
   if (!originCheck.allowed) {
-    return createProblemResponse({
-      status: 403,
-      title: "Forbidden",
-      detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
-      instance: "/api/admin/upload",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 403,
+        title: "Forbidden",
+        detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
+        instance: "/api/admin/upload",
+        correlationId,
+      })
+    );
   }
 
   // 1. Verificare Autentificare Admin Server-Side
   const isAuth = isRequestAuthenticated(req);
   if (!isAuth) {
-    return createProblemResponse({
-      status: 401,
-      title: "Unauthorized",
-      detail: "Acces neautorizat. Sesiune expirată sau invalidă.",
-      instance: "/api/admin/upload",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 401,
+        title: "Unauthorized",
+        detail: "Acces neautorizat. Sesiune expirată sau invalidă.",
+        instance: "/api/admin/upload",
+        correlationId,
+      })
+    );
   }
 
   try {
@@ -86,37 +91,43 @@ export async function POST(req: NextRequest) {
     const fileEntry = formData.get("file");
 
     if (!fileEntry || typeof fileEntry === "string" || !(fileEntry instanceof File)) {
-      return createProblemResponse({
-        status: 400,
-        title: "Bad Request",
-        detail: "Nu a fost furnizat un fișier valid.",
-        instance: "/api/admin/upload",
-        correlationId,
-      });
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail: "Nu a fost furnizat un fișier valid.",
+          instance: "/api/admin/upload",
+          correlationId,
+        })
+      );
     }
 
     const file = fileEntry;
 
     // 2. Validare MIME strictă (Fără SVG sau fișiere arbitrare)
     if (!ALLOWED_MIME_TYPES.has(file.type)) {
-      return createProblemResponse({
-        status: 400,
-        title: "Unsupported Media Type",
-        detail: "Format de imagine nepermis. Sunt acceptate doar fișiere JPG, PNG sau WEBP.",
-        instance: "/api/admin/upload",
-        correlationId,
-      });
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Unsupported Media Type",
+          detail: "Format de imagine nepermis. Sunt acceptate doar fișiere JPG, PNG sau WEBP.",
+          instance: "/api/admin/upload",
+          correlationId,
+        })
+      );
     }
 
     // 3. Validare Dimensiune Maximă
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return createProblemResponse({
-        status: 400,
-        title: "Payload Too Large",
-        detail: "Dimensiunea fișierului depășește limita admisă de 5MB.",
-        instance: "/api/admin/upload",
-        correlationId,
-      });
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Payload Too Large",
+          detail: "Dimensiunea fișierului depășește limita admisă de 5MB.",
+          instance: "/api/admin/upload",
+          correlationId,
+        })
+      );
     }
 
     // 4. Sanitizare Nume & Extensie fișier
@@ -129,13 +140,15 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     if (!hasValidImageMagicBytes(buffer, file.type)) {
-      return createProblemResponse({
-        status: 400,
-        title: "Bad Request",
-        detail: "Semnătura binară (Magic Bytes) a fișierului nu corespunde formatului declarat (JPG/PNG/WEBP).",
-        instance: "/api/admin/upload",
-        correlationId,
-      });
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail: "Semnătura binară (Magic Bytes) a fișierului nu corespunde formatului declarat (JPG/PNG/WEBP).",
+          instance: "/api/admin/upload",
+          correlationId,
+        })
+      );
     }
 
     // 6. Eliminare metadate EXIF/GPS/COM pentru JPEG înainte de stocare și încărcare în Supabase Storage
@@ -175,27 +188,31 @@ export async function POST(req: NextRequest) {
       });
 
       if (process.env.NODE_ENV === "production") {
-        return createProblemResponse({
-          status: 503,
-          title: "Service Unavailable",
-          detail: "Serviciul de stocare media Supabase Storage este indisponibil temporar.",
-          instance: "/api/admin/upload",
-          correlationId,
-        });
+        return applyPrivateNoStoreHeaders(
+          createProblemResponse({
+            status: 503,
+            title: "Service Unavailable",
+            detail: "Serviciul de stocare media Supabase Storage este indisponibil temporar.",
+            instance: "/api/admin/upload",
+            correlationId,
+          })
+        );
       }
 
       const base64Data = cleanBytes.toString("base64");
       const dataUrl = `data:${file.type};base64,${base64Data}`;
 
-      return withCorrelationHeader(
-        NextResponse.json({
-          success: true,
-          url: dataUrl,
-          filename: sanitizedFileName,
-          storage: "base64_fallback",
-          message: "Imagine stocată în fallback local de dezvoltare.",
-        }),
-        correlationId
+      return applyPrivateNoStoreHeaders(
+        withCorrelationHeader(
+          NextResponse.json({
+            success: true,
+            url: dataUrl,
+            filename: sanitizedFileName,
+            storage: "base64_fallback",
+            message: "Imagine stocată în fallback local de dezvoltare.",
+          }),
+          correlationId
+        )
       );
     }
 
@@ -204,26 +221,30 @@ export async function POST(req: NextRequest) {
       .from(targetBucket)
       .getPublicUrl(uploadData.path);
 
-    return withCorrelationHeader(
-      NextResponse.json({
-        success: true,
-        url: publicUrlData.publicUrl,
-        filename: sanitizedFileName,
-        storage: "supabase_storage",
-      }),
-      correlationId
+    return applyPrivateNoStoreHeaders(
+      withCorrelationHeader(
+        NextResponse.json({
+          success: true,
+          url: publicUrlData.publicUrl,
+          filename: sanitizedFileName,
+          storage: "supabase_storage",
+        }),
+        correlationId
+      )
     );
   } catch (error) {
     logStructured("error", "admin_image_upload_failed", {
       correlationId,
       error: error instanceof Error ? error.message : "unknown_error",
     });
-    return createProblemResponse({
-      status: 500,
-      title: "Internal Server Error",
-      detail: "A apărut o eroare internă la procesarea imaginii.",
-      instance: "/api/admin/upload",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 500,
+        title: "Internal Server Error",
+        detail: "A apărut o eroare internă la procesarea imaginii.",
+        instance: "/api/admin/upload",
+        correlationId,
+      })
+    );
   }
 }

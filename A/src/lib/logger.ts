@@ -59,7 +59,7 @@ export type ProblemDetailsOptions = {
 export function createProblemResponse(opts: ProblemDetailsOptions): NextResponse {
   const correlationId = opts.correlationId || crypto.randomUUID();
   const body = {
-    type: opts.type || `https://viziuneurbanaploiesti.ro/probs/http-${opts.status}`,
+    type: opts.type || `https://www.viziuneurbanaploiesti.ro/probs/http-${opts.status}`,
     title: opts.title,
     status: opts.status,
     detail: opts.detail,
@@ -76,12 +76,19 @@ export function createProblemResponse(opts: ProblemDetailsOptions): NextResponse
     headers: {
       "Content-Type": "application/problem+json; charset=utf-8",
       "X-Correlation-ID": correlationId,
-      "Cache-Control": "no-store",
+      "Cache-Control": "private, no-store, max-age=0",
     },
   });
 }
 
 export function withCorrelationHeader<T>(res: NextResponse<T>, correlationId: string): NextResponse<T> {
   res.headers.set("X-Correlation-ID", correlationId);
+  return res;
+}
+
+export function applyPrivateNoStoreHeaders<T>(res: NextResponse<T>): NextResponse<T> {
+  res.headers.set("Cache-Control", "private, no-store, max-age=0");
+  res.headers.set("Vary", "Cookie, Authorization");
+  res.headers.set("X-Robots-Tag", "noindex, nofollow");
   return res;
 }

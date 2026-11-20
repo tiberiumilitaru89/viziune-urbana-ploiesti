@@ -99,7 +99,7 @@ export async function POST(req: Request) {
           { label: "Reprezentant Asociație", value: validated.name },
           { label: "Imobil / Bloc", value: validated.building },
           { label: "Adresă Înregistrată", value: validated.address },
-          { label: "Link Urmărire Live", value: `https://viziuneurbanaploiesti.ro/status?q=${dosarNumber}` },
+          { label: "Link Urmărire Live", value: `https://www.viziuneurbanaploiesti.ro/status?q=${dosarNumber}` },
           { label: "Data Înregistrării", value: new Date().toLocaleDateString("ro-RO") },
         ],
       }).catch((err) => console.warn("Eroare trimitere confirmare cetățean:", err));

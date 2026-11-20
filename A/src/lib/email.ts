@@ -117,7 +117,7 @@ export async function sendAdminNotification(payload: EmailNotificationPayload): 
             <div style="margin-top: 24px; padding: 14px; background: #fafaf9; border-radius: 8px; border-left: 4px solid #c48834;">
               <span style="font-size: 12px; color: #57534e; display: block; line-height: 1.5;">
                 Puteți gestiona și actualiza statusul acestei intrări direct din 
-                <a href="https://viziuneurbanaploiesti.ro/admin" style="color: #b45309; font-weight: bold; text-decoration: underline;">Panoul de Administrare</a>.
+                <a href="https://www.viziuneurbanaploiesti.ro/admin" style="color: #b45309; font-weight: bold; text-decoration: underline;">Panoul de Administrare</a>.
                 ${
                   safeApplicantEmail
                     ? `<br /><br /><strong>Notă:</strong> Apăsând „Răspunde” (Reply) la acest email veți trimite mesajul direct solicitantului (${safeApplicantEmail}).`

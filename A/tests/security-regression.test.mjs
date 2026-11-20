@@ -1,9 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import sitemap from "../src/app/sitemap.ts";
 import { encryptPII, decryptPII } from "../src/lib/pii-crypto.ts";
 import { escapeHtml, sanitizeHeader } from "../src/lib/email.ts";
 import { createSessionToken, verifySessionToken } from "../src/lib/auth.ts";
@@ -270,4 +272,207 @@ test("[VUP-SEC-009] Single-hop canonical www redirect and disabled X-Powered-By 
     true,
     "vercel.app host must redirect directly to canonical www domain in a single hop"
   );
+});
+
+test("[VUP-SEC-010] HTTP security headers, __Host- cookie prefix & removed unused anon client", () => {
+  const proxyContent = fs.readFileSync(path.join(projectRoot, "src", "proxy.ts"), "utf8");
+  const nextConfigContent = fs.readFileSync(path.join(projectRoot, "next.config.ts"), "utf8");
+  const supabaseContent = fs.readFileSync(path.join(projectRoot, "src", "lib", "supabase.ts"), "utf8");
+  const authContent = fs.readFileSync(path.join(projectRoot, "src", "lib", "auth.ts"), "utf8");
+
+  for (const requiredToken of [
+    "Cross-Origin-Opener-Policy",
+    "same-origin",
+    "X-XSS-Protection",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+    "X-Robots-Tag",
+    "noindex, nofollow",
+    "private, no-store, max-age=0",
+    "Cookie, Authorization",
+  ]) {
+    assert.equal(
+      proxyContent.includes(requiredToken),
+      true,
+      `src/proxy.ts must enforce ${requiredToken}`
+    );
+  }
+
+  assert.equal(proxyContent.includes("'strict-dynamic'"), false, "CSP must not include 'strict-dynamic'");
+  assert.equal(nextConfigContent.includes("Cross-Origin-Opener-Policy"), true);
+  assert.equal(nextConfigContent.includes("X-XSS-Protection"), true);
+  assert.equal(supabaseContent.includes("export const supabase ="), false, "Unused anon Supabase client must be removed");
+  assert.equal(authContent.includes("__Host-vup_admin_session"), true, "Production session cookie must use __Host- prefix");
+});
+
+test("[VUP-SEC-011] Supabase build-safety without secrets vs. production runtime fail-closed", () => {
+  const harnessScript = `
+    import { registerHooks } from "node:module";
+    import { pathToFileURL } from "node:url";
+    import path from "node:path";
+
+    const projectRoot = process.cwd();
+    registerHooks({
+      resolve(specifier, context, nextResolve) {
+        if (specifier === "../env") {
+          return {
+            shortCircuit: true,
+            url: pathToFileURL(path.join(projectRoot, "src", "env.ts")).href,
+          };
+        }
+        return nextResolve(specifier, context);
+      },
+    });
+
+    const mod = await import(pathToFileURL(path.join(projectRoot, "src", "lib", "supabase.ts")).href);
+    if (!mod.supabaseAdmin) {
+      throw new Error("Missing supabaseAdmin export");
+    }
+    console.log("SUPABASE_INIT_OK");
+  `;
+
+  const minimalEnv = {
+    ...(process.env.PATH ? { PATH: process.env.PATH } : {}),
+    ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
+  };
+
+  const buildResult = spawnSync(
+    process.execPath,
+    ["--experimental-strip-types", "--input-type=module", "-e", harnessScript],
+    {
+      cwd: projectRoot,
+      env: {
+        ...minimalEnv,
+        NODE_ENV: "production",
+        NEXT_PHASE: "phase-production-build",
+      },
+      encoding: "utf8",
+    }
+  );
+  assert.equal(
+    buildResult.status,
+    0,
+    `Next build phase without secrets must not throw. stderr: ${buildResult.stderr}`
+  );
+  assert.equal(buildResult.stdout.includes("SUPABASE_INIT_OK"), true);
+
+  const missingKeyResult = spawnSync(
+    process.execPath,
+    ["--experimental-strip-types", "--input-type=module", "-e", harnessScript],
+    {
+      cwd: projectRoot,
+      env: {
+        ...minimalEnv,
+        NODE_ENV: "production",
+        NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        ADMIN_SECRET: "9f4c8a2e7b1d6f3a5c8e0b2d4f6a8c1e3b5d7f9a1c3e5b7d9f0a2c4e6b8d0f2a",
+        PII_ENCRYPTION_KEY: "3e7a1c5f9b2d4e8a6c0f2b4d6e8a0c2f4b6d8e0a2c4f6b8d0e2a4c6f8b0d2e4a",
+        ADMIN_PASSWORD: "test-password",
+      },
+      encoding: "utf8",
+    }
+  );
+  assert.notEqual(missingKeyResult.status, 0, "Production runtime without SUPABASE_SERVICE_ROLE_KEY must fail closed");
+  assert.equal(
+    missingKeyResult.stderr.includes("SUPABASE_SERVICE_ROLE_KEY"),
+    true,
+    `Expected SUPABASE_SERVICE_ROLE_KEY error, got: ${missingKeyResult.stderr}`
+  );
+
+  const missingUrlResult = spawnSync(
+    process.execPath,
+    ["--experimental-strip-types", "--input-type=module", "-e", harnessScript],
+    {
+      cwd: projectRoot,
+      env: {
+        ...minimalEnv,
+        NODE_ENV: "production",
+        SUPABASE_SERVICE_ROLE_KEY: "service-role-test-key",
+        ADMIN_SECRET: "9f4c8a2e7b1d6f3a5c8e0b2d4f6a8c1e3b5d7f9a1c3e5b7d9f0a2c4e6b8d0f2a",
+        PII_ENCRYPTION_KEY: "3e7a1c5f9b2d4e8a6c0f2b4d6e8a0c2f4b6d8e0a2c4f6b8d0e2a4c6f8b0d2e4a",
+        ADMIN_PASSWORD: "test-password",
+      },
+      encoding: "utf8",
+    }
+  );
+  assert.notEqual(missingUrlResult.status, 0, "Production runtime without NEXT_PUBLIC_SUPABASE_URL must fail closed");
+  assert.equal(
+    missingUrlResult.stderr.includes("NEXT_PUBLIC_SUPABASE_URL"),
+    true,
+    `Expected NEXT_PUBLIC_SUPABASE_URL error, got: ${missingUrlResult.stderr}`
+  );
+});
+
+test("[Modulul 5] SEO Sitemap Hygiene (canonical www URLs only, zero hash/admin/api)", () => {
+  const prevSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  delete process.env.NEXT_PUBLIC_SITE_URL;
+
+  try {
+    const entries = sitemap();
+    assert.equal(Array.isArray(entries) && entries.length >= 1, true, "Sitemap must return entries");
+
+    for (const entry of entries) {
+      assert.equal(
+        entry.url.startsWith("https://www.viziuneurbanaploiesti.ro/"),
+        true,
+        `Sitemap URL must use canonical www host: ${entry.url}`
+      );
+      assert.equal(entry.url.includes("#"), false, `Sitemap URL must not contain #hash: ${entry.url}`);
+      assert.equal(entry.url.includes("/admin"), false, `Sitemap URL must not expose /admin: ${entry.url}`);
+      assert.equal(entry.url.includes("/api"), false, `Sitemap URL must not expose /api: ${entry.url}`);
+    }
+  } finally {
+    if (prevSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+    else process.env.NEXT_PUBLIC_SITE_URL = prevSiteUrl;
+  }
+});
+
+test("[Modulul 5] Server/Client Module Isolation (zero server module imports in 'use client' files)", () => {
+  const srcDir = path.join(projectRoot, "src");
+  const forbiddenImportPatterns = [
+    /@\/lib\/supabase\b/,
+    /@\/lib\/db\b/,
+    /@\/lib\/pii-crypto\b/,
+    /@\/lib\/auth\b/,
+    /@\/lib\/email\b/,
+    /\.\.\/lib\/(?:supabase|db|pii-crypto|auth|email)\b/,
+    /^["'](?:node:)?(?:crypto|fs)["']$/,
+  ];
+
+  function collectSourceFiles(dir) {
+    const out = [];
+    for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, item.name);
+      if (item.isDirectory()) {
+        out.push(...collectSourceFiles(fullPath));
+      } else if (item.isFile() && /\.(?:ts|tsx)$/.test(item.name)) {
+        out.push(fullPath);
+      }
+    }
+    return out;
+  }
+
+  let clientFilesChecked = 0;
+  for (const filePath of collectSourceFiles(srcDir)) {
+    const content = fs.readFileSync(filePath, "utf8");
+    const isClientFile = /^\s*(?:\/\/[^\n]*\n|\/\*[\s\S]*?\*\/\s*)*["']use client["']/.test(content);
+    if (!isClientFile) continue;
+
+    clientFilesChecked += 1;
+    const importRegex = /(?:from\s+|import\s*\(|require\s*\()\s*["']([^"']+)["']/g;
+    let match;
+    while ((match = importRegex.exec(content)) !== null) {
+      const specifier = match[1];
+      const quotedSpecifier = `"${specifier}"`;
+      for (const forbidden of forbiddenImportPatterns) {
+        assert.equal(
+          forbidden.test(specifier) || forbidden.test(quotedSpecifier),
+          false,
+          `Client component ${path.relative(projectRoot, filePath)} must not import server module "${specifier}"`
+        );
+      }
+    }
+  }
+
+  assert.equal(clientFilesChecked > 0, true, "Expected at least one 'use client' file in src/");
 });

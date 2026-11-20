@@ -15,6 +15,7 @@ import {
 } from "@/lib/db";
 import { invalidatePublicDataServerCache } from "@/lib/publicServerCache";
 import {
+  applyPrivateNoStoreHeaders,
   createProblemResponse,
   getCorrelationId,
   logStructured,
@@ -52,13 +53,15 @@ export async function GET(req: Request) {
 
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Doar administratorul autentificat poate citi formularele 230
   if (!isRequestAuthenticated(req)) {
-    return createProblemResponse({
-      status: 401,
-      title: "Unauthorized",
-      detail: "Acces neautorizat la registrul Formulare 230.",
-      instance: "/api/formular-230",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 401,
+        title: "Unauthorized",
+        detail: "Acces neautorizat la registrul Formulare 230.",
+        instance: "/api/formular-230",
+        correlationId,
+      })
+    );
   }
 
   try {
@@ -70,27 +73,31 @@ export async function GET(req: Request) {
       fetchFormulare230(includeArchived),
     ]);
 
-    return withCorrelationHeader(
-      NextResponse.json({
-        success: true,
-        config,
-        totalCount: forms.length,
-        forms,
-      }),
-      correlationId
+    return applyPrivateNoStoreHeaders(
+      withCorrelationHeader(
+        NextResponse.json({
+          success: true,
+          config,
+          totalCount: forms.length,
+          forms,
+        }),
+        correlationId
+      )
     );
   } catch (err) {
     logStructured("error", "formular_230_get_failed", {
       correlationId,
       error: err instanceof Error ? err.message : "unknown_error",
     });
-    return createProblemResponse({
-      status: 500,
-      title: "Internal Server Error",
-      detail: "Eroare la încărcarea datelor formularului 230",
-      instance: "/api/formular-230",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 500,
+        title: "Internal Server Error",
+        detail: "Eroare la încărcarea datelor formularului 230",
+        instance: "/api/formular-230",
+        correlationId,
+      })
+    );
   }
 }
 
@@ -254,24 +261,28 @@ export async function PUT(req: Request) {
 
   const originCheck = verifySameOriginRequest(req);
   if (!originCheck.allowed) {
-    return createProblemResponse({
-      status: 403,
-      title: "Forbidden",
-      detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
-      instance: "/api/formular-230",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 403,
+        title: "Forbidden",
+        detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
+        instance: "/api/formular-230",
+        correlationId,
+      })
+    );
   }
 
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Doar administratorul autentificat poate modifica stări sau setări
   if (!isRequestAuthenticated(req)) {
-    return createProblemResponse({
-      status: 401,
-      title: "Unauthorized",
-      detail: "Acces neautorizat la operațiunile de administrare.",
-      instance: "/api/formular-230",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 401,
+        title: "Unauthorized",
+        detail: "Acces neautorizat la operațiunile de administrare.",
+        instance: "/api/formular-230",
+        correlationId,
+      })
+    );
   }
 
   try {
@@ -280,46 +291,58 @@ export async function PUT(req: Request) {
     if (body.action === "update_status") {
       const { id, status } = body;
       if (!id || !["inregistrat", "validat", "depus_anaf"].includes(status)) {
-        return createProblemResponse({
-          status: 400,
-          title: "Bad Request",
-          detail: "Parametri invalizi",
-          instance: "/api/formular-230",
-          correlationId,
-        });
+        return applyPrivateNoStoreHeaders(
+          createProblemResponse({
+            status: 400,
+            title: "Bad Request",
+            detail: "Parametri invalizi",
+            instance: "/api/formular-230",
+            correlationId,
+          })
+        );
       }
       const updated = await updateFormular230StatusDb(id, status);
-      return withCorrelationHeader(NextResponse.json({ success: updated }), correlationId);
+      return applyPrivateNoStoreHeaders(
+        withCorrelationHeader(NextResponse.json({ success: updated }), correlationId)
+      );
     }
 
     if (body.action === "archive") {
       const { id } = body;
       if (!id) {
-        return createProblemResponse({
-          status: 400,
-          title: "Bad Request",
-          detail: "Lipsește ID-ul",
-          instance: "/api/formular-230",
-          correlationId,
-        });
+        return applyPrivateNoStoreHeaders(
+          createProblemResponse({
+            status: 400,
+            title: "Bad Request",
+            detail: "Lipsește ID-ul",
+            instance: "/api/formular-230",
+            correlationId,
+          })
+        );
       }
       const archived = await archiveFormular230(id);
-      return withCorrelationHeader(NextResponse.json({ success: archived }), correlationId);
+      return applyPrivateNoStoreHeaders(
+        withCorrelationHeader(NextResponse.json({ success: archived }), correlationId)
+      );
     }
 
     if (body.action === "hard_delete") {
       const { id } = body;
       if (!id) {
-        return createProblemResponse({
-          status: 400,
-          title: "Bad Request",
-          detail: "Lipsește ID-ul",
-          instance: "/api/formular-230",
-          correlationId,
-        });
+        return applyPrivateNoStoreHeaders(
+          createProblemResponse({
+            status: 400,
+            title: "Bad Request",
+            detail: "Lipsește ID-ul",
+            instance: "/api/formular-230",
+            correlationId,
+          })
+        );
       }
       const deleted = await hardDeleteFormular230(id);
-      return withCorrelationHeader(NextResponse.json({ success: deleted }), correlationId);
+      return applyPrivateNoStoreHeaders(
+        withCorrelationHeader(NextResponse.json({ success: deleted }), correlationId)
+      );
     }
 
     if (body.action === "update_config") {
@@ -336,27 +359,33 @@ export async function PUT(req: Request) {
       if (updated) {
         invalidatePublicDataServerCache();
       }
-      return withCorrelationHeader(NextResponse.json({ success: updated }), correlationId);
+      return applyPrivateNoStoreHeaders(
+        withCorrelationHeader(NextResponse.json({ success: updated }), correlationId)
+      );
     }
 
-    return createProblemResponse({
-      status: 400,
-      title: "Bad Request",
-      detail: "Acțiune necunoscută",
-      instance: "/api/formular-230",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 400,
+        title: "Bad Request",
+        detail: "Acțiune necunoscută",
+        instance: "/api/formular-230",
+        correlationId,
+      })
+    );
   } catch (err) {
     logStructured("error", "formular_230_put_error", {
       correlationId,
       error: err instanceof Error ? err.message : "unknown_error",
     });
-    return createProblemResponse({
-      status: 500,
-      title: "Internal Server Error",
-      detail: "Eroare la procesarea cererii administrative",
-      instance: "/api/formular-230",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 500,
+        title: "Internal Server Error",
+        detail: "Eroare la procesarea cererii administrative",
+        instance: "/api/formular-230",
+        correlationId,
+      })
+    );
   }
 }

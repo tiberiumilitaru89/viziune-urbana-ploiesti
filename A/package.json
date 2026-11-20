@@ -6,7 +6,7 @@
     "dev": "next dev -p 3005",
     "build": "next build",
     "start": "next start -p 3005",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "test": "node --experimental-strip-types --test tests/security-regression.test.mjs",
     "gatekeeper": "tsc --noEmit --incremental false && npm run lint && npm test"
   },

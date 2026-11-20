@@ -30,6 +30,7 @@ import {
   deleteStorageFile,
 } from "@/lib/db";
 import {
+  applyPrivateNoStoreHeaders,
   createProblemResponse,
   getCorrelationId,
   logStructured,
@@ -41,13 +42,15 @@ export async function GET(req: Request) {
 
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Verificare sesiune admin
   if (!isRequestAuthenticated(req)) {
-    return createProblemResponse({
-      status: 401,
-      title: "Unauthorized",
-      detail: "Acces neautorizat. Sesiune administrativă invalidă sau expirată.",
-      instance: "/api/admin/data",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 401,
+        title: "Unauthorized",
+        detail: "Acces neautorizat. Sesiune administrativă invalidă sau expirată.",
+        instance: "/api/admin/data",
+        correlationId,
+      })
+    );
   }
 
   try {
@@ -64,33 +67,37 @@ export async function GET(req: Request) {
       fetchDonations(),
     ]);
 
-    return withCorrelationHeader(
-      NextResponse.json({
-        success: true,
-        data: {
-          associations,
-          partners,
-          projects,
-          metrics,
-          ongConfig,
-          partnerApplications,
-          donations,
-        },
-      }),
-      correlationId
+    return applyPrivateNoStoreHeaders(
+      withCorrelationHeader(
+        NextResponse.json({
+          success: true,
+          data: {
+            associations,
+            partners,
+            projects,
+            metrics,
+            ongConfig,
+            partnerApplications,
+            donations,
+          },
+        }),
+        correlationId
+      )
     );
   } catch (err) {
     logStructured("error", "admin_data_get_failed", {
       correlationId,
       error: err instanceof Error ? err.message : "unknown_error",
     });
-    return createProblemResponse({
-      status: 500,
-      title: "Internal Server Error",
-      detail: "Eroare la încărcarea datelor din baza de date",
-      instance: "/api/admin/data",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 500,
+        title: "Internal Server Error",
+        detail: "Eroare la încărcarea datelor din baza de date",
+        instance: "/api/admin/data",
+        correlationId,
+      })
+    );
   }
 }
 
@@ -184,24 +191,28 @@ export async function POST(req: Request) {
 
   const originCheck = verifySameOriginRequest(req);
   if (!originCheck.allowed) {
-    return createProblemResponse({
-      status: 403,
-      title: "Forbidden",
-      detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
-      instance: "/api/admin/data",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 403,
+        title: "Forbidden",
+        detail: "Cerere respinsă: origine invalidă (protecție CSRF).",
+        instance: "/api/admin/data",
+        correlationId,
+      })
+    );
   }
 
   // BARIERĂ INVIOLABILĂ DE SECURITATE: Verificare sesiune admin
   if (!isRequestAuthenticated(req)) {
-    return createProblemResponse({
-      status: 401,
-      title: "Unauthorized",
-      detail: "Acces neautorizat. Sesiune administrativă invalidă sau expirată.",
-      instance: "/api/admin/data",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 401,
+        title: "Unauthorized",
+        detail: "Acces neautorizat. Sesiune administrativă invalidă sau expirată.",
+        instance: "/api/admin/data",
+        correlationId,
+      })
+    );
   }
 
   try {
@@ -209,13 +220,15 @@ export async function POST(req: Request) {
     const { action, payload } = body;
 
     if (!action || !payload) {
-      return createProblemResponse({
-        status: 400,
-        title: "Bad Request",
-        detail: "Date incomplete",
-        instance: "/api/admin/data",
-        correlationId,
-      });
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Bad Request",
+          detail: "Date incomplete",
+          instance: "/api/admin/data",
+          correlationId,
+        })
+      );
     }
 
     let success = false;
@@ -309,40 +322,48 @@ export async function POST(req: Request) {
         break;
       }
       default:
-        return createProblemResponse({
-          status: 400,
-          title: "Bad Request",
-          detail: "Acțiune necunoscută",
-          instance: "/api/admin/data",
-          correlationId,
-        });
+        return applyPrivateNoStoreHeaders(
+          createProblemResponse({
+            status: 400,
+            title: "Bad Request",
+            detail: "Acțiune necunoscută",
+            instance: "/api/admin/data",
+            correlationId,
+          })
+        );
     }
 
     if (success) {
       invalidatePublicDataServerCache();
     }
 
-    return withCorrelationHeader(NextResponse.json({ success }), correlationId);
+    return applyPrivateNoStoreHeaders(
+      withCorrelationHeader(NextResponse.json({ success }), correlationId)
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return createProblemResponse({
-        status: 400,
-        title: "Validation Error",
-        detail: `Validare eșuată: ${error.issues.map((e) => e.message).join(", ")}`,
-        instance: "/api/admin/data",
-        correlationId,
-      });
+      return applyPrivateNoStoreHeaders(
+        createProblemResponse({
+          status: 400,
+          title: "Validation Error",
+          detail: `Validare eșuată: ${error.issues.map((e) => e.message).join(", ")}`,
+          instance: "/api/admin/data",
+          correlationId,
+        })
+      );
     }
     logStructured("error", "admin_data_post_failed", {
       correlationId,
       error: error instanceof Error ? error.message : "unknown_error",
     });
-    return createProblemResponse({
-      status: 500,
-      title: "Internal Server Error",
-      detail: "Eroare la procesarea cererii administrative",
-      instance: "/api/admin/data",
-      correlationId,
-    });
+    return applyPrivateNoStoreHeaders(
+      createProblemResponse({
+        status: 500,
+        title: "Internal Server Error",
+        detail: "Eroare la procesarea cererii administrative",
+        instance: "/api/admin/data",
+        correlationId,
+      })
+    );
   }
 }

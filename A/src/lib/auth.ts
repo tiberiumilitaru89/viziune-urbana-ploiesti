@@ -1,6 +1,10 @@
 import crypto from "crypto";
 
-export const SESSION_COOKIE_NAME = "vup_admin_session";
+export const LEGACY_SESSION_COOKIE_NAME = "vup_admin_session";
+export const SESSION_COOKIE_NAME =
+  process.env.NODE_ENV === "production"
+    ? "__Host-vup_admin_session"
+    : LEGACY_SESSION_COOKIE_NAME;
 export const SESSION_DURATION_SECONDS = 8 * 60 * 60; // 8 ore
 export const SESSION_DURATION_MS = SESSION_DURATION_SECONDS * 1000;
 

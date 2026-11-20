@@ -116,7 +116,7 @@ export default function CookiesPage() {
                 </thead>
                 <tbody className="divide-y divide-amber-900/10 text-slate-700 font-sans">
                   <tr>
-                    <td className="p-3 font-mono font-bold text-amber-900">vup_admin_session</td>
+                    <td className="p-3 font-mono font-bold text-amber-900">__Host-vup_admin_session</td>
                     <td className="p-3">
                       <strong>Strict Necesar:</strong> Token de sesiune criptat HMAC-SHA256 utilizat exclusiv pentru autentificarea administratorilor asociației în panoul securizat <code className="bg-slate-100 px-1 rounded font-mono">/admin</code>.
                     </td>
