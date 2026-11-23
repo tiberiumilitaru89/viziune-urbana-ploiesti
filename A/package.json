@@ -11,7 +11,7 @@
     "gatekeeper": "tsc --noEmit --incremental false && npm run lint && npm test"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.119.0",
+    "@supabase/supabase-js": "2.119.2",
     "clsx": "2.1.1",
     "lucide-react": "1.48.0",
     "next": "16.4.6",
